@@ -1,7 +1,7 @@
 from ij.io import DirectoryChooser
 import ij.ImageStack
 from ij import IJ, ImagePlus
-import glob
+import os
 import time
 
 # Choose a directory containing the data
