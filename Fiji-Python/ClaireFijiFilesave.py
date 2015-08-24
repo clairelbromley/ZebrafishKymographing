@@ -47,7 +47,7 @@ for folder in folders:
 			#print(ip)
 			imStack.addSlice(filename, ip)
 
-		newFileName = "Embryo %s, cut at %1.2f s.tif" % (embryoNumber, (float(cutIndex) * 0.2))
+		newFileName = "%s_E%sC%d.tif" % (date, embryoNumber, cutIndices.index(cutIndex))
 		newImp = ImagePlus(newFileName, imStack)
 		newImp.show()
 		IJ.log('Saving data to ' + os.path.join(outputDir, newFileName))
@@ -65,7 +65,7 @@ for folder in folders:
 		ip = imp.getProcessor()
 		imStack.addSlice(image, ip)
 
-	newFileName = "Embryo %s complete data.tif" %embryoNumber
+	newFileName = "%s_E%s complete data.tif" % (date, embryoNumber)
 	newImp = ImagePlus(newFileName, imStack)
 	newImp.show()
 	IJ.log('Saving data to ' + os.path.join(outputDir, newFileName))
