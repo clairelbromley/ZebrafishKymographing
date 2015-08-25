@@ -10,6 +10,12 @@ srcDir = dc.getDirectory()
 print(srcDir)
 IJ.log('Root directory: ' + srcDir)
 
+# Prepare output directories...
+nowStr = time.strftime('%Y-%m-%d %H%M%S')
+outputDir = os.path.join(srcDir, nowStr+ " results")
+if not os.path.exists(outputDir):
+	os.makedirs(outputDir)
+
 # Loop through embryo sample directories, taking note of date and embryo number
 folders=[f for f in os.listdir(srcDir)
 	if os.path.isdir(os.path.join(srcDir,f)) and not (f.endswith('results'))]
@@ -29,12 +35,6 @@ for folder in folders:
 
 	print(cutIndices)
 
-	# Prepare output directories...
-	nowStr = time.strftime('%Y-%m-%d %H%M%S')
-	outputDir = os.path.join(srcDir, nowStr+ " results")
-	if not os.path.exists(outputDir):
-		os.makedirs(outputDir)
-
 	# Load frames from cutIndex - 1 to cutIndex + 20, and save as stacks
 	for cutIndex in cutIndices:
 		IJ.log('Working on short time course around cut at frame ' + str(cutIndex))
@@ -47,7 +47,7 @@ for folder in folders:
 			#print(ip)
 			imStack.addSlice(filename, ip)
 
-		newFileName = "%s_E%sC%d.tif" % (date, embryoNumber, cutIndices.index(cutIndex))
+		newFileName = "%s_E%sC%d.tif" % (date, embryoNumber, 1+cutIndices.index(cutIndex))
 		newImp = ImagePlus(newFileName, imStack)
 		newImp.show()
 		IJ.log('Saving data to ' + os.path.join(outputDir, newFileName))
