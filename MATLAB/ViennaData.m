@@ -33,6 +33,15 @@ for ind = 1:length(f)
    % the midline, taking the maximal intensity over a ?9 pixel? region
    % perpendicular to the kymograph axis to account for membrane movement
    % parallel to the cut. Try performing this for all positions along the
+   % cut axis (beyond the start and end of the cut position) and output to
+   % a TIFF stack, then allowing the user to choose the best kymographs at
+   % various positions. Record these positions. 
+   
+   % From kymographs, we need to extract speed data - average speed?
+   % Fitting a line would be easiest? 
+   
+   % OUTPUT: a figure with the kymograph axes plotted relative the the
+   % original data (first frame?) and multiple kymographs. 
    
    % save resulting image
     if ind == 1
