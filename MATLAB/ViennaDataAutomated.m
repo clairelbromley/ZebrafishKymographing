@@ -10,8 +10,8 @@ cut_theta = atan( ( ycut(2)-ycut(1) )/( xcut(2) - xcut(1) ) );
 
 % generate maximum intensity kymographs - USE IMPROFILE!!!
 kym_line_len = 50;
-kym_line_width = 41;
-num_kyms = 41;
+kym_line_width = 9;
+num_kyms = 11;
 
 kym_startx = xcut(1) + (0:num_kyms-1)*(xcut(2)-xcut(1))/num_kyms;
 kym_starty = ycut(1) + (0:num_kyms-1)*(ycut(2)-ycut(1))/num_kyms;
@@ -36,38 +36,31 @@ for ind=1:length(f)
         colormap gray
         axis equal tight
         h_cutline = line(xcut, ycut, 'LineStyle', '--', 'Color', 'w', 'LineWidth', 3);
-        line([kym_startx; kym_endx], [kym_starty; kym_endy], 'Color', 'r')
+        line([kym_startx; kym_endx], [kym_starty; kym_endy], 'Color', 'b')
         
     end
     
     for kpos = 1:num_kyms
         
-%         disp('kpos = ')
-%         disp(kpos)
-%         l = sqrt( (kym_endx(kpos) - kym_startx(kpos))^2 + (kym_endy(kpos) - kym_starty(kpos))^2 )
-        
-        
         if (ind == length(f))
-%         if (kpos == num_kyms ) && (ind == length(f))
-        
-%             fig = figure;
-%             set(fig, 'usehg2', 'on')
-%             get(fig, 'usehg2')
-            
             
             for subkpos = 0:kym_line_width-1
        
                 shift = -(kym_line_width-1)/2 + subkpos;
-                xshift = -shift*sin(cut_theta);
-                yshift = shift*cos(cut_theta);
+                xshift = shift*cos(cut_theta);
+                yshift = shift*sin(cut_theta);
                 subk_x = round([kym_startx(kpos); kym_endx(kpos)] + xshift);
                 subk_y = round([kym_starty(kpos); kym_endy(kpos)] + yshift);   
                 a = improfile(im, subk_x, subk_y);
-%                 line(subk_x, subk_y, 'Color', [1 0 0], 'LineWidth', 1)
+                
+                if (kpos == num_kyms ) && (ind == length(f))
+                    line(subk_x, subk_y, 'Color', [1 0 0], 'LineWidth', 1)
+                    l = sqrt( (subk_x(1) - subk_x(2))^2 + (subk_y(1) - subk_y(2))^2 )
+                    
+                end
                 
                 % opacity supported in 2014b and later??
                 %                 line(subk_x, subk_y, 'Color', [1 0 0 0.5], 'LineWidth', 3)
-                
 
             end
             
