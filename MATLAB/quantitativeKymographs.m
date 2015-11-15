@@ -1,5 +1,5 @@
 %% TO GET QUANTITATIVE DATA FROM KYMOGRAPHS
-num_kyms = 10;
+num_kyms = 11;
 results = [];
 for kpos = 1:num_kyms
     result.kym_number = kpos;
@@ -13,13 +13,14 @@ for kpos = 1:num_kyms
     subplot(1,4,1);
     imagesc(kym_segment);
     axis equal tight;
-    subplot(1,4,2);
-    imagesc(filt_kym); 
-    axis equal tight; 
+%     subplot(1,4,2);
+%     imagesc(filt_kym); 
+%     axis equal tight; 
     colormap gray;
-    subplot(1,4,3);
+%     subplot(1,4,3);
     l = bwlabel(filt_kym);
-    imagesc(l);
+%     imagesc(l);
+%     axis equal tight;
     r = regionprops(filt_kym);
     % Sort regions by y position (centroid)
     dpos = [];
@@ -36,7 +37,7 @@ for kpos = 1:num_kyms
     i = 1;
     while (found == false)
         
-        if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.8)
+        if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.7)
             found = true;
         else
             i=i+1;
@@ -46,6 +47,8 @@ for kpos = 1:num_kyms
             found = true;
         end
     end
+    
+    correct_membrane = zeros(size(l));
     if (i < length(dpos))
         % Identify only the highest edge - perform loop through each column
         % and choose the first pixel:
@@ -54,18 +57,18 @@ for kpos = 1:num_kyms
         t = []; d = [];
         correct_membrane = (l == I(i));
         
-        for tind = 1:size(correct_membrane,1)
+        for tind = 1:size(correct_membrane,2)
             point_sel = false;
-            tind
-            for dind = 1:size(correct_membrane,2)
+            for dind = 1:size(correct_membrane,1)
+                tind
                 dind
-                if (not(point_sel)) && ( correct_membrane(tind, dind) > 0 )
+                if (not(point_sel)) && ( correct_membrane(dind, tind) > 0 )
                         point_sel = true;
-                        correct_membrane(tind, dind) = 1;
+                        correct_membrane(dind, tind) = 1;
                         t = [t; tind];
                         d = [d; dind];
                 else
-                    correct_membrane(tind, dind) = 0;
+                    correct_membrane(dind, tind) = 0;
                 end
            
             end
@@ -73,17 +76,30 @@ for kpos = 1:num_kyms
         end
         result.t = t;
         result.d = d;
-    end
-    subplot(1,4,4);
-    imagesc(correct_membrane);
-    
-    results = [results; result];
+        result.correct_membrane = correct_membrane;
+        subplot(1,3,2);
+        imagesc(correct_membrane);
+        axis equal tight;
 
 % - fit curve to this data (first order is a straight line, goodness of fit
 % tells us how linear motion actually is, discuss with supervisors what
 % alternative models to fit)
+%         linfit = fittype('poly1');
+        fres = fit(t, d, 'poly1');
+        result.fit_results = fres;
+        subplot(1,3,3);
+        scatter(t,d);
+        hold on
+        plot(t, fres.p1*t + fres.p2);
+        hold off
+        axis equal tight
 % - convert to um/second
-
+        result.speed = fres.p1 * umperpixel * framespersecond;
+    
+        
+    end
+        
+    results = [results; result];
 
 end
 % OUTPUT FOR SUPERVISORS:
