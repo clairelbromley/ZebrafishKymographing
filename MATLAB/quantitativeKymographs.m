@@ -2,6 +2,9 @@
 num_kyms = 11;
 results = [];
 for kpos = 1:num_kyms
+    if kpos == 10
+        disp('Break...')
+    end
     result.kym_number = kpos;
 % - trim kymograph - initially first 20 frames (=4 seconds)
     kym_segment = squeeze(avg_kym_stack(144:164,:,kpos))';
