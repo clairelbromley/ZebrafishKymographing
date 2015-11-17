@@ -98,14 +98,14 @@ for kpos = 1:num_kyms
         axis equal tight
 % - convert to um/second
         result.speed = fres.p1 * umperpixel * framespersecond;
-    
+    %TODO: overlay line automatically on kymographs
         
     end
         
     results = [results; result];
 
 end
-% OUTPUT FOR SUPERVISORS:
+% TODO: plot speeds for all kymographs along cut in a scatter graph. 
 % 
 
 % h_kymline = line([kym_startx(1); kym_endx(1)], [kym_starty(1); kym_endy(1)], 'Color', 'r', 'LineWidth', 3);

@@ -1,6 +1,10 @@
 % import image, perform median filter, threshold, , subtraction, erosion
 % and dilation...
 %TODO: do preprocessing in Matlab
+%TODO: increase speed (? check in profiling) by removing improfile which is time-hungry, and
+%instead cutting out a region of the plot around the cut, rotating it, and
+%taking straight kymographs straight from the resulting array without any
+%need to interpolate in improfile
 %TODO: DON'T CUT OUT "CUT" frames because this leads to misleading
 %kymographs; instead, set cut frames to zero so that it's obvious that time
 %is passing but something is going on. Can do this from metadata (round
