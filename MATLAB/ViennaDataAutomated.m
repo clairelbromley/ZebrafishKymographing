@@ -11,6 +11,7 @@
 % import dimension metadata
 framespersecond = 5;
 umperpixel = 0.218;
+scalebarum = 10;
 
 % import cut position from metadata - add offset??
 xoffset = -20;
@@ -60,6 +61,13 @@ for ind=1:length(f)
         axis equal tight
         h_cutline = line(xcut, ycut, 'LineStyle', '--', 'Color', 'w', 'LineWidth', 3);
         line([kym_startx; kym_endx], [kym_starty; kym_endy], 'Color', 'b')
+        scx = [500-scalebarum/umperpixel 500];
+        scy = 500;
+        scline = line(xsc, ysc, 'Color', 'w', 'LineWidth', 3);
+        scstr = [num2str(scalebarum) ' \mu m'];
+        sctxt = text(scx(1), 485, scstr);
+        set(sctxt, 'Color', 'w');
+        set(sctxt, 'FontSize', 14);
         
     end
     
@@ -105,12 +113,16 @@ end
 
 for kpos = 1:num_kyms
     
+    xt = (1/framespersecond)*((-143:size(avg_kym_stack,1)-143));
+    yt = umperpixel*(1:size(avg_kym_stack,2));
     subplot(num_kyms, 3, kpos*3 - 1)
-    imagesc(squeeze(max_kym_stack(:,:,kpos))');
+    imagesc(xt, yt, squeeze(max_kym_stack(:,:,kpos))');
     axis equal tight;
     subplot(num_kyms, 3, kpos*3);
-    imagesc(squeeze(avg_kym_stack(:,:,kpos))');
+    imagesc(xt, yt, squeeze(avg_kym_stack(:,:,kpos))');
     axis equal tight;
+    xlabel('Time relative to cut, s')
+    ylabel('Position relative to cut, \mum')
 %     colormap jet
     
 end

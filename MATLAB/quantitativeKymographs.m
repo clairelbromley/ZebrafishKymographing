@@ -1,5 +1,5 @@
 %% TO GET QUANTITATIVE DATA FROM KYMOGRAPHS
-num_kyms = 11;
+% num_kyms = 11;
 results = [];
 for kpos = 1:num_kyms
     if kpos == 10
@@ -40,7 +40,7 @@ for kpos = 1:num_kyms
     i = 1;
     while (found == false)
         
-        if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.7)
+        if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.8)
             found = true;
         else
             i=i+1;
