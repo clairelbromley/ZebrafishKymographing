@@ -87,6 +87,8 @@ for kpos = 1:num_kyms
 % - fit curve to this data (first order is a straight line, goodness of fit
 % tells us how linear motion actually is, discuss with supervisors what
 % alternative models to fit)
+% Probably want to fit (or at least mention) an overdamped oscillator: 
+% https://en.wikipedia.org/wiki/Damping
 %         linfit = fittype('poly1');
         fres = fit(t, d, 'poly1');
         result.fit_results = fres;
