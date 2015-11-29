@@ -30,24 +30,24 @@ function output = kymographBase(root)
                - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
                + B/curr_metadata.acqMetadata.cycleTime); 
            stack = zeros(512,512,length(frames));
+           
            %% Block out frames with scattered light from cut
            block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
            ind = 1;
-           for frame_ind = frames(1):frames(end)
-               frame_ind
-               test = frame_ind - curr_metadata.cutFrame
-    
-               cond1 = test < block_frames+1
-               cond2 = frame_ind - curr_metadata.cutFrame > 0
+           for frame_ind = frames(1):frames(end)               
+               test = frame_ind - curr_metadata.cutFrame;
+               cond1 = test < block_frames+1;
+               cond2 = frame_ind - curr_metadata.cutFrame > 0;
                if ~(cond1 && cond2)
                     stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
                end
                ind = ind+1;
            end
-           output.stack = stack;
 
-           % Pre-process images in stack
-           %images = kymographPreprocessing(stack, curr_metadata);
+            output.stack = [output.stack; stack];
+           
+           %% Pre-process images in stack
+           %output.stack = kymographPreprocessing(stack, curr_metadata);
            
        end
         
