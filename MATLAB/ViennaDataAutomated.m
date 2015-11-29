@@ -39,6 +39,7 @@ kym_endx = kym_startx + deltax;
 kym_endy = kym_starty + deltay;
 
 data_path = 'C:\Users\Doug\Google Drive\DOug- cuts\Eroded 50 pixel MEDIAN THRESHOLDED Frames 30-172 without frames 144-146 of 240815_E9 complete data.tif';
+% data_path = 'C:\Users\Doug\Google Drive\DOug- cuts\Frames 30-172 without frames 144-146 of 240815_E9 complete data.tif';
 
 f = imfinfo(data_path);
 w = f(1).Width;
@@ -67,7 +68,7 @@ for ind=1:length(f)
         line([kym_startx; kym_endx], [kym_starty; kym_endy], 'Color', 'b')
         scx = [500-scalebarum/umperpixel 500];
         scy = 500;
-        scline = line(xsc, ysc, 'Color', 'w', 'LineWidth', 3);
+        scline = line(scx, scy, 'Color', 'w', 'LineWidth', 3);
         scstr = [num2str(scalebarum) ' \mu m'];
         sctxt = text(scx(1), 485, scstr);
         set(sctxt, 'Color', 'w');

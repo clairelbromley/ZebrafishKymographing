@@ -4,17 +4,6 @@ function imageStack = kymographPreprocessing(imageStack, metadata)
 
 % See also quantitativeKymographs
 
-%% -------------------------------------------------------------------
-% Remove frames in which scattered light from cut is a problem, based on
-% metadata. 
-% -------------------------------------------------------------------%%
-for ind = 1:ceil(metadata.cutDuration/metadata.frameDuration)
-   
-    imageStack(:,:,ind+metadata.cutStartFrame) = zeros(size(squeeze(imageStack(:,:,1))));
-    
-end
-
-
 for ind = 1:size(imageStack, 3)
     image = squeeze(imageStack(:,:,ind));
     %% -------------------------------------------------------------------

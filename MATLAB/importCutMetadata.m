@@ -54,3 +54,4 @@ fclose(fileID);
 %% Create output variable
 dataArray(2) = cellfun(@(x) num2cell(x), dataArray(2), 'UniformOutput', false);
 cutMetadata = [dataArray{1:end-1}];
+cutMetadata = cell2struct(cutMetadata(:,2), cutMetadata(:,1),1);

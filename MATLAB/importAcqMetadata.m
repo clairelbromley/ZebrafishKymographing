@@ -54,3 +54,4 @@ fclose(fileID);
 %% Create output variable
 dataArray(2) = cellfun(@(x) num2cell(x), dataArray(2), 'UniformOutput', false);
 acqupara = [dataArray{1:end-1}];
+acqupara = cell2struct(acqupara(:,2), acqupara(:,1), 1);
