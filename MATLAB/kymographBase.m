@@ -3,6 +3,19 @@ function output = kymographBase(root)
 % argument and performs all steps for generation of quantitative kymograph
 % data. 
 
+    %% User variables for setting up kymographs
+    userOptions.number_kym = 10;                 % Number of kymographs calculated per cut
+    userOptions.cut_size_multiplier = 1.5;      % Multiplier to set how far beyond length of cut
+                                                % kymographs should be spaced
+    userOptions.kym_width = 9;                  % Width of region kymograph calculated over, pix
+    userOptions.kym_length = 50;                % Length of region kymograph calculated over, pix
+    userOptions.scale_bar_length = 20;          % Length of scale bar in images, um
+    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
+    userOptions.saveFirstFrameFigure = true;    % Save first figure?
+
+    output.userOptions = userOptions;
+    
+    %%
     output.metadata = [];
     output.stack = [];
 
@@ -20,6 +33,7 @@ function output = kymographBase(root)
        
        for cut_ind = 0:num_cuts-1
           
+           %% Get metadata for current cut
            curr_metadata = getMetadata(curr_path, cut_ind);
            output.metadata = [output.metadata; curr_metadata];
            
@@ -44,10 +58,15 @@ function output = kymographBase(root)
                ind = ind+1;
            end
 
-            output.stack = [output.stack; stack];
+            %output.stack = [output.stack; stack];
            
+            %% Find position of cut, and generate first output figure: 
+            %   the first frame of the stack with cut line and kymograph
+            %   lines overlaid, along with a scale bar. 
+            kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+            
            %% Pre-process images in stack
-           %output.stack = kymographPreprocessing(stack, curr_metadata);
+           %stack = kymographPreprocessing(stack, curr_metadata);
            
        end
         
