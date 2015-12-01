@@ -14,6 +14,7 @@ if (uO.saveFirstFrameFigure)
     %% Plot figure with first frame
     title_txt = sprintf('%d, Embryo %d, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
+    title_txt = [title_txt uO.firstFigureTitleAppend];
     
     h = figure('Name', title_txt,'NumberTitle','off');
     

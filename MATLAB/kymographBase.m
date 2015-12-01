@@ -4,14 +4,17 @@ function output = kymographBase(root)
 % data. 
 
     %% User variables for setting up kymographs
-    userOptions.number_kym = 10;                 % Number of kymographs calculated per cut
-    userOptions.cut_size_multiplier = 1.5;      % Multiplier to set how far beyond length of cut
-                                                % kymographs should be spaced
-    userOptions.kym_width = 9;                  % Width of region kymograph calculated over, pix
-    userOptions.kym_length = 50;                % Length of region kymograph calculated over, pix
-    userOptions.scale_bar_length = 20;          % Length of scale bar in images, um
+    userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start
+    userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end
+    userOptions.number_kym = 10;                    % Number of kymographs calculated per cut
+    userOptions.cut_size_multiplier = 1.5;          % Multiplier to set how far beyond length of cut
+                                                    % kymographs should be spaced
+    userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix
+    userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix
+    userOptions.scale_bar_length = 20;              % Length of scale bar in images, um
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
-    userOptions.saveFirstFrameFigure = true;    % Save first figure?
+    userOptions.saveFirstFrameFigure = true;        % Save first figure?
+    userOptions.firstFigureTitleAppend = '' ;        % Text to append to the title of the first figure
 
     output.userOptions = userOptions;
     
@@ -38,8 +41,8 @@ function output = kymographBase(root)
            output.metadata = [output.metadata; curr_metadata];
            
            %% Get frames from  A seconds before cut to B seconds after cut
-           A = 5;
-           B = 10;
+           A = userOptions.timeBeforeCut;
+           B = userOptions.timeAfterCut;
            frames = floor(curr_metadata.cutFrame ...
                - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
                + B/curr_metadata.acqMetadata.cycleTime); 
@@ -63,7 +66,19 @@ function output = kymographBase(root)
             %% Find position of cut, and generate first output figure: 
             %   the first frame of the stack with cut line and kymograph
             %   lines overlaid, along with a scale bar. 
+            
+            % FOR NOW (01/12/2015) do this three times with start, end and
+            % just after cut images
+            userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
             kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+            userOptions.firstFigureTitleAppend = ', immediately post-cut';
+            kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
+            userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
+            kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
+            userOptions.firstFigureTitleAppend = sprintf(', multipage');
+%             testCutPositioningSlow(stack, curr_metadata, userOptions);
+            userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
+            testCutPositioningFast(stack, curr_metadata, userOptions);
             
            %% Pre-process images in stack
            %stack = kymographPreprocessing(stack, curr_metadata);
