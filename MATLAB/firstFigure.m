@@ -28,14 +28,14 @@ if (uO.saveFirstFrameFigure)
     title(title_txt);
     
     %% Add lines for cut and kymograph
-    h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 3);
+    h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
     h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r')
     
     %% Handle placement of the scale bar
     scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)];
     scy = [0.95 * size(frame,2) 0.95 * size(frame,2)];
     scline = line(scx, scy, 'Color', 'w', 'LineWidth', 6);
-    scstr = [num2str(uO.scale_bar_length) ' \mu m'];
+    scstr = [num2str(uO.scale_bar_length) ' \mum'];
     
     % these fields will likely need tweaking! - need to work out the extent
     % of the text box in order to do this properly
@@ -47,5 +47,9 @@ if (uO.saveFirstFrameFigure)
     
     set(h, 'Units', 'normalized')
     set(h, 'Position', [0 0 1 1]);
+    
+    out_file = [uO.outputFolder filesep title_txt];
+    print(out_file, '-dpng', '-r300');
+    savefig(h, [out_file '.fig']);
     
 end
