@@ -14,7 +14,9 @@ function output = kymographBase(root)
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?
-    userOptions.firstFigureTitleAppend = '' ;        % Text to append to the title of the first figure
+    userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure
+    userOptions.saveCutPositioningFigs = true;      % Toggle saving of helper images for checking cut positioning
+    userOptions.removeCutFrames = false;
 
     output.userOptions = userOptions;
     
@@ -55,7 +57,7 @@ function output = kymographBase(root)
                test = frame_ind - curr_metadata.cutFrame;
                cond1 = test < block_frames+1;
                cond2 = frame_ind - curr_metadata.cutFrame > 0;
-               if ~(cond1 && cond2)
+               if ~(cond1 && cond2) || ~(userOptions.removeCutFrames)
                     stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
                end
                ind = ind+1;
@@ -71,20 +73,26 @@ function output = kymographBase(root)
             % just after cut images
             userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
             kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
-            userOptions.firstFigureTitleAppend = ', immediately post-cut';
-            kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
-            userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
-            kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
-            userOptions.firstFigureTitleAppend = sprintf(', multipage');
-%             testCutPositioningSlow(stack, curr_metadata, userOptions);
-            userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
-            testCutPositioningFast(stack, curr_metadata, userOptions);
-            
+            if (userOptions.saveCutPositioningFigs)
+                userOptions.firstFigureTitleAppend = ', immediately post-cut';
+                kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
+                userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
+                kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
+                userOptions.firstFigureTitleAppend = sprintf(', multipage');
+        %             testCutPositioningSlow(stack, curr_metadata, userOptions);
+                userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
+                testCutPositioningFast(stack, curr_metadata, userOptions);
+            end
            %% Pre-process images in stack
            %stack = kymographPreprocessing(stack, curr_metadata);
            
        end
         
     end
+    
+    load handel;
+    sound(y, Fs);
+    msgbox('Hallelujah, I''m finished!x');
+    
 
 end

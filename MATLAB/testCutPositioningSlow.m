@@ -15,6 +15,7 @@ if (uO.saveFirstFrameFigure)
     title_txt = sprintf('%d, Embryo %d, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
     title_txt = [title_txt uO.firstFigureTitleAppend];
+    dir_txt = sprintf('%d, Embryo %d', md.acquisitionDate, md.embryoNumber);    
     
     h = figure('Name', title_txt,'NumberTitle','off');
         
@@ -41,15 +42,22 @@ if (uO.saveFirstFrameFigure)
         
         overlaystackpage = imread([out_file '.png']);
         overlaystackpage = squeeze(overlaystackpage(:,:,1));
+        
+        if ~isdir([uO.outputFolder filesep dir_txt])
+            mkdir([uO.outputFolder filesep dir_txt])
+        end
+        
         if (frameind == 1)
 %             overlaystack = overlaystackpage;
-            imwrite(uint8(overlaystackpage), [uO.outputFolder filesep title_txt '.tif']);
+            imwrite(uint8(overlaystackpage), [uO.outputFolder filesep dir_txt filesep title_txt '.tif']);
         else
 %             overlaystack = cat(3,overlaystack,overlaystackpage);
-            imwrite(uint8(overlaystackpage), [uO.outputFolder filesep title_txt '.tif'], 'writemode', 'append');
+            imwrite(uint8(overlaystackpage), [uO.outputFolder filesep dir_txt filesep title_txt '.tif'], 'writemode', 'append');
         end
     
     end
 
+    close(h)
+    delete(out_file)
     
 end

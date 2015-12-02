@@ -15,6 +15,7 @@ if (uO.saveFirstFrameFigure)
     title_txt = sprintf('%d, Embryo %d, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
     title_txt = [title_txt uO.firstFigureTitleAppend];
+    dir_txt = sprintf('%d, Embryo %d', md.acquisitionDate, md.embryoNumber);    
             
     for frameind = 1:size(stack, 3)
 
@@ -41,8 +42,11 @@ if (uO.saveFirstFrameFigure)
 %         set(h, 'Units', 'normalized')
 %         set(h, 'Position', [0 0 1 1]);
 
-        out_file = [uO.outputFolder filesep title_txt '.tif'];
-
+        if ~isdir([uO.outputFolder filesep dir_txt])
+            mkdir([uO.outputFolder filesep dir_txt])
+        end
+        out_file = [uO.outputFolder filesep dir_txt filesep title_txt '.tif'];
+        
         if (frameind == 1)
             imwrite(uint16(squeeze(stack(:,:,frameind))), out_file);
         else
@@ -52,6 +56,5 @@ if (uO.saveFirstFrameFigure)
         end
     
     end
-
     
 end

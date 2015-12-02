@@ -14,6 +14,7 @@ if (uO.saveFirstFrameFigure)
     %% Plot figure with first frame
     title_txt = sprintf('%d, Embryo %d, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
+    dir_txt = sprintf('%d, Embryo %d', md.acquisitionDate, md.embryoNumber);    
     title_txt = [title_txt uO.firstFigureTitleAppend];
     
     h = figure('Name', title_txt,'NumberTitle','off');
@@ -49,8 +50,13 @@ if (uO.saveFirstFrameFigure)
     set(h, 'Units', 'normalized')
     set(h, 'Position', [0 0 1 1]);
     
-    out_file = [uO.outputFolder filesep title_txt];
+    if ~isdir([uO.outputFolder filesep dir_txt])
+        mkdir([uO.outputFolder filesep dir_txt])
+    end
+    out_file = [uO.outputFolder filesep dir_txt filesep title_txt];
     print(out_file, '-dpng', '-r300');
     savefig(h, [out_file '.fig']);
+    
+    close(h);
     
 end
