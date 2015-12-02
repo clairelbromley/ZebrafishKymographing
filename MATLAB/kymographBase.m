@@ -15,8 +15,8 @@ function output = kymographBase(root)
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure
-    userOptions.saveCutPositioningFigs = true;      % Toggle saving of helper images for checking cut positioning
-    userOptions.removeCutFrames = false;
+    userOptions.saveCutPositioningFigs = false;      % Toggle saving of helper images for checking cut positioning
+    userOptions.removeCutFrames = true;            % Toggle removal of frames with scattered light
 
     output.userOptions = userOptions;
     
@@ -90,9 +90,11 @@ function output = kymographBase(root)
         
     end
     
+    output.kym_region = kym_region;
     load handel;
-    sound(y, Fs);
-    msgbox('Hallelujah, I''m finished!x');
-    
+    player = audioplayer(y, Fs);
+    play(player)
+    uiwait(msgbox('Hallelujah, I''m finished!x', 'Done!'));
+    stop(player)
 
 end
