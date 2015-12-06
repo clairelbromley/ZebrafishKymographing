@@ -44,6 +44,7 @@ function output = kymographBase(root)
                %% Get metadata for current cut
                curr_metadata = getMetadata(curr_path, cut_ind);
                output.metadata = [output.metadata; curr_metadata];
+               disp(['Date: ' curr_metadata.acquisitionDate ', Embryo: ' curr_metadata.embryoNumber ', cut: ' cutNumber])
 
                %% Get frames from  A seconds before cut to B seconds after cut
                A = userOptions.timeBeforeCut;
@@ -64,7 +65,8 @@ function output = kymographBase(root)
                        try
                             stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
                         catch ME
-                           disp(['Error: ' ME.identifier ': ' ME.message]);
+                            errString = ['Error: ' ME.identifier ': ' ME.message];
+                            errorLog(userOptions.outputFolder, errString);
                        end
                    end
                    ind = ind+1;
