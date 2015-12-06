@@ -8,7 +8,7 @@ function metadata = getMetadata(root_path, cut_number)
     metadata.yoffset = -20;
     
     %% Get metadata relating to cut
-    cutMetadataPath = dir([root_path filesep '*_' num2str(cut_number) '.txt']);
+    cutMetadataPath = dir([root_path filesep '*_' num2str(cut_number+1) '.txt']);
     fstr = ['%d_' num2str(cut_number) '.txt'];
     metadata.cutFrame = sscanf(cutMetadataPath.name, fstr);
     metadata.cutMetadata = importCutMetadata([root_path filesep cutMetadataPath.name]);
