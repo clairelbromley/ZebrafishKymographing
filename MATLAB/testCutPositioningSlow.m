@@ -20,6 +20,7 @@ if (uO.saveFirstFrameFigure)
     if ~isfield(uO, 'figHandle')
         h = figure('Name', title_txt,'NumberTitle','off');
     else
+        h = uO.figHandle;
         set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
         set(0, 'currentFigure', uO.figHandle)
     end
@@ -36,7 +37,7 @@ if (uO.saveFirstFrameFigure)
         set(gca,'yticklabel',[])
         title(title_txt);
 
-        %% Add lines for cut and kymograph
+        %% Add lines for cut
         h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
 
         set(h, 'Units', 'normalized')
@@ -62,7 +63,10 @@ if (uO.saveFirstFrameFigure)
     
     end
 
-    close(h)
-    delete(out_file)
+    if ~isfield(uO, 'figHandle')
+        close(h);
+    end
+    
+    delete([out_file '.png'])
     
 end

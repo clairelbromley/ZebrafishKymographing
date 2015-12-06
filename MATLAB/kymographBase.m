@@ -15,8 +15,8 @@ function output = kymographBase(root)
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure
-    userOptions.saveCutPositioningFigs = false;      % Toggle saving of helper images for checking cut positioning
-    userOptions.removeCutFrames = true;            % Toggle removal of frames with scattered light
+    userOptions.saveCutPositioningFigs = true;      % Toggle saving of helper images for checking cut positioning
+    userOptions.removeCutFrames = false;            % Toggle removal of frames with scattered light
     userOptions.figHandle = figure;                     % Allow figures to be rendered in a single window
 
     output.userOptions = userOptions;
@@ -106,6 +106,8 @@ function output = kymographBase(root)
 
     catch ME
         beep;
-        uiwait(msgbox(['Error: \n ' ME.identifier ': ' ME.message'], 'Argh!'));
+        uiwait(msgbox(['Error on line ' num2str(ME.stack.line) ' of ' ME.stack(1).name ': ' ME.identifier ': ' ME.message], 'Argh!'));
     end
+    
+    close all;
 end

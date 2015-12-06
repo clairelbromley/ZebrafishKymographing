@@ -20,6 +20,7 @@ if (uO.saveFirstFrameFigure)
     if ~isfield(uO, 'figHandle')
         h = figure('Name', title_txt,'NumberTitle','off');
     else
+        h = uO.figHandle;
         set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
         set(0, 'currentFigure', uO.figHandle)
     end
@@ -36,7 +37,7 @@ if (uO.saveFirstFrameFigure)
     
     %% Add lines for cut and kymograph
     h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
-    h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r')
+    h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r');
     
     %% Handle placement of the scale bar
     scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)];
@@ -62,6 +63,8 @@ if (uO.saveFirstFrameFigure)
     print(out_file, '-dpng', '-r300');
     savefig(h, [out_file '.fig']);
     
-    close(h);
+    if ~isfield(uO, 'figHandle')
+        close(h);
+    end
     
 end
