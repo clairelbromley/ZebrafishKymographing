@@ -10,10 +10,11 @@ ycut = [cm.startPositionY cm.stopPositionY] + md.yoffset;
 kp.xcut = xcut;
 kp.ycut = ycut;
 
-% N.B. this is not quite right!!! currently leads to only one kymograph
-% before cut, and the number after depending on the multiplier...?
-kp.kym_startx = xcut(1) + (-1:uO.number_kym-2)*uO.cut_size_multiplier*(xcut(2)-xcut(1))/uO.number_kym;
-kp.kym_starty = ycut(1) + (-1:uO.number_kym-2)*uO.cut_size_multiplier*(ycut(2)-ycut(1))/uO.number_kym;
+% This now works by positioning one kymograph before start of cut, one
+% after, one at either end, and spacing remaining kymographs equally in
+% between such that the spacing between all kymographs is equal. 
+kp.kym_startx = xcut(1) + (-1:uO.number_kym-2)*(xcut(2)-xcut(1))/(uO.number_kym-3);
+kp.kym_starty = ycut(1) + (-1:uO.number_kym-2)*(ycut(2)-ycut(1))/(uO.number_kym-3);
 
 kp.deltay = uO.kym_length * cos(md.cutTheta);
 kp.deltax = -uO.kym_length * sin(md.cutTheta);

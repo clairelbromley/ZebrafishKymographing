@@ -7,7 +7,7 @@ function output = kymographBase(root)
     userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start
     userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end
     userOptions.number_kym = 10;                    % Number of kymographs calculated per cut
-    userOptions.cut_size_multiplier = 1.5;          % Multiplier to set how far beyond length of cut
+%     userOptions.cut_size_multiplier = 1.5;          % Multiplier to set how far beyond length of cut
                                                     % kymographs should be spaced
     userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix
     userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix
