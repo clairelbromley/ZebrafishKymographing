@@ -15,8 +15,8 @@ function output = kymographBase(root)
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure
-    userOptions.saveCutPositioningFigs = true;      % Toggle saving of helper images for checking cut positioning
-    userOptions.removeCutFrames = false;            % Toggle removal of frames with scattered light
+    userOptions.saveCutPositioningFigs = false;      % Toggle saving of helper images for checking cut positioning
+    userOptions.removeCutFrames = true;            % Toggle removal of frames with scattered light
     userOptions.figHandle = figure;                     % Allow figures to be rendered in a single window
 
     output.userOptions = userOptions;
@@ -44,7 +44,9 @@ function output = kymographBase(root)
                %% Get metadata for current cut
                curr_metadata = getMetadata(curr_path, cut_ind);
                output.metadata = [output.metadata; curr_metadata];
-               disp(['Date: ' curr_metadata.acquisitionDate ', Embryo: ' curr_metadata.embryoNumber ', cut: ' cutNumber])
+               disp(['Date: ' num2str(curr_metadata.acquisitionDate)...
+                   ', Embryo: ' num2str(curr_metadata.embryoNumber)...
+                   ', cut: ' num2str(curr_metadata.cutNumber)])
 
                %% Get frames from  A seconds before cut to B seconds after cut
                A = userOptions.timeBeforeCut;
@@ -92,9 +94,10 @@ function output = kymographBase(root)
                     userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
                     testCutPositioningFast(stack, curr_metadata, userOptions);
                 end
+                
                %% Pre-process images in stack
-               %stack = kymographPreprocessing(stack, curr_metadata);
-
+               [stack, kym_region] = kymographPreprocessing(stack, curr_metadata, kym_region);
+               
            end
 
         end

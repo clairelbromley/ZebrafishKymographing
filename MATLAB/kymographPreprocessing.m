@@ -1,20 +1,32 @@
-function imageStack = kymographPreprocessing(imageStack, metadata)
+function [stack, kym_region] = kymographPreprocessing(stack, metadata, kym_region)
 %kymographPreprocessing applies preprocessing steps to images from 
 % timelapse data
 
 % See also quantitativeKymographs
 
-for ind = 1:size(imageStack, 3)
-    image = squeeze(imageStack(:,:,ind));
+md = metadata;
+kp = kym_region;
+
+%% First, trim image to fit around the kymograph regigon
+tic
+disp('Trimming...')
+stack = stack(kp.boundingBox_LTRB(2):kp.boundingBox_LTRB(4),...
+    kp.boundingBox_LTRB(1):kp.boundingBox_LTRB(3),:);
+toc
+%% Then perform median filtering
+tic
+disp('Median filtering...')
+for ind = 1:size(stack, 3)
+    image = squeeze(stack(:,:,ind));
     %% -------------------------------------------------------------------
     % EITHER threshold based on median filter OR threshold based on median
     % value
     % -------------------------------------------------------------------%%
 
-    med = median(image(:));
-    thresh = ones(size(image))*med;
+%     med = median(image(:));
+%     thresh = ones(size(image))*med;
 
-    % thresh = medfilt2(image, [50 50]);
+    thresh = medfilt2(image, [50 50]);
 
     image(image < thresh) = 0;
 
@@ -30,6 +42,13 @@ for ind = 1:size(imageStack, 3)
     binary_im = imdilate(binary_im, se);
     image(binary_im == 0) = 0;
 
-    imageStack(:,:,ind) = image;
+    stack(:,:,ind) = image;
 end
+toc
+%% Finally rotate image so that kymographs lie along a vertical column of 
+%  pixels...
+tic
+disp('Rotating...')
+stack = imrotate(stack, radtodeg(md.cutTheta));
+toc
 
