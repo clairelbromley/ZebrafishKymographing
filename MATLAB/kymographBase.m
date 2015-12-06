@@ -17,6 +17,7 @@ function output = kymographBase(root)
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure
     userOptions.saveCutPositioningFigs = false;      % Toggle saving of helper images for checking cut positioning
     userOptions.removeCutFrames = true;            % Toggle removal of frames with scattered light
+    userOptions.figHandle = figure;                     % Allow figures to be rendered in a single window
 
     output.userOptions = userOptions;
     
@@ -28,73 +29,83 @@ function output = kymographBase(root)
     dirs = dir([root filesep '*_*']);
     dirs = dirs([dirs.isdir]);
     
-    % Loop through these (tiff-containing) data directories
-    for dind = 1:length(dirs)
-        
-       d = dirs(dind).name;
-       % Identify how many cuts were performed on this embryo
-       curr_path = [root filesep d];
-       num_cuts = length(dir([curr_path filesep '*.txt']))/2;
-       
-       for cut_ind = 0:num_cuts-1
-          
-           %% Get metadata for current cut
-           curr_metadata = getMetadata(curr_path, cut_ind);
-           output.metadata = [output.metadata; curr_metadata];
-           
-           %% Get frames from  A seconds before cut to B seconds after cut
-           A = userOptions.timeBeforeCut;
-           B = userOptions.timeAfterCut;
-           frames = floor(curr_metadata.cutFrame ...
-               - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
-               + B/curr_metadata.acqMetadata.cycleTime); 
-           stack = zeros(512,512,length(frames));
-           
-           %% Block out frames with scattered light from cut
-           block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
-           ind = 1;
-           for frame_ind = frames(1):frames(end)               
-               test = frame_ind - curr_metadata.cutFrame;
-               cond1 = test < block_frames+1;
-               cond2 = frame_ind - curr_metadata.cutFrame > 0;
-               if ~(cond1 && cond2) || ~(userOptions.removeCutFrames)
-                    stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+    try
+
+        % Loop through these (tiff-containing) data directories
+        for dind = 1:length(dirs)
+
+           d = dirs(dind).name;
+           % Identify how many cuts were performed on this embryo
+           curr_path = [root filesep d];
+           num_cuts = length(dir([curr_path filesep '*.txt']))/2;
+
+           for cut_ind = 0:num_cuts-1
+
+               %% Get metadata for current cut
+               curr_metadata = getMetadata(curr_path, cut_ind);
+               output.metadata = [output.metadata; curr_metadata];
+
+               %% Get frames from  A seconds before cut to B seconds after cut
+               A = userOptions.timeBeforeCut;
+               B = userOptions.timeAfterCut;
+               frames = floor(curr_metadata.cutFrame ...
+                   - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
+                   + B/curr_metadata.acqMetadata.cycleTime); 
+               stack = zeros(512,512,length(frames));
+
+               %% Block out frames with scattered light from cut
+               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
+               ind = 1;
+               for frame_ind = frames(1):frames(end)               
+                   test = frame_ind - curr_metadata.cutFrame;
+                   cond1 = test < block_frames+1;
+                   cond2 = frame_ind - curr_metadata.cutFrame > 0;
+                   if ~(cond1 && cond2) || ~(userOptions.removeCutFrames)
+                       try
+                            stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                        catch ME
+                           disp(['Error: ' ME.identifier ': ' ME.message]);
+                       end
+                   end
+                   ind = ind+1;
                end
-               ind = ind+1;
+
+                %output.stack = [output.stack; stack];
+
+                %% Find position of cut, and generate first output figure: 
+                %   the first frame of the stack with cut line and kymograph
+                %   lines overlaid, along with a scale bar. 
+
+                % FOR NOW (01/12/2015) do this three times with start, end and
+                % just after cut images
+                userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
+                kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+                if (userOptions.saveCutPositioningFigs)
+                    userOptions.firstFigureTitleAppend = ', immediately post-cut';
+                    kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
+                    userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
+                    kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
+                    userOptions.firstFigureTitleAppend = sprintf(', multipage');
+                    testCutPositioningSlow(stack, curr_metadata, userOptions);
+                    userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
+                    testCutPositioningFast(stack, curr_metadata, userOptions);
+                end
+               %% Pre-process images in stack
+               %stack = kymographPreprocessing(stack, curr_metadata);
+
            end
 
-            %output.stack = [output.stack; stack];
-           
-            %% Find position of cut, and generate first output figure: 
-            %   the first frame of the stack with cut line and kymograph
-            %   lines overlaid, along with a scale bar. 
-            
-            % FOR NOW (01/12/2015) do this three times with start, end and
-            % just after cut images
-            userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
-            kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
-            if (userOptions.saveCutPositioningFigs)
-                userOptions.firstFigureTitleAppend = ', immediately post-cut';
-                kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
-                userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
-                kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
-                userOptions.firstFigureTitleAppend = sprintf(', multipage');
-        %             testCutPositioningSlow(stack, curr_metadata, userOptions);
-                userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
-                testCutPositioningFast(stack, curr_metadata, userOptions);
-            end
-           %% Pre-process images in stack
-           %stack = kymographPreprocessing(stack, curr_metadata);
-           
-       end
-        
-    end
-    
-    output.kym_region = kym_region;
-    load handel;
-    player = audioplayer(y, Fs);
-    play(player)
-    uiwait(msgbox('Hallelujah, I''m finished!x', 'Done!'));
-    stop(player)
+        end
 
+        output.kym_region = kym_region;
+        load handel;
+        player = audioplayer(y, Fs);
+        play(player)
+        uiwait(msgbox('Hallelujah, I''m finished!x', 'Done!'));
+        stop(player)
+
+    catch ME
+        beep;
+        uiwait(msgbox(['Error: \n ' ME.identifier ': ' ME.message'], 'Argh!'));
+    end
 end

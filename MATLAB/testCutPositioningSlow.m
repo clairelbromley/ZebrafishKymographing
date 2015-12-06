@@ -17,7 +17,12 @@ if (uO.saveFirstFrameFigure)
     title_txt = [title_txt uO.firstFigureTitleAppend];
     dir_txt = sprintf('%d, Embryo %d', md.acquisitionDate, md.embryoNumber);    
     
-    h = figure('Name', title_txt,'NumberTitle','off');
+    if ~isfield(uO, 'figHandle')
+        h = figure('Name', title_txt,'NumberTitle','off');
+    else
+        set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
+        set(0, 'currentFigure', uO.figHandle)
+    end
         
     for frameind = 1:size(stack, 3)
 

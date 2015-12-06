@@ -17,7 +17,12 @@ if (uO.saveFirstFrameFigure)
     dir_txt = sprintf('%d, Embryo %d', md.acquisitionDate, md.embryoNumber);    
     title_txt = [title_txt uO.firstFigureTitleAppend];
     
-    h = figure('Name', title_txt,'NumberTitle','off');
+    if ~isfield(uO, 'figHandle')
+        h = figure('Name', title_txt,'NumberTitle','off');
+    else
+        set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
+        set(0, 'currentFigure', uO.figHandle)
+    end
     
     imagesc(frame);
     axis equal tight;
