@@ -1,4 +1,4 @@
-function [stack, kym_region] = kymographPreprocessing(stack, metadata, kym_region)
+function [stack, kym_region] = kymographPreprocessing(stack, metadata, kym_region, userOptions)
 %kymographPreprocessing applies preprocessing steps to images from 
 % timelapse data
 
@@ -6,13 +6,17 @@ function [stack, kym_region] = kymographPreprocessing(stack, metadata, kym_regio
 
 md = metadata;
 kp = kym_region;
+uO = userOptions;
 
 %% First, trim image to fit around the kymograph regigon
 tic
 disp('Trimming...')
 stack = stack(kp.boundingBox_LTRB(2):kp.boundingBox_LTRB(4),...
     kp.boundingBox_LTRB(1):kp.boundingBox_LTRB(3),:);
-toc
+t = toc;
+timeStr = sprintf('Trimming E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
+errorLog(uO.outputFolder, timeStr);
+
 %% Then perform median filtering
 tic
 disp('Median filtering...')
@@ -44,11 +48,16 @@ for ind = 1:size(stack, 3)
 
     stack(:,:,ind) = image;
 end
-toc
+t = toc;
+timeStr = sprintf('Median filtering E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
+errorLog(uO.outputFolder, timeStr);
+
 %% Finally rotate image so that kymographs lie along a vertical column of 
 %  pixels...
 tic
 disp('Rotating...')
 stack = imrotate(stack, radtodeg(md.cutTheta));
-toc
+t = toc;
+timeStr = sprintf('Rotating E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
+errorLog(uO.outputFolder, timeStr);
 

@@ -12,9 +12,9 @@ kp = kym_positioning;
 if (uO.saveFirstFrameFigure)
     
     %% Plot figure with first frame
-    title_txt = sprintf('%d, Embryo %d, Cut %d', md.acquisitionDate, ...
+    title_txt = sprintf('%s, Embryo %s, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
-    dir_txt = sprintf('%d, Embryo %d', md.acquisitionDate, md.embryoNumber);    
+    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);    
     title_txt = [title_txt uO.firstFigureTitleAppend];
     
     if ~isfield(uO, 'figHandle')
