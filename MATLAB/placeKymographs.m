@@ -26,5 +26,12 @@ kp.boundingBox_LTRB = [floor(min([kp.kym_startx kp.kym_endx]) - uO.kym_width) ..
                         ceil(max([kp.kym_startx kp.kym_endx]) + uO.kym_width) ...
                         ceil(max([kp.kym_starty kp.kym_endy]) + uO.kym_width)];
 
+kp.cropped_xcut = xcut - kp.boundingBox_LTRB(1);
+kp.cropped_ycut = ycut - kp.boundingBox_LTRB(2);
+kp.cropped_kym_startx = kp.kym_startx - kp.boundingBox_LTRB(1);
+kp.cropped_kym_endx = kp.kym_endx - kp.boundingBox_LTRB(1);
+kp.cropped_kym_starty = kp.kym_starty - kp.boundingBox_LTRB(2);
+kp.cropped_kym_endy = kp.kym_endy - kp.boundingBox_LTRB(2);
+
 
 kym_positioning = kp;

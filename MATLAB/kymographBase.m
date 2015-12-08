@@ -18,6 +18,7 @@ function output = kymographBase(root)
     userOptions.saveCutPositioningFigs = true;      % Toggle saving of helper images for checking cut positioning
     userOptions.removeCutFrames = false;            % Toggle removal of frames with scattered light
     userOptions.figHandle = figure;                     % Allow figures to be rendered in a single window
+    userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information
 
     output.userOptions = userOptions;
     
@@ -96,7 +97,7 @@ function output = kymographBase(root)
                 end
                 
                %% Pre-process images in stack
-%                [stack, kym_region] = kymographPreprocessing(stack, curr_metadata, kym_region, userOptions);
+               [stack, kym_region] = kymographPreprocessing(stack, curr_metadata, kym_region, userOptions);
                
            end
 

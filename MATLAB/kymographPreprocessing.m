@@ -7,6 +7,11 @@ function [stack, kym_region] = kymographPreprocessing(stack, metadata, kym_regio
 md = metadata;
 kp = kym_region;
 uO = userOptions;
+dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
+
+if ~isdir([uO.outputFolder filesep dir_txt]) && (uO.savePreprocessed)
+    mkdir([uO.outputFolder filesep dir_txt])
+end
 
 %% First, trim image to fit around the kymograph regigon
 tic
@@ -32,6 +37,7 @@ for ind = 1:size(stack, 3)
 
     thresh = medfilt2(image, [50 50]);
 
+
     image(image < thresh) = 0;
 
     %% -------------------------------------------------------------------
@@ -54,10 +60,42 @@ errorLog(uO.outputFolder, timeStr);
 
 %% Finally rotate image so that kymographs lie along a vertical column of 
 %  pixels...
-tic
-disp('Rotating...')
-stack = imrotate(stack, radtodeg(md.cutTheta));
-t = toc;
-timeStr = sprintf('Rotating E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
-errorLog(uO.outputFolder, timeStr);
+% tic
+% disp('Rotating...')
+% stack = imrotate(stack, radtodeg(md.cutTheta));
+% t = toc;
+% timeStr = sprintf('Rotating E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
+% errorLog(uO.outputFolder, timeStr);
+
+if uO.savePreprocessed
+    
+    output_path = [uO.outputFolder filesep dir_txt filesep sprintf('trimmed_stack_cut_%d.tif', md.cutNumber)];
+    for ind = 1:size(stack, 3)
+        if ind == 1
+            imwrite(uint16(squeeze(stack(:,:,ind))), output_path);
+        else
+            imwrite(uint16(squeeze(stack(:,:,ind))), output_path, 'writemode', 'append');
+        end
+    end
+    
+    c = struct2cell(kp);
+    f = fields(kp);
+    
+    cutDataPath = [uO.outputFolder filesep dir_txt filesep sprintf('trimmed_cutinfo_cut_%d.txt', md.cutNumber)];
+    fid = fopen(cutDataPath, 'wt');
+    for ind = 1:length(f)
+        fprintf(fid, '%s\t', f{ind});
+        nc = c{ind};
+        for jind = 1:length(nc)
+            if isfloat(nc(jind))
+                fprintf(fid, '%f\t', nc(jind));
+            else
+                fprintf(fid, '%d\t', nc(jind));
+            end
+        end
+        fprintf(fid, '\r\n');
+    end
+    fclose(fid);
+    
+end
 
