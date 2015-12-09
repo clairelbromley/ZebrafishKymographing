@@ -26,4 +26,8 @@ function metadata = getMetadata(root_path, cut_number)
     metadata.acquisitionDate = id{1};
     metadata.cutNumber = cut_number+1;
     
+    %% Storage for kymograph positioning bits
+    metadata.kym_region = [];
+    metadata.isCropped = false;
+    
 end

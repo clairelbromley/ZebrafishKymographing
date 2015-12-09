@@ -75,22 +75,19 @@ function output = kymographBase(root)
                    ind = ind+1;
                end
 
-                %output.stack = [output.stack; stack];
-
                 %% Find position of cut, and generate first output figure: 
                 %   the first frame of the stack with cut line and kymograph
                 %   lines overlaid, along with a scale bar. 
 
                 % FOR NOW (01/12/2015) do this three times with start, end and
                 % just after cut images
-                isCropped = false;
                 userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
-                kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions, isCropped);
+                curr_metadata.kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
                 if (userOptions.saveCutPositioningFigs)
                     userOptions.firstFigureTitleAppend = ', immediately post-cut';
-                    kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions, isCropped);
+                    firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
                     userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
-                    kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions, isCropped);
+                    firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
                     userOptions.firstFigureTitleAppend = sprintf(', multipage');
                     testCutPositioningSlow(stack, curr_metadata, userOptions);
                     userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
@@ -98,13 +95,12 @@ function output = kymographBase(root)
                 end
                 
                %% Pre-process images in stack
-               [stack, kym_region] = kymographPreprocessing(stack, curr_metadata, kym_region, userOptions);
+               [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
                
            end
 
         end
 
-        output.kym_region = kym_region;
         load handel;
         player = audioplayer(y, Fs);
         play(player)

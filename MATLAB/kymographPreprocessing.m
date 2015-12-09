@@ -1,11 +1,11 @@
-function [stack, kym_region] = kymographPreprocessing(stack, metadata, kym_region, userOptions)
+function [stack, md] = kymographPreprocessing(stack, metadata, userOptions)
 %kymographPreprocessing applies preprocessing steps to images from 
 % timelapse data
 
 % See also quantitativeKymographs
 
 md = metadata;
-kp = kym_region;
+kp = md.kym_region;
 uO = userOptions;
 dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
 
@@ -21,6 +21,7 @@ stack = stack(kp.boundingBox_LTRB(2):kp.boundingBox_LTRB(4),...
 t = toc;
 timeStr = sprintf('Trimming E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
 errorLog(uO.outputFolder, timeStr);
+md.isCropped = true;
 
 %% Then perform median filtering
 tic
@@ -35,9 +36,8 @@ for ind = 1:size(stack, 3)
 %     med = median(image(:));
 %     thresh = ones(size(image))*med;
 
-    thresh = medfilt2(image, [50 50]);
-
-
+    thresh = medfilt2(image, [3 3]);
+%     thresh = medfilt2(image, [50 50]);
     image(image < thresh) = 0;
 
     %% -------------------------------------------------------------------
@@ -68,7 +68,7 @@ errorLog(uO.outputFolder, timeStr);
 % errorLog(uO.outputFolder, timeStr);
 
 %DEBUG - check that cut is in right place on processed image...
-firstFigure(squeeze(stack(:,:,1)), md, uO, true);
+firstFigure(squeeze(stack(:,:,1)), md, uO);
 
 if uO.savePreprocessed
     

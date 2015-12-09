@@ -1,4 +1,4 @@
-function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
+function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions, kymographPositioning)
 
 md = metadata;
 uO = userOptions;
