@@ -83,13 +83,14 @@ function output = kymographBase(root)
 
                 % FOR NOW (01/12/2015) do this three times with start, end and
                 % just after cut images
+                isCropped = false;
                 userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
-                kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+                kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions, isCropped);
                 if (userOptions.saveCutPositioningFigs)
                     userOptions.firstFigureTitleAppend = ', immediately post-cut';
-                    kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
+                    kym_region = firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions, isCropped);
                     userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
-                    kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
+                    kym_region = firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions, isCropped);
                     userOptions.firstFigureTitleAppend = sprintf(', multipage');
                     testCutPositioningSlow(stack, curr_metadata, userOptions);
                     userOptions.firstFigureTitleAppend = sprintf(', multipage fast');

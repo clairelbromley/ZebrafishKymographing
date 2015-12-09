@@ -1,4 +1,4 @@
-function kym_positioning = firstFigure(frame, md, uO)
+function kym_positioning = firstFigure(frame, md, uO, isCropped)
 % firstFigure takes the first frame of a stack, the metadata pertaining to
 % it and the pertinent user options and saves a figure with the cut and the
 % kymograph lines overlaid, along with a scalebar. It returns the data
@@ -16,7 +16,10 @@ if (uO.saveFirstFrameFigure)
         md.embryoNumber, md.cutNumber);
     dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
     title_txt = [title_txt uO.firstFigureTitleAppend];
-    
+    if isCropped
+        title_txt = [title_txt ' cropped'];
+    end
+        
     if ~isfield(uO, 'figHandle')
         h = figure('Name', title_txt,'NumberTitle','off');
     else
@@ -36,8 +39,13 @@ if (uO.saveFirstFrameFigure)
     title(title_txt);
     
     %% Add lines for cut and kymograph
-    h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
-    h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r');
+    if isCropped
+        h_cutline = line(kp.cropped_xcut, kp.cropped_ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
+        h_kymline = line([kp.cropped_kym_startx; kp.cropped_kym_endx], [kp.cropped_kym_starty; kp.cropped_kym_endy], 'Color', 'r');
+    else
+        h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
+        h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r');
+    end
     
     %% Handle placement of the scale bar
     scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)];

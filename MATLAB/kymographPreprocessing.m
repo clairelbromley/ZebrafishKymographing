@@ -67,6 +67,9 @@ errorLog(uO.outputFolder, timeStr);
 % timeStr = sprintf('Rotating E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
 % errorLog(uO.outputFolder, timeStr);
 
+%DEBUG - check that cut is in right place on processed image...
+firstFigure(squeeze(stack(:,:,1)), md, uO, true);
+
 if uO.savePreprocessed
     
     output_path = [uO.outputFolder filesep dir_txt filesep sprintf('trimmed_stack_cut_%d.tif', md.cutNumber)];
