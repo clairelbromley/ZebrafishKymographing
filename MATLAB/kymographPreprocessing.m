@@ -36,7 +36,7 @@ for ind = 1:size(stack, 3)
 %     med = median(image(:));
 %     thresh = ones(size(image))*med;
 
-    thresh = medfilt2(image, [3 3]);
+    thresh = medfilt2(image, [uO.medianFiltKernelSize uO.medianFiltKernelSize]);
 %     thresh = medfilt2(image, [50 50]);
     image(image < thresh) = 0;
 

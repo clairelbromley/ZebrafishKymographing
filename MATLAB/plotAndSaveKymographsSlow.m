@@ -1,54 +1,83 @@
-function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions, kymographPositioning)
+function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
 
-md = metadata;
-uO = userOptions;
+    md = metadata;
+    uO = userOptions;
+    kp = md.kym_region;
+    
+    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
 
-for ind = 1:size(stack, 3)
-    for kpos = 1:num_kyms
-        
-%         if (ind == length(f))
-            
-            subk = zeros(kym_line_len, kym_line_width);            
-            
-            for subkpos = 0:kym_line_width-1
-       
-                shift = -(kym_line_width-1)/2 + subkpos;
-                xshift = shift*cos(cut_theta);
-                yshift = shift*sin(cut_theta);
-                subk_x = round([kym_startx(kpos); kym_endx(kpos)] + xshift);
-                subk_y = round([kym_starty(kpos); kym_endy(kpos)] + yshift);   
-                a = improfile(im, subk_x, subk_y);
-                l = length(a);
-                subk(1:l, subkpos+1) = a;
+    tic
+    disp(['Building kymographs for ' dir_txt ', cut ' num2str(md.cutNumber)]);
+    for ind = 1:size(stack, 3)
+        for kpos = 1:uO.number_kym
 
-            end
-            
-            if uO.avgOrMax == 1
-                avg_kym = mean(subk, 2);
-                avg_kym_stack(ind, :, kpos) = avg_kym(1:kym_line_len-5);
-            else                               
-                max_kym = max(subk, 2);
-                max_kym_stack(ind, :, kpos) = max_kym(1:kym_line_len-5);
-            end
-        
+                subk = zeros(uO.kym_length, uO.kym_width);            
+
+                for subkpos = 0:uO.kym_width-1
+
+                    shift = -(uO.kym_width-1)/2 + subkpos;
+                    xshift = shift*cos(md.cutTheta);
+                    yshift = shift*sin(md.cutTheta);
+                    if md.isCropped
+                        subk_x = round([kp.cropped_kym_startx(kpos); kp.cropped_kym_endx(kpos)] + xshift);
+                        subk_y = round([kp.cropped_kym_starty(kpos); kp.cropped_kym_endy(kpos)] + yshift);   
+                    else
+                        subk_x = round([kp.kym_startx(kpos); kp.kym_endx(kpos)] + xshift);
+                        subk_y = round([kp.kym_starty(kpos); kp.kym_endy(kpos)] + yshift);   
+                    end
+                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y);
+                    l = length(a);
+                    subk(1:l, subkpos+1) = a;
+
+                end
+
+                if uO.avgOrMax == 1
+                    avg_kym = mean(subk, 2);
+                    kymographs(ind, :, kpos) = avg_kym(1:uO.kym_length-5);
+                else                               
+                    max_kym = max(subk, 2);
+                    kymographs(ind, :, kpos) = max_kym(1:uO.kym_length-5);
+                end
+
+        end
+
     end
-    
-end
+    t = toc;
+    timeStr = sprintf('Plotting kymographs for E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
+    errorLog(uO.outputFolder, timeStr);
 
-for kpos = 1:num_kyms
+    for kpos = 1:uO.number_kym
+
+        title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
+        md.embryoNumber, md.cutNumber, (kpos-2)*(kp.kym_startx(2) - kp.kym_startx(1))*md.umperpixel);
+        file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut %d', md.acquisitionDate, ...
+        md.embryoNumber, md.cutNumber, (kpos-2));
+        
+        if ~isfield(uO, 'figHandle')
+            h = figure('Name', title_txt,'NumberTitle','off');
+        else
+            h = uO.figHandle;
+            set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
+            set(0, 'currentFigure', uO.figHandle)
+        end
+        
+        a = -round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
+        b = size(kymographs,1)-round(uO.timeBeforeCut/md.acqMetadata.cycleTime)-1;
+        xt = md.acqMetadata.cycleTime*(a:b);
+        yt = md.umperpixel*(1:size(kymographs,2));
+        imagesc(xt, yt, squeeze(kymographs(:,:,kpos))');
+        axis equal tight;
+        xlabel('Time relative to cut, s')
+        ylabel('Position relative to cut, \mum')
+
+        out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt];
+        print(out_file, '-dpng', '-r300');
+        savefig(h, [out_file '.fig']);
+        
+        if ~isfield(uO, 'figHandle')
+            close(h);
+        end
     
-    xt = (1/framespersecond)*((-143:size(avg_kym_stack,1)-143));
-    yt = umperpixel*(1:size(avg_kym_stack,2));
-    subplot(num_kyms, 3, kpos*3 - 1)
-    imagesc(xt, yt, squeeze(max_kym_stack(:,:,kpos))');
-    axis equal tight;
-    subplot(num_kyms, 3, kpos*3);
-    imagesc(xt, yt, squeeze(avg_kym_stack(:,:,kpos))');
-    axis equal tight;
-    xlabel('Time relative to cut, s')
-    ylabel('Position relative to cut, \mum')
-%     colormap jet
-    
-end
+    end
 
 end

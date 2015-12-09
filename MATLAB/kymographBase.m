@@ -4,27 +4,28 @@ function output = kymographBase(root)
 % data. 
 
     %% User variables for setting up kymographs
-    userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start
-    userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end
-    userOptions.number_kym = 10;                    % Number of kymographs calculated per cut
-%     userOptions.cut_size_multiplier = 1.5;          % Multiplier to set how far beyond length of cut
-                                                    % kymographs should be spaced
-    userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix
-    userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix
-    userOptions.scale_bar_length = 20;              % Length of scale bar in images, um
+    userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
+    userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
+    userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
+    userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
+    userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
+    userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
-    userOptions.saveFirstFrameFigure = true;        % Save first figure?
-    userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure
-    userOptions.saveCutPositioningFigs = true;      % Toggle saving of helper images for checking cut positioning
-    userOptions.removeCutFrames = false;            % Toggle removal of frames with scattered light
-    userOptions.figHandle = figure;                     % Allow figures to be rendered in a single window
-    userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information
+    userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
+    userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
+    userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
+    userOptions.removeCutFrames = true;             % Toggle removal of frames with scattered light.                                            Default = true
+    userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window. 
+    userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
+    userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
+    userOptions.medianFiltKernelSize = 3;           % Size of median filter kernel in pixels - reduce for increased speed...                    Default = 50
 
     output.userOptions = userOptions;
     
     %%
     output.metadata = [];
     output.stack = [];
+    output.kymographs = [];
 
     % Find all directories in the root directory
     dirs = dir([root filesep '*_*']);
@@ -97,6 +98,10 @@ function output = kymographBase(root)
                %% Pre-process images in stack
                [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
                
+               %% Plot and save kymographs
+               kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+               output.kymographs = cat(4, output.kymographs, kymographs);
+               
            end
 
         end
@@ -110,7 +115,7 @@ function output = kymographBase(root)
     catch ME
         beep;
         uiwait(msgbox(['Error on line ' num2str(ME.stack.line) ' of ' ME.stack(1).name ': ' ME.identifier ': ' ME.message], 'Argh!'));
-%         rethrow(ME);
+        rethrow(ME);
     end
     
     close all;
