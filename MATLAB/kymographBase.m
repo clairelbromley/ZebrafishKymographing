@@ -18,16 +18,15 @@ function output = kymographBase(root)
     userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window. 
     userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
-    userOptions.medianFiltKernelSize = 3;           % Size of median filter kernel in pixels - reduce for increased speed...                    Default = 50
+    userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
 
     output.userOptions = userOptions;
-    
-    %%
     output.metadata = [];
     output.stack = [];
     output.kymographs = [];
+    output.results = [];
 
-    % Find all directories in the root directory
+    %% Find all directories in the root directory
     dirs = dir([root filesep '*_*']);
     dirs = dirs([dirs.isdir]);
     
@@ -100,6 +99,8 @@ function output = kymographBase(root)
                
                %% Plot and save kymographs
                kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+               results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+               output.results = cat(2, output.results, results);
                output.kymographs = cat(4, output.kymographs, kymographs);
                
            end
@@ -114,7 +115,7 @@ function output = kymographBase(root)
 
     catch ME
         beep;
-        uiwait(msgbox(['Error on line ' num2str(ME.stack.line) ' of ' ME.stack(1).name ': ' ME.identifier ': ' ME.message], 'Argh!'));
+        uiwait(msgbox(['Error on line ' num2str(ME.stack(1).line) ' of ' ME.stack(1).name ': ' ME.identifier ': ' ME.message], 'Argh!'));
         rethrow(ME);
     end
     

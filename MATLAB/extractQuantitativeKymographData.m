@@ -5,20 +5,24 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     uO = userOptions;
     kp = md.kym_region;
     
+    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
+    
     results = [];
     for kpos = 1:uO.number_kym
 
         result.kym_number = kpos;
-    % - trim kymograph - initially first 20 frames (=4 seconds)
-        first_frame = round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
+        % - trim kymograph - initially first 20 frames (=4 seconds)
+        first_frame = (find(sum((squeeze(kyms(:,:,kpos))'),1)==0, 1, 'last'))+1;
         kym_segment = squeeze(kyms(first_frame:first_frame+20,:,kpos))';
-    %     correct_membrane = zeros(size(kym_segment,1), size(kym_segment,2), num_kyms);
-    % - use canny edge filter to get binary image of membrane front movement
+        %     correct_membrane = zeros(size(kym_segment,1), size(kym_segment,2), num_kyms);
+        % - use canny edge filter to get binary image of membrane front movement
         filt_kym = edge(kym_segment, 'canny');
         result.kym_segment = kym_segment;
         
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
             md.embryoNumber, md.cutNumber, (kpos-2)*(kp.kym_startx(2) - kp.kym_startx(1))*md.umperpixel);
+        file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d - quantitative kymograph', md.acquisitionDate, ...
+        md.embryoNumber, md.cutNumber, (kpos-2));
         
         if ~isfield(uO, 'figHandle')
             h = figure('Name', title_txt,'NumberTitle','off');
@@ -28,7 +32,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             set(0, 'currentFigure', uO.figHandle)
         end
         
-        subplot(1,4,1);
+        subplot(1,3,1);
         imagesc(kym_segment);
         axis equal tight;
     %     subplot(1,4,2);
@@ -78,8 +82,8 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             for tind = 1:size(correct_membrane,2)
                 point_sel = false;
                 for dind = 1:size(correct_membrane,1)
-                    tind
-                    dind
+%                     tind
+%                     dind
                     if (not(point_sel)) && ( correct_membrane(dind, tind) > 0 )
                             point_sel = true;
                             correct_membrane(dind, tind) = 1;
@@ -110,12 +114,16 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             subplot(1,3,3);
             scatter(t,d);
             hold on
-            plot(t, fres.p1*t + fres.p2);
+            plot(t, fres.p1*t + fres.p2, 'r');
             hold off
             axis equal tight
     % - convert to um/second
             result.speed = fres.p1 * md.umperpixel * (1/md.acqMetadata.cycleTime);
-        %TODO: overlay line automatically on kymographs
+            title([sprintf('Membrane speed = %0.2f ', result.speed) '\mum s^{-1}'])
+            %TODO: overlay line automatically on kymographs
+            out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt];
+            print(out_file, '-dpng', '-r300');
+            savefig(h, [out_file '.fig']);
 
         end
 
@@ -127,7 +135,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
 
     end
     % TODO: plot speeds for all kymographs along cut in a scatter graph. 
-    % 
+    % TODO: reference to excel spreadsheet with development time
 
     
 end

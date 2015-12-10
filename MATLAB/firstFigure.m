@@ -28,6 +28,7 @@ if (uO.saveFirstFrameFigure)
         set(0, 'currentFigure', uO.figHandle)
     end
     
+    subplot(1,1,1); % To deal with potential for last loop of figures having subplots and messing things up
     imagesc(frame);
     axis equal tight;
     colormap gray;
