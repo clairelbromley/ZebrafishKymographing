@@ -5,7 +5,13 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     uO = userOptions;
     kp = md.kym_region;
     
-    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
+    if (uO.kymDownOrUp)
+        direction = ' upwards';
+    else
+        direction = '';
+    end
+    
+    dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);
     
     results = [];
     speeds = [];

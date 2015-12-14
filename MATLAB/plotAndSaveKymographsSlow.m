@@ -4,7 +4,13 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     uO = userOptions;
     kp = md.kym_region;
     
-    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
+    if (uO.kymDownOrUp)
+        direction = ' upwards';
+    else
+        direction = '';
+    end
+    
+    dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);
 
     tic
     disp(['Building kymographs for ' dir_txt ', cut ' num2str(md.cutNumber)]);

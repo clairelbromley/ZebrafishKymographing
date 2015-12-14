@@ -4,7 +4,7 @@ function errorLog(outputFolder, errString)
     logPath = [outputFolder filesep 'error log.txt'];
     disp(errString);
     c = clock;
-    dateStr = [num2str(c(1)) '-' num2str(c(2)) '-' num2str(c(3)) ' ' num2str(c(4)) ':' num2str(c(5))];
+    dateStr = sprintf('%d-%02d-%02d %02d:%02d', c(1), c(2), c(3), c(4), c(5));
     outStr = [dateStr ': ' errString '\n\r'];
     if exist(logPath, 'file') == 2
         fid = fopen(logPath, 'at');

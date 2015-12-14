@@ -10,14 +10,33 @@ ycut = [cm.startPositionY cm.stopPositionY] + md.yoffset;
 kp.xcut = xcut;
 kp.ycut = ycut;
 
-% This now works by positioning one kymograph before start of cut, one
-% after, one at either end, and spacing remaining kymographs equally in
-% between such that the spacing between all kymographs is equal. 
-kp.kym_startx = xcut(1) + (-1:uO.number_kym-2)*(xcut(2)-xcut(1))/(uO.number_kym-3);
-kp.kym_starty = ycut(1) + (-1:uO.number_kym-2)*(ycut(2)-ycut(1))/(uO.number_kym-3);
+if uO.fixedNumberOrFixedSpacing
+    cut_length_um = sqrt((xcut(1) - xcut(2))^2 + (ycut(1) - ycut(2))^2) * md.umperpixel;
+    num_kym = floor(cut_length_um/uO.kymSpacingUm) + 3;
+    cut_centrex = xcut(1) + round((xcut(2) - xcut(1))/2);
+    cut_centrey = ycut(1) + round((ycut(2) - ycut(1))/2);
+    xspacing = cos(md.cutTheta) * uO.kymSpacingUm/md.umperpixel;
+    yspacing = sin(md.cutTheta) * uO.kymSpacingUm/md.umperpixel;
 
-kp.deltay = uO.kym_length * cos(md.cutTheta);
-kp.deltax = -uO.kym_length * sin(md.cutTheta);
+    kp.kym_startx = (-(num_kym-1)/2:(num_kym-1)/2)*xspacing + cut_centrex;
+    kp.kym_starty = (-(num_kym-1)/2:(num_kym-1)/2)*yspacing + cut_centrey;
+        
+else
+    % This now works by positioning one kymograph before start of cut, one
+    % after, one at either end, and spacing remaining kymographs equally in
+    % between such that the spacing between all kymographs is equal. 
+    kp.kym_startx = xcut(1) + (-1:uO.number_kym-2)*(xcut(2)-xcut(1))/(uO.number_kym-3);
+    kp.kym_starty = ycut(1) + (-1:uO.number_kym-2)*(ycut(2)-ycut(1))/(uO.number_kym-3);
+end
+
+if uO.kymDownOrUp
+    kp.deltay = -uO.kym_length * cos(md.cutTheta);
+    kp.deltax = uO.kym_length * sin(md.cutTheta);
+else
+    kp.deltay = uO.kym_length * cos(md.cutTheta);
+    kp.deltax = -uO.kym_length * sin(md.cutTheta);
+end
+
 kp.kym_endx = kp.kym_startx + kp.deltax;
 kp.kym_endy = kp.kym_starty + kp.deltay;
 

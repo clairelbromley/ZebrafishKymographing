@@ -9,12 +9,18 @@ function kym_positioning = firstFigure(frame, md, uO)
 kym_positioning = placeKymographs(md, uO);
 kp = kym_positioning;
 
+if (uO.kymDownOrUp)
+    direction = ' upwards';
+else
+    direction = '';
+end
+
 if (uO.saveFirstFrameFigure)
     
     %% Plot figure with first frame
     title_txt = sprintf('%s, Embryo %s, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
-    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);
+    dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);
     title_txt = [title_txt uO.firstFigureTitleAppend];
     if md.isCropped
         title_txt = [title_txt ' cropped'];

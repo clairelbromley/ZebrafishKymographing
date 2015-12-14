@@ -9,13 +9,19 @@ function kym_positioning = testCutPositioningSlow(stack, md, uO)
 kym_positioning = placeKymographs(md, uO);
 kp = kym_positioning;
 
+if (uO.kymDownOrUp)
+    direction = ' upwards';
+else
+    direction = '';
+end
+
 if (uO.saveFirstFrameFigure)
     
     
     title_txt = sprintf('%s, Embryo %s, Cut %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber);
     title_txt = [title_txt uO.firstFigureTitleAppend];
-    dir_txt = sprintf('%s, Embryo %s', md.acquisitionDate, md.embryoNumber);    
+    dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);    
     
     if ~isfield(uO, 'figHandle')
         h = figure('Name', title_txt,'NumberTitle','off');

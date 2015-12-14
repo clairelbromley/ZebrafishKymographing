@@ -4,11 +4,17 @@ function output = kymographBase(root)
 % data. 
 
     %% User variables for setting up kymographs
+    userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
+    userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
+    userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
+    userOptions.kymDownOrUp = true;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
+    
     userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
     userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
-    userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
+    
     userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
     userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
+    
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
