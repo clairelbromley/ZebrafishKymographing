@@ -15,7 +15,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     
     results = [];
     speeds = [];
-    for kpos = 1:uO.number_kym
+    for kpos = 1:numel(kp.kym_startx)
 
         result.kym_number = kpos;
         % - trim kymograph - initially first 20 frames (=4 seconds)
@@ -149,6 +149,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     end
     % TODO: plot speeds for all kymographs along cut in a scatter graph. 
     %% Plot speeds against kymograph position
+    if numel(speeds)>0
             title_txt = sprintf('%s, Embryo %s, Cut %d, Speed against cut position', md.acquisitionDate, ...
                 md.embryoNumber, md.cutNumber);
 
@@ -172,6 +173,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             if ~isfield(uO, 'figHandle')
                 close(h);
             end
+    end
             
     % TODO: reference to excel spreadsheet with development time
 

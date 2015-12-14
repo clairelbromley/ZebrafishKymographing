@@ -4,8 +4,8 @@ function metadata = getMetadata(root_path, cut_number)
     
     %% Hardcode conversion from pixel to um and cut offsets
     metadata.umperpixel = 0.218;
-    metadata.xoffset = -20;
-    metadata.yoffset = -20;
+    metadata.xoffset = 0;
+    metadata.yoffset = 0;
     
     %% Get metadata relating to cut
     cutMetadataPath = dir([root_path filesep '*_' num2str(cut_number) '.txt']);
@@ -21,7 +21,7 @@ function metadata = getMetadata(root_path, cut_number)
     %% Parse folder name to get embryo date and number
     dummy = regexp(root_path, '\w*_\w*', 'match');
     idString = dummy{1};
-    id = strsplit(idString, '_E');
+    id = regexp(idString, '_', 'split')
     metadata.embryoNumber = id{2};
     metadata.acquisitionDate = id{1};
     metadata.cutNumber = cut_number+1;

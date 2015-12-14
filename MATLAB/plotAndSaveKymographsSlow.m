@@ -15,7 +15,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     tic
     disp(['Building kymographs for ' dir_txt ', cut ' num2str(md.cutNumber)]);
     for ind = 1:size(stack, 3)
-        for kpos = 1:uO.number_kym
+        for kpos = 1:numel(kp.kym_startx)
 
                 subk = zeros(uO.kym_length, uO.kym_width);            
 
@@ -52,7 +52,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     timeStr = sprintf('Plotting kymographs for E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
     errorLog(uO.outputFolder, timeStr);
 
-    for kpos = 1:uO.number_kym
+    for kpos = 1:numel(kp.kym_startx)
 
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber, (kpos-2)*(kp.kym_startx(2) - kp.kym_startx(1))*md.umperpixel);

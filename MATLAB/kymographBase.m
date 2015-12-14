@@ -1,4 +1,4 @@
-function output = kymographBase(root)
+function output = kymographBase(varargin)
 % kymographBase takes a directory containing data directories as an
 % argument and performs all steps for generation of quantitative kymograph
 % data. 
@@ -26,11 +26,19 @@ function output = kymographBase(root)
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
     userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
 
+    narginchk(1, 2);
+    if nargin == 1
+        root = varargin{1};
+    elseif nargin == 2
+        root = varargin{1};
+        userOptions.kymDownOrUp = varargin{2};
+    end
+    
     output.userOptions = userOptions;
     output.metadata = [];
     output.stack = [];
     output.kymographs = [];
-    output.results = [];
+    output.results = [];        
 
     %% Find all directories in the root directory
     dirs = dir([root filesep '*_*']);
