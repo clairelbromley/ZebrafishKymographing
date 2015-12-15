@@ -4,6 +4,9 @@ function output = kymographBase(varargin)
 % data. 
 
     %% User variables for setting up kymographs
+    userOptions.forcedSpeedRange = [-1 1];          % speed [min max]
+    userOptions.forcedPositionRange = [-5 20];      % position um [min max]
+    
     userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
     userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
     userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
@@ -114,8 +117,8 @@ function output = kymographBase(varargin)
                %% Plot and save kymographs
                kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
                results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
-               output.results = cat(2, output.results, results);
-               output.kymographs = cat(4, output.kymographs, kymographs);
+%                output.results = cat(2, output.results, results);
+%                output.kymographs = cat(4, output.kymographs, kymographs);
                
            end
 
