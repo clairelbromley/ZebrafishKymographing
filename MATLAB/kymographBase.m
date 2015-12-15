@@ -120,12 +120,10 @@ function output = kymographBase(varargin)
            end
 
         end
-
-        load handel;
-        player = audioplayer(y, Fs);
-        play(player)
-        uiwait(msgbox('Hallelujah, I''m finished!x', 'Done!'));
-        stop(player)
+        
+        if nargin == 1
+            imDone();
+        end
 
     catch ME
         beep;
