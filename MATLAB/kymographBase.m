@@ -4,7 +4,7 @@ function output = kymographBase(varargin)
 % data. 
 
     %% User variables for setting up kymographs
-    userOptions.forcedSpeedRange = [-1 1];          % speed [min max]
+    userOptions.forcedSpeedRange = [-1.5 1.5];          % speed [min max]
     userOptions.forcedPositionRange = [-5 20];      % position um [min max]
     
     userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;

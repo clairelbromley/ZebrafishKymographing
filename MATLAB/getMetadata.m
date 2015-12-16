@@ -21,7 +21,7 @@ function metadata = getMetadata(root_path, cut_number)
     %% Parse folder name to get embryo date and number
     dummy = regexp(root_path, '\w*_\w*', 'match');
     idString = dummy{1};
-    id = regexp(idString, '_E', 'split')
+    id = regexp(idString, '_E', 'split');
     metadata.embryoNumber = id{2};
     metadata.acquisitionDate = id{1};
     metadata.cutNumber = cut_number+1;
