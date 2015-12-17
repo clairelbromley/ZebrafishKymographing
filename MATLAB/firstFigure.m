@@ -71,12 +71,17 @@ if (uO.saveFirstFrameFigure)
     set(h, 'Units', 'normalized')
     set(h, 'Position', [0 0 1 1]);
     
+    title(title_txt);
+    
     if ~isdir([uO.outputFolder filesep dir_txt])
         mkdir([uO.outputFolder filesep dir_txt])
     end
     out_file = [uO.outputFolder filesep dir_txt filesep title_txt];
     print(out_file, '-dpng', '-r300');
     savefig(h, [out_file '.fig']);
+    
+    delete(sctxt);
+    delete(scline);
     
     if ~isfield(uO, 'figHandle')
         close(h);

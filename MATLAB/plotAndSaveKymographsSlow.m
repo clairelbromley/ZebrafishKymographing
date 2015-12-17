@@ -75,6 +75,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         axis equal tight;
         xlabel('Time relative to cut, s')
         ylabel('Position relative to cut, \mum')
+        title([title_txt direction]);
 
         out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
         print(out_file, '-dpng', '-r300');

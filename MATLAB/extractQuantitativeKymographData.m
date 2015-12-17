@@ -167,6 +167,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             plot(speeds(2,:), speeds(1,:), '-x');
             xlabel('Kymograph position along cut, \mum');
             ylabel('Membrane speed, \mum s^{-1}');
+            title([title_txt direction]);
             
             out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction];
             print(out_file, '-dpng', '-r300');
