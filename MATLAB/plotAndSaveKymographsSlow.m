@@ -7,7 +7,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     if (uO.kymDownOrUp)
         direction = ' upwards';
     else
-        direction = '';
+        direction = ' downwards';
     end
     
     dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);
@@ -76,7 +76,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         xlabel('Time relative to cut, s')
         ylabel('Position relative to cut, \mum')
 
-        out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt];
+        out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
         print(out_file, '-dpng', '-r300');
         savefig(h, [out_file '.fig']);
         

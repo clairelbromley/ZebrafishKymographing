@@ -8,7 +8,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     if (uO.kymDownOrUp)
         direction = ' upwards';
     else
-        direction = '';
+        direction = ' downwards';
     end
     
     dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);
@@ -168,14 +168,14 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             xlabel('Kymograph position along cut, \mum');
             ylabel('Membrane speed, \mum s^{-1}');
             
-            out_file = [uO.outputFolder filesep dir_txt filesep title_txt];
+            out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction];
             print(out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);            
 
             xlim([uO.forcedPositionRange]);
             ylim([uO.forcedSpeedRange]);
             
-            out_file = [uO.outputFolder filesep dir_txt filesep title_txt ' fixed axes'];
+            out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction ' fixed axes'];
             print(out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
 
