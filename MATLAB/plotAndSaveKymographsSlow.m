@@ -53,9 +53,8 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     errorLog(uO.outputFolder, timeStr);
 
     for kpos = 1:numel(kp.kym_startx)
-
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
-        md.embryoNumber, md.cutNumber, (kpos-2)*(kp.kym_startx(2) - kp.kym_startx(1))*md.umperpixel);
+        md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));
         file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber, (kpos-2));
         

@@ -29,11 +29,8 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             filt_kym = edge(kym_segment, 'canny');
             result.kym_segment = kym_segment;
 
-%             pos_along_cut = (kpos-2)*(kp.kym_startx(2) - kp.kym_startx(1))*md.umperpixel;
-            distanceOffset = sqrt((kp.kym_startx(1) - kp.xcut(1))^2 + (kp.kym_starty(1) - kp.ycut(1))^2)*md.umperpixel;
-            pos_along_cut = (kpos-2)*uO.kymSpacingUm - distanceOffset;
             title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
-                md.embryoNumber, md.cutNumber, pos_along_cut);
+                md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));
             file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d - quantitative kymograph', md.acquisitionDate, ...
             md.embryoNumber, md.cutNumber, (kpos-2));
 
@@ -135,7 +132,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         % - convert to um/second
 %                 result.speed = fres.p1 * md.umperpixel * (1/md.acqMetadata.cycleTime);
                 result.speed = fres.p1;
-                s = [result.speed; pos_along_cut];
+                s = [result.speed; kp.pos_along_cut(kpos)];
                 speeds = [speeds s];
                 title([sprintf('Membrane speed = %0.2f ', result.speed) '\mum s^{-1}'])
                 %TODO: overlay line automatically on kymographs

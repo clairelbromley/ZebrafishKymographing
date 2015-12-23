@@ -49,25 +49,31 @@ if (uO.saveFirstFrameFigure)
     if md.isCropped
         h_cutline = line(kp.cropped_xcut, kp.cropped_ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
         h_kymline = line([kp.cropped_kym_startx; kp.cropped_kym_endx], [kp.cropped_kym_starty; kp.cropped_kym_endy], 'Color', 'r');
+        pos_txt = zeros(length(kp.cropped_kym_startx),1);
+        for ind = 1:length(kp.cropped_kym_startx)
+            pos_txt(ind) = text(kp.cropped_kym_startx(ind), kp.cropped_kym_starty(ind), sprintf('%0.2f', kp.pos_along_cut(ind)));
+            set(pos_txt(ind), 'Color', 'r');
+            set(pos_txt(ind), 'FontSize', 12);
+        end
     else
         h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
         h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r');
+        
+        %% Handle placement of the scale bar
+        scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)];
+        scy = [0.95 * size(frame,2) 0.95 * size(frame,2)];
+        scline = line(scx, scy, 'Color', 'w', 'LineWidth', 6);
+        scstr = [num2str(uO.scale_bar_length) ' \mum'];
+
+        % these fields will likely need tweaking! - need to work out the extent
+        % of the text box in order to do this properly
+        nudgex = -25;
+        nudgey = 470;
+        sctxt = text(nudgex + scx(1) + (scx(2) - scx(1))/2, nudgey, scstr);
+        set(sctxt, 'Color', 'w');
+        set(sctxt, 'FontSize', 14);
     end
-    
-    %% Handle placement of the scale bar
-    scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)];
-    scy = [0.95 * size(frame,2) 0.95 * size(frame,2)];
-    scline = line(scx, scy, 'Color', 'w', 'LineWidth', 6);
-    scstr = [num2str(uO.scale_bar_length) ' \mum'];
-    
-    % these fields will likely need tweaking! - need to work out the extent
-    % of the text box in order to do this properly
-    nudgex = -25;
-    nudgey = 470;
-    sctxt = text(nudgex + scx(1) + (scx(2) - scx(1))/2, nudgey, scstr);
-    set(sctxt, 'Color', 'w');
-    set(sctxt, 'FontSize', 14);
-    
+      
     set(h, 'Units', 'normalized')
     set(h, 'Position', [0 0 1 1]);
     
@@ -79,10 +85,7 @@ if (uO.saveFirstFrameFigure)
     out_file = [uO.outputFolder filesep dir_txt filesep title_txt];
     print(out_file, '-dpng', '-r300');
     savefig(h, [out_file '.fig']);
-    
-    delete(sctxt);
-    delete(scline);
-    
+
     if ~isfield(uO, 'figHandle')
         close(h);
     end

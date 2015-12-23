@@ -29,6 +29,9 @@ else
     kp.kym_starty = ycut(1) + (-1:uO.number_kym-2)*(ycut(2)-ycut(1))/(uO.number_kym-3);
 end
 
+distanceOffset = sqrt((kp.kym_startx(1) - kp.xcut(1))^2 + (kp.kym_starty(1) - kp.ycut(1))^2)*md.umperpixel;
+kp.pos_along_cut = (0:(length(kp.kym_startx)-1))*uO.kymSpacingUm - distanceOffset;
+
 if uO.kymDownOrUp
     kp.deltay = -uO.kym_length * cos(md.cutTheta);
     kp.deltax = uO.kym_length * sin(md.cutTheta);
