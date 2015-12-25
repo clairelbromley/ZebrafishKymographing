@@ -25,13 +25,17 @@ cutDataPath = [uO.outputFolder filesep dir_txt];
 redoPreprocess = false;
 
 if (uO.loadPreprocessedImages) && (exist(output_path, 'file') == 2)
-    try
-        stack = loadMultipageTiff(output_path);
-        [md, redoPreprocess] = loadAndCheckMetadata(cutDataPath, uO);
-        md.isCropped = true;
-    catch
-        redoPreprocess = true;
-    end
+%     try
+        
+        [md, uO, redoPreprocess] = loadAndCheckMetadata(cutDataPath, uO, md);
+        if ~redoPreprocess
+            stack = loadMultipageTiff(output_path);
+            md.isCropped = true;
+            
+        end
+%     catch
+%         redoPreprocess = true;
+%     end
     
 end
 
