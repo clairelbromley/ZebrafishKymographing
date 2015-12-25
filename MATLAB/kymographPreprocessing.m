@@ -31,6 +31,7 @@ if (uO.loadPreprocessedImages) && (exist(output_path, 'file') == 2)
         if ~redoPreprocess
             stack = loadMultipageTiff(output_path);
             md.isCropped = true;
+            disp('Loaded previously preprocessed images...');
             
         end
 %     catch

@@ -22,8 +22,10 @@ function [outmd, outuO, redoPreprocess] = loadAndCheckMetadata(cutPath, inuO, in
        data{ind} = temp(2:end);
     end
     
-    outmd = readInStruct(fields, fnames, data, 'metadata', inmd);
-    outuO = readInStruct(fields, fnames, data, 'userOptions', inuO);
+    inmd
+    outmd = readInStruct(fields, fnames, data, 'metadata', inmd)
+    inuO
+    outuO = readInStruct(fields, fnames, data, 'userOptions', inuO)
     
     if ~compareStruct(outuO, inuO)
         choice = questdlg('The user options used to generate the saved preprocessed data don''t match the current user options!', ...
