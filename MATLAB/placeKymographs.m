@@ -29,6 +29,9 @@ else
     kp.kym_starty = ycut(1) + (-1:uO.number_kym-2)*(ycut(2)-ycut(1))/(uO.number_kym-3);
 end
 
+kp.kym_startx(kp.kym_startx < 1) = 1;
+kp.kym_starty(kp.kym_starty < 1) = 1;
+
 distanceOffset = sqrt((kp.kym_startx(1) - kp.xcut(1))^2 + (kp.kym_starty(1) - kp.ycut(1))^2)*md.umperpixel;
 kp.pos_along_cut = (0:(length(kp.kym_startx)-1))*uO.kymSpacingUm - distanceOffset;
 
@@ -43,10 +46,15 @@ end
 kp.kym_endx = kp.kym_startx + kp.deltax;
 kp.kym_endy = kp.kym_starty + kp.deltay;
 
+kp.kym_endx(kp.kym_endx < 1) = 1;
+kp.kym_endy(kp.kym_endy < 1) = 1;
+
 kp.boundingBox_LTRB = [floor(min([kp.kym_startx kp.kym_endx]) - uO.kym_width) ...
                         floor(min([kp.kym_starty kp.kym_endy]) - uO.kym_width) ...
                         ceil(max([kp.kym_startx kp.kym_endx]) + uO.kym_width) ...
                         ceil(max([kp.kym_starty kp.kym_endy]) + uO.kym_width)];
+
+kp.boundingBox_LTRB(kp.boundingBox_LTRB < 1) = 1;
 
 kp.cropped_xcut = xcut - kp.boundingBox_LTRB(1);
 kp.cropped_ycut = ycut - kp.boundingBox_LTRB(2);

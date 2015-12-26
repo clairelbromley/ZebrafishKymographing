@@ -66,17 +66,21 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         % first four seconds as the canny edge might be discontinuous. 
         found = false;
         i = 1;
-        while (found == false)
+        if numel(I)>1
+            while (found == false)
 
-            if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.8)
-                found = true;
-            else
-                i=i+1;
+                if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.8)
+                    found = true;
+                else
+                    i=i+1;
+                end
+                % Break out of loop if a sensible edge hasn't been found
+                if (i > length(dpos))
+                    found = true;
+                end
             end
-            % Break out of loop if a sensible edge hasn't been found
-            if (i > length(dpos))
-                found = true;
-            end
+        else 
+            i = dpos+1;
         end
 
         correct_membrane = zeros(size(l));
