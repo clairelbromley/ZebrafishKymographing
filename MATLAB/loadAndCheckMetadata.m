@@ -1,4 +1,4 @@
-function [outmd, outuO, redoPreprocess] = loadAndCheckMetadata(cutPath, inuO, inmd)
+function [outmd, outuO, redoPreprocess] = loadAndCheckMetadata(cutPath, inuO, inmd, check)
 
     redoPreprocess = false;
     outuO = [];
@@ -27,14 +27,16 @@ function [outmd, outuO, redoPreprocess] = loadAndCheckMetadata(cutPath, inuO, in
     inuO
     outuO = readInStruct(fields, fnames, data, 'userOptions', inuO)
     
-    if ~compareStruct(outuO, inuO)
-        choice = questdlg('The user options used to generate the saved preprocessed data don''t match the current user options!', ...
-            'User options mismatch!', 'Redo preprocess', 'Use saved data anyway', 'Redo preprocess');
-        switch choice
-            case 'Redo preprocess'
-                redoPreprocess = true;
-                outmd = inmd;
-                outuO = inuO;
+    if check
+        if ~compareStruct(outuO, inuO)
+            choice = questdlg('The user options used to generate the saved preprocessed data don''t match the current user options!', ...
+                'User options mismatch!', 'Redo preprocess', 'Use saved data anyway', 'Redo preprocess');
+            switch choice
+                case 'Redo preprocess'
+                    redoPreprocess = true;
+                    outmd = inmd;
+                    outuO = inuO;
+            end
         end
     end
                 

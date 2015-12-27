@@ -27,7 +27,7 @@ redoPreprocess = false;
 if (uO.loadPreprocessedImages) && (exist(output_path, 'file') == 2)
 %     try
         
-        [md, uO, redoPreprocess] = loadAndCheckMetadata(cutDataPath, uO, md);
+        [md, uO, redoPreprocess] = loadAndCheckMetadata(cutDataPath, uO, md, true);
         if ~redoPreprocess
             stack = loadMultipageTiff(output_path);
             md.isCropped = true;
