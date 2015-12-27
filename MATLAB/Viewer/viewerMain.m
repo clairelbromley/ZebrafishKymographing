@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 27-Dec-2015 12:21:07
+% Last Modified by GUIDE v2.5 27-Dec-2015 19:02:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -107,11 +107,11 @@ folders = dir([base_folder filesep '*upwards']);
 
 for fInd = 1:length(folders)
     
-    s = dir([default_folder filesep folders(1).name filesep 'trimmed_cutinfo_cut_*.txt']);
+    s = dir([default_folder filesep folders(fInd).name filesep 'trimmed_cutinfo_cut_*.txt']);
     
     for cInd = 1:length(s)
         
-        cutNumber = sscanf(s.name, 'trimmed_cutinfo_cut_%d.txt');
+        cutNumber = sscanf(s(cInd).name, 'trimmed_cutinfo_cut_%d.txt');
         dt = sscanf(folders(fInd).name, '%d, Embryo *');
         embryoNumber = sscanf(folders(fInd).name, '%*6c, Embryo %2c upwards');
         
@@ -160,6 +160,10 @@ for ind = 1:length(axHandles)
     handles.poss{ind} = get(dataObjs, 'XData');
     
     plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+    xlab = 'Kymograph position along cut, \mum';
+    ylab = 'Membrane speed, \mum s^{-1}';
+    xlabel(axHandles(ind), xlab);
+    ylabel(axHandles(ind), ylab);
     title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
    
 end
@@ -170,6 +174,7 @@ figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber 
     cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut downwards.fig'])];
 
 axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
+handles.kymLines = [];
 
 for ind = 1:length(axHandles)
     
@@ -179,7 +184,7 @@ for ind = 1:length(axHandles)
     dataObjs = get(ax, 'Children');
     im = get(dataObjs(end), 'CData');
     
-    imagesc(im, 'Parent', axHandles(ind));
+    imH = imagesc(im, 'Parent', axHandles(ind));
     colormap(axHandles(ind), gray)
     
     set(axHandles(ind), 'XTick', []);
@@ -190,32 +195,39 @@ for ind = 1:length(axHandles)
     sc_line_y = get(dataObjs(2), 'YData');
     line(sc_line_x, sc_line_y, 'Parent', axHandles(ind), 'Color', 'w', ...
         'LineWidth', 3);
+    handles.umPerPixel = 20/diff(sc_line_x); %  ASSUMES SCALE BAR IS ALWAYS 20!
     
     %% cut line...
     cut_line_x = get(dataObjs(end-1), 'XData');
     cut_line_y = get(dataObjs(end-1), 'YData');
     line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'c', ...
-        'LineWidth', 1);
+        'LineWidth', 2);
     
     %% kymograph lines...   
     kym_lines = zeros(1,length(dataObjs)-4);
+    x = [kym_lines; kym_lines];
+    y = x;
     for lInd = 3:(length(dataObjs)-2)
-        kym_lines(lInd) = line(get(dataObjs(lInd), 'XData'), get(dataObjs(lInd), 'YData'), ...
+%         for lInd = 3:(length(dataObjs)-2)
+        x(:,lInd-2) = get(dataObjs(lInd), 'XData')';
+        y(:,lInd-2) = get(dataObjs(lInd), 'YData')';
+        kym_lines(lInd-2) = line(get(dataObjs(lInd), 'XData'), get(dataObjs(lInd), 'YData'), ...
             'Parent', axHandles(ind), 'Color', 'r', 'LineStyle', '--');
     end
     
     
+    offset = handles.umPerPixel * sqrt((x(1,1) - cut_line_x(1))^2 + (y(1,1) - cut_line_y(1))^2);
+    handles.positionsAlongLine = fliplr(-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
+    handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
+    handles.kymLines(ind,:) = kym_lines;
+    
+    set(imH, 'UIContextMenu', handles.menuPreCutFig);
+    set(handles.menuZoomToggle, 'Checked', 'off')
+    
 end
-
-
 
 close(h);
 guidata(hObject, handles);
-
-
-
-
-
 
 % --- Executes during object creation, after setting all properties.
 function listData_CreateFcn(hObject, eventdata, handles)
@@ -228,3 +240,57 @@ function listData_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --------------------------------------------------------------------
+function menuZoomToggle_Callback(hObject, eventdata, handles)
+% hObject    handle to menuZoomToggle (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% ax = gca;
+axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
+if strcmp(get(handles.menuZoomToggle, 'Checked'), 'on')
+    zoomState = true;
+    set(handles.menuZoomToggle, 'Checked', 'off')
+else
+    zoomState = false;
+    set(handles.menuZoomToggle, 'Checked', 'on')
+end
+
+for ind = 1:length(axHandles)
+    
+    zBox = handles.zoomBoxLTBR(ind,:);
+    ax = axHandles(ind);
+    kym_lines = handles.kymLines(ind,:);
+    
+    if zoomState
+        set(ax, 'XLim', [0 512]);
+        set(ax, 'YLim', [0 512]);
+
+        delete(handles.pos_txt(:,ind));
+
+    else
+        set(ax, 'XLim', [zBox(1) zBox(3)]);
+        set(ax, 'YLim', [zBox(2) zBox(4)]);
+        
+        tposx = get(kym_lines, 'XData');
+        tposy = get(kym_lines, 'YData');
+        for kpos = 1:length(kym_lines)
+            handles.pos_txt(kpos,ind) = text(tposx{kpos}(1), tposy{kpos}(1), ...
+                sprintf('%0.2f', handles.positionsAlongLine(kpos)),...
+                'Parent', axHandles(ind), 'FontSize', 8);
+            set(handles.pos_txt(kpos, ind), 'Color', 'r');
+        end
+    end
+    
+end
+
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuPreCutFig_Callback(hObject, eventdata, handles)
+% hObject    handle to menuPreCutFig (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
