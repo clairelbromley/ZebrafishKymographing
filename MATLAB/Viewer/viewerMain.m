@@ -147,7 +147,7 @@ cutNumber = s{14};
 figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position upwards.fig']);...
     cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position downwards.fig'])];
 
-axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition];
+axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
 titleAppendices = {'upwards'; 'downwards'};
 
 for ind = 1:length(axHandles)
@@ -164,25 +164,50 @@ for ind = 1:length(axHandles)
    
 end
 
-% %% upwards
-% fpath = figFilePaths{1};
-% h = openfig(fpath, 'new', 'invisible');
-% ax = get(h, 'Children');
-% dataObjs = get(ax, 'Children');
-% handles.upSpeeds = get(dataObjs, 'YData');
-% handles.upPoss = get(dataObjs, 'XData');
-% 
-% plot(handles.axUpSpeedVPosition, handles.upPoss, handles.upSpeeds, 'x-');
-% 
-% %% downwards
-% fpath = figFilePaths{2};
-% h = openfig(fpath, 'new', 'invisible');
-% ax = get(h, 'Children');
-% dataObjs = get(ax, 'Children');
-% handles.upSpeeds = get(dataObjs, 'YData');
-% handles.upPoss = get(dataObjs, 'XData');
-% 
-% plot(handles.axUpSpeedVPosition, handles.upPoss, handles.upSpeeds, 'x-');
+%% Get and plot first frames and relevant lines
+
+figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut upwards.fig']);...
+    cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut downwards.fig'])];
+
+axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
+
+for ind = 1:length(axHandles)
+    
+    fpath = figFilePaths{ind};
+    h = openfig(fpath, 'new', 'invisible');
+    ax = get(h, 'Children');
+    dataObjs = get(ax, 'Children');
+    im = get(dataObjs(end), 'CData');
+    
+    imagesc(im, 'Parent', axHandles(ind));
+    colormap(axHandles(ind), gray)
+    
+    set(axHandles(ind), 'XTick', []);
+    set(axHandles(ind), 'YTick', []);
+ 
+    %% scale bar...
+    sc_line_x = get(dataObjs(2), 'XData');
+    sc_line_y = get(dataObjs(2), 'YData');
+    line(sc_line_x, sc_line_y, 'Parent', axHandles(ind), 'Color', 'w', ...
+        'LineWidth', 3);
+    
+    %% cut line...
+    cut_line_x = get(dataObjs(end-1), 'XData');
+    cut_line_y = get(dataObjs(end-1), 'YData');
+    line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'c', ...
+        'LineWidth', 1);
+    
+    %% kymograph lines...   
+    kym_lines = zeros(1,length(dataObjs)-4);
+    for lInd = 3:(length(dataObjs)-2)
+        kym_lines(lInd) = line(get(dataObjs(lInd), 'XData'), get(dataObjs(lInd), 'YData'), ...
+            'Parent', axHandles(ind), 'Color', 'r', 'LineStyle', '--');
+    end
+    
+    
+end
+
+
 
 close(h);
 guidata(hObject, handles);
