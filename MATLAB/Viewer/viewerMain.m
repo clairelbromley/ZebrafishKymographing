@@ -147,6 +147,10 @@ cutNumber = s{14};
 figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position upwards.fig']);...
     cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position downwards.fig'])];
 
+handles.date = dt;
+handles.cutNumber = cutNumber;
+handles.embryoNumber = embryoNumber;
+
 axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
 titleAppendices = {'upwards'; 'downwards'};
 
@@ -308,21 +312,28 @@ function axUpSpeedVPosition_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+    
 if gca == handles.axUpSpeedVPosition
     ax = 1;
+    appendText = ' upwards';
+    kym_ax = handles.axUpSelectedKym;
 else
     ax = 2;
+    appendText = ' downwards';
+    kym_ax = handles.axDownSelectedKym;
 end
 
+folder = [baseFolder2 appendText];
+
 h = findobj('Parent', gca);
-% h = findobj('Parent', handles.axUpSpeedVPosition);
+
 for ind = 1:length(h)
     if (get(h(ind), 'Color') == [1 0 0])
         delete(h(ind));
     end
 end
 
-% a = get(handles.axUpSpeedVPosition, 'CurrentPoint');
 a = get(gca, 'CurrentPoint');
 xpos = a(1,1);
 x = abs(handles.poss{ax} - xpos);
@@ -332,5 +343,28 @@ closest = find(x == min(x));
 hold on
 plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
 hold off
+
+%% Get relevant kymograph file and plot
+filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+pos_along_cut = getKymPosMetadataFromText(filepath);
+kym_ind = find((round(100*pos_along_cut)/100) == (round(100*handles.poss{ax}(closest))/100)) - 2;
+
+fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+    ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
+    appendText '.fig'];
+h = openfig(fpath, 'new', 'invisible');
+fAx = get(h, 'Children');
+dataObjs = get(fAx, 'Children');
+im = get(dataObjs(end), 'CData');
+x = get(dataObjs(end), 'XData');
+y = get(dataObjs(end), 'YData');
+
+imH = imagesc(x, y, im, 'Parent', kym_ax);
+colormap(kym_ax, gray)
+xlabel(kym_ax, 'Time relative to cut, s')
+ylabel(kym_ax, 'Position relative to cut, \mum')
+title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
+    ',' appendText ' Kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
+title(kym_ax, title_txt);
 
 disp('nonsense');
