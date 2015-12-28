@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 27-Dec-2015 19:02:24
+% Last Modified by GUIDE v2.5 28-Dec-2015 18:53:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -150,6 +150,9 @@ figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber 
 axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
 titleAppendices = {'upwards'; 'downwards'};
 
+buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
+    {@axDownSpeedVPosition_ButtonDownFcn, handles}}
+
 for ind = 1:length(axHandles)
     
     fpath = figFilePaths{ind};
@@ -159,13 +162,16 @@ for ind = 1:length(axHandles)
     handles.speeds{ind} = get(dataObjs, 'YData');
     handles.poss{ind} = get(dataObjs, 'XData');
     
-    plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+    handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
     xlab = 'Kymograph position along cut, \mum';
     ylab = 'Membrane speed, \mum s^{-1}';
     xlabel(axHandles(ind), xlab);
     ylabel(axHandles(ind), ylab);
     title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
-   
+    
+    set(axHandles(ind), 'ButtonDownFcn', {@axUpSpeedVPosition_ButtonDownFcn, handles});
+    set(handles.plotHandles{ind}, 'ButtonDownFcn', {@axUpSpeedVPosition_ButtonDownFcn, handles});
+       
 end
 
 %% Get and plot first frames and relevant lines
@@ -294,3 +300,37 @@ function menuPreCutFig_Callback(hObject, eventdata, handles)
 % hObject    handle to menuPreCutFig (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on mouse press over axes background.
+function axUpSpeedVPosition_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to axUpSpeedVPosition (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if gca == handles.axUpSpeedVPosition
+    ax = 1;
+else
+    ax = 2;
+end
+
+h = findobj('Parent', gca);
+% h = findobj('Parent', handles.axUpSpeedVPosition);
+for ind = 1:length(h)
+    if (get(h(ind), 'Color') == [1 0 0])
+        delete(h(ind));
+    end
+end
+
+% a = get(handles.axUpSpeedVPosition, 'CurrentPoint');
+a = get(gca, 'CurrentPoint');
+xpos = a(1,1);
+x = abs(handles.poss{ax} - xpos);
+
+closest = find(x == min(x));
+
+hold on
+plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
+hold off
+
+disp('nonsense');
