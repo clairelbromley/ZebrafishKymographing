@@ -140,6 +140,7 @@ selected = contents{get(hObject,'Value')}; % returns selected item from listData
 disp(selected);
 %% start busy
 busyOutput = busyDlg();
+set(handles.listData, 'Enable', 'off');
 
 %% Get and plot speed vs position
 s = regexp(selected, '[=, ]', 'split');
@@ -240,7 +241,7 @@ end
 
 %% end busy
 busyDlg(busyOutput);
-
+set(handles.listData, 'Enable', 'on');
 close(h);
 
 cla(handles.axUpSelectedKym, 'reset');
@@ -321,6 +322,10 @@ function axUpSpeedVPosition_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+handles = guidata(gcf);
+set(handles.listData, 'Enable', 'on');
+busyOutput = busyDlg();
+set(handles.listData, 'Enable', 'off');
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
     
 if gca == handles.axUpSpeedVPosition
@@ -353,6 +358,15 @@ hold on
 plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
 hold off
 
+for kymInd = 1:length(handles.kymLines(ax,:))
+    if kymInd == closest
+        set(handles.kymLines(ax, closest), 'Color', 'g');
+    else
+        set(handles.kymLines(ax, kymInd), 'Color', 'r');
+    end
+end
+
+
 %% Get relevant kymograph file and plot
 filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 pos_along_cut = getKymPosMetadataFromText(filepath);
@@ -376,4 +390,25 @@ title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNu
     ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
 title(kym_ax, title_txt);
 
+fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+    ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
+   ' - quantitative kymograph.fig'];
+h = openfig(fpath, 'new', 'invisible');
+fAx = get(h, 'Children');
+dataObjs = get(fAx, 'Children');
+
+xoffset = (max(find(sum(im(:,25:30),1)==0))-2)*0.2;
+y=get(dataObjs{1}(1), 'YData');
+x=get(dataObjs{1}(1), 'XData');
+x = x + xoffset;
+x = [x(1) x(end)];
+y = [y(1) y(end)];
+
+hLine = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+hText = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'],...
+    'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+
+busyDlg(busyOutput);
+set(handles.listData, 'Enable', 'on');
+% DEBUG
 disp('nonsense');

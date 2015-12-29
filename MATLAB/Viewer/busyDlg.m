@@ -43,6 +43,7 @@ elseif nargin == 1
     drawnow;
     jObj.getComponent.setVisible(false)
     delete(hBusyContainer);
+
 end
 
 
