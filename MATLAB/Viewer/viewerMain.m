@@ -139,32 +139,8 @@ contents = cellstr(get(hObject,'String')); % returns listData contents as cell a
 selected = contents{get(hObject,'Value')}; % returns selected item from listData
 disp(selected);
 %% start busy
-try
-    % R2010a and newer
-    iconsClassName = 'com.mathworks.widgets.BusyAffordance$AffordanceSize';
-    iconsSizeEnums = javaMethod('values',iconsClassName);
-    SIZE_32x32 = iconsSizeEnums(2);  % (1) = 16x16,  (2) = 32x32
-    jObj = com.mathworks.widgets.BusyAffordance(SIZE_32x32, 'Working...');  % icon, label
-catch
-    % R2009b and earlier
-    redColor   = java.awt.Color(1,0,0);
-    blackColor = java.awt.Color(0,0,0);
-    jObj = com.mathworks.widgets.BusyAffordance(redColor, blackColor);
-end
-jObj.setPaintsWhenStopped(true);  % default = false
-jObj.useWhiteDots(false);         % default = false (true is good for dark backgrounds)
+busyOutput = busyDlg();
 
-prev_units = get(gcf, 'Units');
-set(gcf, 'Units', 'pixels');
-sz = (get(gcf, 'Position'));
-width = sz(3)/10;
-height = sz(4)/10;
-xpos = sz(3)/2 - width/2;
-ypos = sz(4)/2 - height/2;
-
-[hBusyObj, hBusyContainer] = javacomponent(jObj.getComponent, [xpos,ypos,width,height], gcf);
-jObj.start;
-set(gcf, 'Units', prev_units);
 %% Get and plot speed vs position
 s = regexp(selected, '[=, ]', 'split');
 dt = s{4};
@@ -263,13 +239,7 @@ for ind = 1:length(axHandles)
 end
 
 %% end busy
-jObj.stop;
-jObj.setBusyText('All done!');
-% delete(hBusyContainer);
-
-drawnow;
-jObj.getComponent.setVisible(false)
-delete(hBusyContainer);
+busyDlg(busyOutput);
 
 close(h);
 
