@@ -138,7 +138,33 @@ function listData_Callback(hObject, eventdata, handles)
 contents = cellstr(get(hObject,'String')); % returns listData contents as cell array
 selected = contents{get(hObject,'Value')}; % returns selected item from listData
 disp(selected);
+%% start busy
+try
+    % R2010a and newer
+    iconsClassName = 'com.mathworks.widgets.BusyAffordance$AffordanceSize';
+    iconsSizeEnums = javaMethod('values',iconsClassName);
+    SIZE_32x32 = iconsSizeEnums(2);  % (1) = 16x16,  (2) = 32x32
+    jObj = com.mathworks.widgets.BusyAffordance(SIZE_32x32, 'Working...');  % icon, label
+catch
+    % R2009b and earlier
+    redColor   = java.awt.Color(1,0,0);
+    blackColor = java.awt.Color(0,0,0);
+    jObj = com.mathworks.widgets.BusyAffordance(redColor, blackColor);
+end
+jObj.setPaintsWhenStopped(true);  % default = false
+jObj.useWhiteDots(false);         % default = false (true is good for dark backgrounds)
 
+prev_units = get(gcf, 'Units');
+set(gcf, 'Units', 'pixels');
+sz = (get(gcf, 'Position'));
+width = sz(3)/10;
+height = sz(4)/10;
+xpos = sz(3)/2 - width/2;
+ypos = sz(4)/2 - height/2;
+
+[hBusyObj, hBusyContainer] = javacomponent(jObj.getComponent, [xpos,ypos,width,height], gcf);
+jObj.start;
+set(gcf, 'Units', prev_units);
 %% Get and plot speed vs position
 s = regexp(selected, '[=, ]', 'split');
 dt = s{4};
@@ -155,7 +181,7 @@ axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition];
 titleAppendices = {'upwards'; 'downwards'};
 
 buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
-    {@axDownSpeedVPosition_ButtonDownFcn, handles}}
+    {@axDownSpeedVPosition_ButtonDownFcn, handles}};
 
 for ind = 1:length(axHandles)
     
@@ -236,7 +262,20 @@ for ind = 1:length(axHandles)
     
 end
 
+%% end busy
+jObj.stop;
+jObj.setBusyText('All done!');
+% delete(hBusyContainer);
+
+drawnow;
+jObj.getComponent.setVisible(false)
+delete(hBusyContainer);
+
 close(h);
+
+cla(handles.axUpSelectedKym, 'reset');
+cla(handles.axDownSelectedKym, 'reset');
+
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -364,7 +403,7 @@ colormap(kym_ax, gray)
 xlabel(kym_ax, 'Time relative to cut, s')
 ylabel(kym_ax, 'Position relative to cut, \mum')
 title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
-    ',' appendText ' Kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
+    ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
 title(kym_ax, title_txt);
 
 disp('nonsense');
