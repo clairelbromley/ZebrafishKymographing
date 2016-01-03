@@ -32,6 +32,9 @@ function structOut(inStruct, fid, parentName)
                 elseif isstruct(nc(jind))
                     newParentName = sprintf('%s.%s', parentName, fStruct{ind});
                     structOut(nc(jind), fid, newParentName);
+                elseif isa(nc(jind), 'matlab.ui.figure')
+                    % FIX ISSUE IN R2015 WHERE WHAT IS RETURNED BY FIGURE
+                    % IS AN OBJECT RATHER THAN A HANDLE. 
                 else
                     fprintf(fid, '\t%d', nc(jind));
                 end

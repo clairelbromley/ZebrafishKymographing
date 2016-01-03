@@ -151,7 +151,16 @@ disableEnableOnClick([handles.axDownSpeedVPosition; handles.axUpSpeedVPosition])
 s = regexp(selected, '[=, ]', 'split');
 dt = s{4};
 embryoNumber = s{9};
-cutNumber = s{14};
+% UNSURE WHETHER IT IS MATLAB VERSION OR OS THAT CAUSES ISSUES HERE WITH
+% CLAIRE'S LAPTOP...
+v = version('-release');
+if strcmp(v, '2015b') || strcmp(v, '2015a')
+% if ~strcmp(computer(), 'PCWIN64')
+% if ~ispc()
+    cutNumber = s{15};
+else
+    cutNumber = s{14};
+end
 figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position upwards.fig']);...
     cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position downwards.fig'])];
 
