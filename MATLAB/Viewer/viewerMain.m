@@ -71,6 +71,7 @@ xlabel(handles.axUpSpeedVPosition, xlab);
 ylabel(handles.axUpSpeedVPosition, ylab);
 xlabel(handles.axDownSpeedVPosition, xlab);
 ylabel(handles.axDownSpeedVPosition, ylab);
+
 % UIWAIT makes viewerMain wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
@@ -141,6 +142,10 @@ disp(selected);
 %% start busy
 busyOutput = busyDlg();
 set(handles.listData, 'Enable', 'off');
+butDownFcn = {@axUpSpeedVPosition_ButtonDownFcn, handles};
+butDownFcns = repmat(butDownFcn, 1, 4);
+disableEnableOnClick([handles.axDownSpeedVPosition; handles.axUpSpeedVPosition]);
+
 
 %% Get and plot speed vs position
 s = regexp(selected, '[=, ]', 'split');
@@ -157,8 +162,8 @@ handles.embryoNumber = embryoNumber;
 axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
 titleAppendices = {'upwards'; 'downwards'};
 
-buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
-    {@axDownSpeedVPosition_ButtonDownFcn, handles}};
+% buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
+%     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
 
 for ind = 1:length(axHandles)
     
@@ -175,10 +180,7 @@ for ind = 1:length(axHandles)
     xlabel(axHandles(ind), xlab);
     ylabel(axHandles(ind), ylab);
     title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
-    
-    set(axHandles(ind), 'ButtonDownFcn', {@axUpSpeedVPosition_ButtonDownFcn, handles});
-    set(handles.plotHandles{ind}, 'ButtonDownFcn', {@axUpSpeedVPosition_ButtonDownFcn, handles});
-       
+      
 end
 
 %% Get and plot first frames and relevant lines
@@ -241,6 +243,11 @@ end
 
 %% end busy
 busyDlg(busyOutput);
+tempHand = [handles.axDownSpeedVPosition; handles.axUpSpeedVPosition];
+for ind = 1:length(handles.plotHandles)
+    tempHand = [tempHand; handles.plotHandles{ind}];
+end
+disableEnableOnClick(tempHand, butDownFcns);
 set(handles.listData, 'Enable', 'on');
 close(h);
 
@@ -411,4 +418,4 @@ hText = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 % DEBUG
-disp('nonsense');
+% disp('nonsense');
