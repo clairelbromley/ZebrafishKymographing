@@ -153,10 +153,10 @@ dt = s{4};
 embryoNumber = s{9};
 % UNSURE WHETHER IT IS MATLAB VERSION OR OS THAT CAUSES ISSUES HERE WITH
 % CLAIRE'S LAPTOP...
-v = version('-release');
-if strcmp(v, '2015b') || strcmp(v, '2015a')
+% v = version('-release');
+% if strcmp(v, '2015b') || strcmp(v, '2015a')
 % if ~strcmp(computer(), 'PCWIN64')
-% if ~ispc()
+if ~ispc()
     cutNumber = s{15};
 else
     cutNumber = s{14};
