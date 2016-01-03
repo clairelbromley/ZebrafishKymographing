@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 28-Dec-2015 18:53:56
+% Last Modified by GUIDE v2.5 03-Jan-2016 15:22:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -419,3 +419,38 @@ busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 % DEBUG
 % disp('nonsense');
+
+
+% --------------------------------------------------------------------
+function saveToPNG_Callback(hObject, eventdata, handles)
+% hObject    handle to saveToPNG (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if isfield(handles, 'baseFolder')
+    default_folder = handles.baseFolder;
+else
+    default_folder = 'C:\Users\Doug\Desktop\test';
+end
+
+c = clock;
+dateStr = sprintf('%d-%02d-%02d %02d%02d', c(1), c(2), c(3), c(4), c(5));
+defaultName = [dateStr ' Kymograph Data Viewer.png'];
+[fname,pname] = uiputfile('*.png', 'Save current view to PNG...', [default_folder filesep defaultName]);
+set(gcf,'PaperPositionMode','auto');
+set(gcf,'InvertHardcopy','off')
+
+print(gcf, [pname fname], '-dpng', '-r600', '-loose');
+
+% --------------------------------------------------------------------
+function saveToPPT_Callback(hObject, eventdata, handles)
+% hObject    handle to saveToPPT (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function exportWizard_Callback(hObject, eventdata, handles)
+% hObject    handle to exportWizard (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
