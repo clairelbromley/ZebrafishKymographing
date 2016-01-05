@@ -135,6 +135,8 @@ end
 
 set(handles.listData, 'String', dataList);
 
+guidata(hObject, handles);
+
 %% Fire selection event for first item in list
 if ~isempty(dataList)
     set(handles.listData, 'Value', 1);
@@ -142,7 +144,7 @@ if ~isempty(dataList)
     callback(handles.listData, []);
 end
 
-guidata(hObject, handles);
+% guidata(hObject, handles);
         
 % --- Executes on selection change in listData.
 function listData_Callback(hObject, eventdata, handles)
