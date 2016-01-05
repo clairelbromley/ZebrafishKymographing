@@ -92,7 +92,6 @@ function menuFile_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
 % --------------------------------------------------------------------
 function menuLoadData_Callback(hObject, eventdata, handles)
 % hObject    handle to menuLoadData (see GCBO)
@@ -101,10 +100,16 @@ function menuLoadData_Callback(hObject, eventdata, handles)
 
 default_folder = 'C:\Users\Doug\Desktop\test';
 if ~isfield(handles, 'baseFolder')
-    base_folder = uigetdir(default_folder, 'Choose the base folder to populate the data list...');
+    sf = default_folder;
 else
-    base_folder = uigetdir(handles.baseFolder, 'Choose the base folder to populate the data list...');
+    if ischar(handles.baseFolder)
+        sf = handles.baseFolder;
+    else
+        sf = default_folder;
+    end
 end
+
+base_folder = uigetdir(sf, 'Choose the base folder to populate the data list...');
 
 dataList = cell(0);
 handles.baseFolder = base_folder;
@@ -130,12 +135,15 @@ end
 
 set(handles.listData, 'String', dataList);
 
+%% Fire selection event for first item in list
+if ~isempty(dataList)
+    set(handles.listData, 'Value', 1);
+    callback = get(handles.listData, 'Callback');
+    callback(handles.listData, []);
+end
+
 guidata(hObject, handles);
         
-        
-        
-
-
 % --- Executes on selection change in listData.
 function listData_Callback(hObject, eventdata, handles)
 % hObject    handle to listData (see GCBO)
@@ -418,6 +426,8 @@ x=get(dataObjs{1}(1), 'XData');
 x = x + xoffset;
 x = [x(1) x(end)];
 y = [y(1) y(end)];
+
+set(imH, 'UIContextMenu', handles.menuSelectedKymFig);
 
 hLine = line(x, y, 'Parent', kym_ax, 'Color', 'r');
 hText = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'],...
