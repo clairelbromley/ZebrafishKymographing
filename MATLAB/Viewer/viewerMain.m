@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 03-Jan-2016 15:22:21
+% Last Modified by GUIDE v2.5 05-Jan-2016 22:45:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -455,5 +455,68 @@ function saveToPPT_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function exportWizard_Callback(hObject, eventdata, handles)
 % hObject    handle to exportWizard (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuOverlayFitLine_Callback(hObject, eventdata, handles)
+% hObject    handle to menuOverlayFitLine (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuSelectedKymFig_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSelectedKymFig (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuOverlayEdge_Callback(hObject, eventdata, handles)
+% hObject    handle to menuOverlayEdge (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuManualLine_Callback(hObject, eventdata, handles)
+% hObject    handle to menuManualLine (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuRepositionLine_Callback(hObject, eventdata, handles)
+% hObject    handle to menuRepositionLine (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuFixAxisLimits_Callback(hObject, eventdata, handles)
+% hObject    handle to menuFixAxisLimits (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuToggleFixedAxes_Callback(hObject, eventdata, handles)
+% hObject    handle to menuToggleFixedAxes (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuSetLimits_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSetLimits (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuSpeedVPos_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSpeedVPos (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
