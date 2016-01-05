@@ -100,7 +100,12 @@ function menuLoadData_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 default_folder = 'C:\Users\Doug\Desktop\test';
-base_folder = uigetdir(default_folder, 'Choose the base folder to populate the data list...');
+if ~isfield(handles, 'baseFolder')
+    base_folder = uigetdir(default_folder, 'Choose the base folder to populate the data list...');
+else
+    base_folder = uigetdir(handles.baseFolder, 'Choose the base folder to populate the data list...');
+end
+
 dataList = cell(0);
 handles.baseFolder = base_folder;
 
