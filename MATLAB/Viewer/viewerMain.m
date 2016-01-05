@@ -108,15 +108,16 @@ folders = dir([base_folder filesep '*upwards']);
 
 for fInd = 1:length(folders)
     
-    s = dir([default_folder filesep folders(fInd).name filesep 'trimmed_cutinfo_cut_*.txt']);
+    s = dir([base_folder filesep folders(fInd).name filesep 'trimmed_cutinfo_cut_*.txt']);
     
     for cInd = 1:length(s)
         
         cutNumber = sscanf(s(cInd).name, 'trimmed_cutinfo_cut_%d.txt');
-        dt = sscanf(folders(fInd).name, '%d, Embryo *');
-        embryoNumber = sscanf(folders(fInd).name, '%*6c, Embryo %2c upwards');
+        ex = '(?<date>\d+), Embryo (?<embryoNumber>\w+) upwards';
+        out = regexp(folders(fInd).name, ex, 'names');
         
-        dataList = [dataList; cellstr(sprintf('Date = %d, Embryo = %s, Cut = %d', dt, embryoNumber, cutNumber))];
+        dataList = [dataList; cellstr(sprintf('Date = %s, Embryo = %s, Cut = %d', ...
+            out.date, out.embryoNumber, cutNumber))];
         
     end
     
@@ -148,19 +149,12 @@ disableEnableOnClick([handles.axDownSpeedVPosition; handles.axUpSpeedVPosition])
 
 
 %% Get and plot speed vs position
-s = regexp(selected, '[=, ]', 'split');
-dt = s{4};
-embryoNumber = s{9};
-% UNSURE WHETHER IT IS MATLAB VERSION OR OS THAT CAUSES ISSUES HERE WITH
-% CLAIRE'S LAPTOP...
-% v = version('-release');
-% if strcmp(v, '2015b') || strcmp(v, '2015a')
-% if ~strcmp(computer(), 'PCWIN64')
-if ~ispc()
-    cutNumber = s{15};
-else
-    cutNumber = s{14};
-end
+ex = 'Date = (?<date>\w+), Embryo = (?<embryoNumber>\w+), Cut = (?<cutNumber>\d+)';
+s = regexp(selected, ex, 'names');
+dt = s.date;
+embryoNumber = s.embryoNumber;
+cutNumber = s.cutNumber;
+
 figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position upwards.fig']);...
     cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position downwards.fig'])];
 
