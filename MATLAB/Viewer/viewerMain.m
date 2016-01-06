@@ -396,6 +396,7 @@ end
 filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 pos_along_cut = getKymPosMetadataFromText(filepath);
 kym_ind = find((round(100*pos_along_cut)/100) == (round(100*handles.poss{ax}(closest))/100)) - 2;
+handles.currentKymInd = kym_ind;
 
 fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
     ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
@@ -431,14 +432,21 @@ y = [y(1) y(end)];
 
 set(imH, 'UIContextMenu', handles.menuSelectedKymFig);
 
-hLine = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-hText = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'],...
+fitLineState = get(handles.menuOverlayFitLine, 'Checked');
+
+handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+handles.fitText(ax) = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'],...
     'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+
+if(~strcmp(fitLineState, 'on'))
+    set(handles.fitLine(ax), 'Visible', 'off');
+    set(handles.fitText(ax), 'Visible', 'off');
+end
 
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
-% DEBUG
-% disp('nonsense');
+
+guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
@@ -477,10 +485,30 @@ function exportWizard_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function menuOverlayFitLine_Callback(hObject, eventdata, handles)
+function menuOverlayFitLine_Callback(hObject, eventdata, handles, callAx)
 % hObject    handle to menuOverlayFitLine (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% replace callAx with gca?
+if (callAx == handles.axUpSelectedKym)
+    ax = 1;
+elseif (callAx == handles.axDownSelectedKym)
+    ax = 2;
+end
+
+fitLineState = get(handles.menuOverlayFitLine, 'Checked');
+if strcmp(fitLineState, 'on')
+    set(handles.menuOverlayFitLine, 'Checked', 'off');
+    set(handles.fitLine(ax), 'Visible', 'off');
+    set(handles.fitText(ax), 'Visible', 'off');
+else
+    set(handles.menuOverlayFitLine, 'Checked', 'on');
+    set(handles.fitLine(ax), 'Visible', 'on');
+    set(handles.fitText(ax), 'Visible', 'on');
+end
+
+guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
@@ -489,6 +517,19 @@ function menuSelectedKymFig_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+if (gca == handles.axUpSelectedKym)
+    ax = 1;
+elseif (gca == handles.axDownSelectedKym)
+    ax = 2;
+end
+
+if strcmp(get(handles.fitLine(ax), 'Visible'), 'on')
+    set(handles.menuOverlayFitLine, 'Checked', 'on');
+else
+    set(handles.menuOverlayFitLine, 'Checked', 'off');
+end
+
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function menuOverlayEdge_Callback(hObject, eventdata, handles)
