@@ -408,8 +408,16 @@ im = get(dataObjs(end), 'CData');
 x = get(dataObjs(end), 'XData');
 y = get(dataObjs(end), 'YData');
 
-imH = imagesc(x, y, im, 'Parent', kym_ax);
-colormap(kym_ax, gray)
+% imH = imagesc(x, y, im, 'Parent', kym_ax);
+RI = imref2d(size(im));
+RI.XWorldLimits = [min(x) max(x)];
+RI.YWorldLimits = [min(y) max(y)];
+imH = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+hold on;
+%% Overlay detected edge, saving handle so that it can be made visible or by setting alpha
+%% Set detected edge alpha to 0.5
+
+% colormap(kym_ax, gray)
 xlabel(kym_ax, 'Time relative to cut, s')
 ylabel(kym_ax, 'Position relative to cut, \mum')
 title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
