@@ -409,15 +409,17 @@ x = get(dataObjs(end), 'XData');
 y = get(dataObjs(end), 'YData');
 
 % imH = imagesc(x, y, im, 'Parent', kym_ax);
+hold(kym_ax, 'on');
 RI = imref2d(size(im));
 RI.XWorldLimits = [min(x) max(x)];
 RI.YWorldLimits = [min(y) max(y)];
-imH = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
-hold on;
-%% Overlay detected edge, saving handle so that it can be made visible or by setting alpha
-%% Set detected edge alpha to 0.5
-
-% colormap(kym_ax, gray)
+bg = zeros(size(im));
+cmap = gray;
+cmap(1,:) = [0 1 1];
+colBg = ind2rgb(bg, cmap);
+% hold off;
+handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+handles.kymData(ax,:,:) = im;
 xlabel(kym_ax, 'Time relative to cut, s')
 ylabel(kym_ax, 'Position relative to cut, \mum')
 title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
@@ -431,6 +433,7 @@ h = openfig(fpath, 'new', 'invisible');
 fAx = get(h, 'Children');
 dataObjs = get(fAx, 'Children');
 
+% TODO: get data on frames/second from metadata
 xoffset = (max(find(sum(im(:,25:30),1)==0))-2)*0.2;
 y=get(dataObjs{1}(1), 'YData');
 x=get(dataObjs{1}(1), 'XData');
@@ -438,9 +441,30 @@ x = x + xoffset;
 x = [x(1) x(end)];
 y = [y(1) y(end)];
 
-set(imH, 'UIContextMenu', handles.menuSelectedKymFig);
+set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+% handles.kymIm(ax) = imH;
 
 fitLineState = get(handles.menuOverlayFitLine, 'Checked');
+membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
+
+
+% TODO: get data on frames/second and pre- and post-cut time from metadata
+membrane = get(dataObjs{2}, 'CData');
+prePad = zeros(size(membrane, 1), 5/0.2 + 2);
+postPad = zeros(size(membrane, 1), 10/.2 - size(membrane, 2) - 1);
+handles.paddedMembrane{ax} = [prePad membrane postPad];
+
+% if(~strcmp(membraneOverlayState, 'on'))
+    imshow(colBg, RI, 'Parent', kym_ax);
+    handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+if(~strcmp(membraneOverlayState, 'on'))    
+    set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
+else
+    set(handles.kymIm(ax), 'AlphaData', 1);
+end
+    hold(kym_ax, 'off');
+    set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+% end
 
 handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
 handles.fitText(ax) = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'],...
@@ -518,7 +542,6 @@ end
 
 guidata(hObject, handles);
 
-
 % --------------------------------------------------------------------
 function menuSelectedKymFig_Callback(hObject, eventdata, handles)
 % hObject    handle to menuSelectedKymFig (see GCBO)
@@ -537,6 +560,13 @@ else
     set(handles.menuOverlayFitLine, 'Checked', 'off');
 end
 
+ad = get(handles.kymIm(ax), 'AlphaData');
+if mean(ad(:))==1
+    set(handles.menuOverlayEdge, 'Checked', 'off');
+else
+    set(handles.menuOverlayEdge, 'Checked', 'on');
+end
+
 guidata(hObject, handles);
 
 % --------------------------------------------------------------------
@@ -545,6 +575,22 @@ function menuOverlayEdge_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+if (gca == handles.axUpSelectedKym)
+    ax = 1;
+elseif (gca == handles.axDownSelectedKym)
+    ax = 2;
+end
+
+overlayEdgeState = get(handles.menuOverlayEdge, 'Checked');
+if strcmp(overlayEdgeState, 'on')
+    set(handles.menuOverlayEdge, 'Checked', 'off');
+    set(handles.kymIm(ax), 'AlphaData', 1);
+else
+    set(handles.menuOverlayEdge, 'Checked', 'on');
+    set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
+end
+
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function menuManualLine_Callback(hObject, eventdata, handles)
