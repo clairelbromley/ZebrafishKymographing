@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 05-Jan-2016 22:45:33
+% Last Modified by GUIDE v2.5 10-Jan-2016 23:27:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -272,6 +272,11 @@ close(h);
 cla(handles.axUpSelectedKym, 'reset');
 cla(handles.axDownSelectedKym, 'reset');
 
+% TODO: add function, broken out from callback, to allow checking whether
+% data has already been added to the list to be exported - upon this, we
+% can base the coloring of the title and the checked state in the UI menu. 
+set(handles.menuInclude, 'checked', 'off');
+
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -419,12 +424,15 @@ cmap(1,:) = [0 1 1];
 colBg = ind2rgb(bg, cmap);
 % hold off;
 handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+axis tight;
 handles.kymData(ax,:,:) = im;
 xlabel(kym_ax, 'Time relative to cut, s')
 ylabel(kym_ax, 'Position relative to cut, \mum')
 title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
     ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
 title(kym_ax, title_txt);
+handles.currentPosition = handles.poss{ax}(closest);
+handles.currentSpeed = handles.speeds{ax}(closest);
 
 fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
     ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
@@ -442,6 +450,7 @@ x = [x(1) x(end)];
 y = [y(1) y(end)];
 
 set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+
 % handles.kymIm(ax) = imH;
 
 fitLineState = get(handles.menuOverlayFitLine, 'Checked');
@@ -632,3 +641,111 @@ function menuSpeedVPos_Callback(hObject, eventdata, handles)
 % hObject    handle to menuSpeedVPos (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuLoadMetadata_Callback(hObject, eventdata, handles)
+% hObject    handle to menuLoadMetadata (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+default_folder = 'C:\Users\Doug\Desktop\test';
+if isfield(handles, 'metadataPath')
+    if ischar(handles.metadataPath)
+        sf = handles.metadataPath;
+    else
+        sf = default_folder;
+    end
+elseif ~isfield(handles, 'baseFolder')
+    sf = default_folder;
+else
+    if ischar(handles.baseFolder)
+        sf = handles.baseFolder;
+    else
+        sf = default_folder;
+    end
+end
+
+[fname, pname,~]= uigetfile('*.xlsx', 'Choose the xlsx file containing the experiment metadata...', sf);
+handles.metadataPath = [pname, fname];
+
+if ischar(handles.metadataPath)
+    busyOutput = busyDlg();
+    set(handles.listData, 'Enable', 'off');
+    handles.experimentMetadata = getExperimentMetadata(handles.metadataPath);
+    busyDlg(busyOutput);
+    set(handles.listData, 'Enable', 'on');
+end
+
+handles.includedData = [];
+
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuInclude_Callback(hObject, eventdata, handles)
+% hObject    handle to menuInclude (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+%% Check state of checkbox
+if strcmp(get(hObject, 'checked'), 'on')
+    set(hObject, 'checked', 'off')
+else
+    set(hObject, 'checked', 'on')
+end
+
+if gca == handles.axUpSelectedKym
+    direction = 'up';
+else
+    direction = 'down';
+end
+
+%% Check if current date/embryo/cut/direction/position is stored yet
+if isstruct(handles.includedData)
+    stored = struct2cell(handles.includedData);
+    f = fields(handles.includedData);
+    dates = {stored(strcmp(f, 'date'), :)};
+    embryoNs = {stored(strcmp(f, 'embryoNumber'), :)};
+    cutNs = {stored(strcmp(f, 'cutNumber'), :)};
+    directions = {stored(strcmp(f, 'direction'), :)}; 
+    positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
+
+    indices = strcmp(dates, handles.date)& strcmp(embryoNs, handles.embryoNumber) & ...
+        strcmp(cutNs, handles.cutNumber) & strcmp(directions, direction) & ...
+        positions == handles.currentPosition;
+else
+    indices = 0;
+end
+
+%% If not, store in includedData structure along with metadata
+if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
+    
+    % Find the relevant experiment metadata fields...
+    expMeta = struct2cell(handles.experimentMetadata);
+    expMetaFields = fields(handles.experimentMetadata);
+    
+    dates = {expMeta(strcmp(expMetaFields, 'date'), :)};
+    embryoNs = {expMeta(strcmp(expMetaFields, 'embryoNumber'), :)};
+    cutNs = {expMeta(strcmp(expMetaFields, 'cutNumber'), :)};
+    
+    expMetaIndices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
+        (cell2mat(cutNs{1}) == str2double(handles.cutNumber));
+    
+    incData = handles.experimentMetadata(expMetaIndices);
+    incData.kymPosition = handles.currentPosition;
+    incData.speed = handles.currentSpeed;
+    incData.direction = direction;
+    
+    handles.includedData = [handles.includedData; incData];
+        
+end
+
+%% Deal with case when kymograph has been selected but user has changed mind...
+if sum(indices > 0) && get(hObject, 'checked', 'off')
+   %% remove data from handles.includedData based on indices vector 
+end
+
+guidata(hObject, handles);
+    
