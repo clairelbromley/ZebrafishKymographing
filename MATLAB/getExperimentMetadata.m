@@ -29,9 +29,12 @@ function experimentMetadata = getExperimentMetadata(filepath)
 %             disp(xm.cutNumber);
             
             for fInd = 1:length(flds)
+               
+               disp(shind/length(sheets)*100);
+                
                a = parseFieldNames(flds{fInd});
                if strcmp(a, 'depthActual')
-                   disp('break');
+                   disp('break')
                end
                if ~strcmp(a, 'coordinatesxStartYstartxstopYstop')
                     xm.(a) = raw{cutind,fInd+1};

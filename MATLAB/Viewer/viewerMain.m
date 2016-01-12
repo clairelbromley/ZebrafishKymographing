@@ -58,6 +58,8 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+funcPath = [pwd filesep '..'];
+addpath(funcPath);
 
 set(handles.axUpFirstFrame, 'XTick', []);
 set(handles.axDownFirstFrame, 'XTick', []);
@@ -362,10 +364,12 @@ if gca == handles.axUpSpeedVPosition
     ax = 1;
     appendText = ' upwards';
     kym_ax = handles.axUpSelectedKym;
+    direction = 'up';
 else
     ax = 2;
     appendText = ' downwards';
     kym_ax = handles.axDownSelectedKym;
+    direction = 'down';
 end
 
 folder = [baseFolder2 appendText];
@@ -428,9 +432,11 @@ axis tight;
 handles.kymData(ax,:,:) = im;
 xlabel(kym_ax, 'Time relative to cut, s')
 ylabel(kym_ax, 'Position relative to cut, \mum')
+
 title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
     ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
-title(kym_ax, title_txt);
+handles.kymTitle{ax} = title(kym_ax, title_txt);
+
 handles.currentPosition = handles.poss{ax}(closest);
 handles.currentSpeed = handles.speeds{ax}(closest);
 
@@ -484,6 +490,12 @@ if(~strcmp(fitLineState, 'on'))
     set(handles.fitText(ax), 'Visible', 'off');
 end
 
+if sum(checkIfStored(handles, direction)) > 0 
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+else
+    set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+end
+
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
@@ -523,6 +535,12 @@ function exportWizard_Callback(hObject, eventdata, handles)
 % hObject    handle to exportWizard (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+%% DIALOG TO CHECK WHETHER DATA SHOULD BE APPENDED OR WRITTEN ANEW
+
+%% DIALOG TO CHECK WHICH STATS (MAX, MEAN, MEDIAN ETC.) SHOULD BE INCLUDED
+
+%% EXPORT (TO CSV?)
+disp('Export...')
 
 
 % --------------------------------------------------------------------
@@ -574,6 +592,14 @@ if mean(ad(:))==1
     set(handles.menuOverlayEdge, 'Checked', 'off');
 else
     set(handles.menuOverlayEdge, 'Checked', 'on');
+end
+
+if ischar(get(handles.kymTitle{ax}, 'BackgroundColor'))
+    if strcmp(get(handles.kymTitle{ax}, 'BackgroundColor'), 'none')
+        set(handles.menuInclude, 'Checked', 'off');
+    end
+else
+    set(handles.menuInclude, 'Checked', 'on');
 end
 
 guidata(hObject, handles);
@@ -667,21 +693,56 @@ else
     end
 end
 
-[fname, pname,~]= uigetfile('*.xlsx', 'Choose the xlsx file containing the experiment metadata...', sf);
-handles.metadataPath = [pname, fname];
-
-if ischar(handles.metadataPath)
-    busyOutput = busyDlg();
-    set(handles.listData, 'Enable', 'off');
-    handles.experimentMetadata = getExperimentMetadata(handles.metadataPath);
-    busyDlg(busyOutput);
-    set(handles.listData, 'Enable', 'on');
+reply = 'OK';
+if isfield(handles, 'includedData')
+    if ~isempty(handles.includedData)
+        reply = questdlg('Discard data currently set as "included" for export?', ...
+            'Discard data - are you sure?', 'OK', 'Cancel', 'Cancel');
+    end
 end
 
-handles.includedData = [];
+if strcmp(reply, 'OK')
 
+    busyOutput = busyDlg();
+    set(handles.listData, 'Enable', 'off');
+
+    [fname, pname,~]= uigetfile('*.xlsx', 'Choose the xlsx file containing the experiment metadata...', sf);
+    handles.metadataPath = [pname, fname];
+
+    if ischar(handles.metadataPath)
+        handles.experimentMetadata = getExperimentMetadata(handles.metadataPath);
+    end
+
+    busyDlg(busyOutput);
+    set(handles.listData, 'Enable', 'on');
+
+    handles.includedData = [];
+
+end
+    
 guidata(hObject, handles);
 
+function indices = checkIfStored(handles, direction)
+% Check whether currently selected kymograph data has been stored for
+% export
+
+if isstruct(handles.includedData)
+    stored = struct2cell(handles.includedData);
+    f = fields(handles.includedData);
+    dates = {stored(strcmp(f, 'date'), :)};
+    embryoNs = {stored(strcmp(f, 'embryoNumber'), :)};
+    cutNs = cell2mat(stored(strcmp(f, 'cutNumber'), :));
+    directions = {stored(strcmp(f, 'direction'), :)}; 
+    positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
+
+    indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
+        (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
+        positions == handles.currentPosition;
+else
+    indices = 0;
+end
+
+disp(indices);
 
 % --------------------------------------------------------------------
 function menuInclude_Callback(hObject, eventdata, handles)
@@ -698,26 +759,14 @@ end
 
 if gca == handles.axUpSelectedKym
     direction = 'up';
+    ax = 1;
 else
     direction = 'down';
+    ax = 2;
 end
 
 %% Check if current date/embryo/cut/direction/position is stored yet
-if isstruct(handles.includedData)
-    stored = struct2cell(handles.includedData);
-    f = fields(handles.includedData);
-    dates = {stored(strcmp(f, 'date'), :)};
-    embryoNs = {stored(strcmp(f, 'embryoNumber'), :)};
-    cutNs = {stored(strcmp(f, 'cutNumber'), :)};
-    directions = {stored(strcmp(f, 'direction'), :)}; 
-    positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
-
-    indices = strcmp(dates, handles.date)& strcmp(embryoNs, handles.embryoNumber) & ...
-        strcmp(cutNs, handles.cutNumber) & strcmp(directions, direction) & ...
-        positions == handles.currentPosition;
-else
-    indices = 0;
-end
+indices = checkIfStored(handles, direction);
 
 %% If not, store in includedData structure along with metadata
 if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
@@ -739,12 +788,16 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData.direction = direction;
     
     handles.includedData = [handles.includedData; incData];
+    
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
         
 end
 
 %% Deal with case when kymograph has been selected but user has changed mind...
-if sum(indices > 0) && get(hObject, 'checked', 'off')
+if sum(indices > 0) && strcmp(get(hObject, 'checked'), 'off')
    %% remove data from handles.includedData based on indices vector 
+   set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+   handles.includedData(indices) = [];
 end
 
 guidata(hObject, handles);
