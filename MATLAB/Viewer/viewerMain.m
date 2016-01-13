@@ -113,37 +113,39 @@ end
 
 base_folder = uigetdir(sf, 'Choose the base folder to populate the data list...');
 
-dataList = cell(0);
-handles.baseFolder = base_folder;
+if ~isequal(base_folder, 0)
+    dataList = cell(0);
+    handles.baseFolder = base_folder;
 
-folders = dir([base_folder filesep '*upwards']);
+    folders = dir([base_folder filesep '*upwards']);
 
-for fInd = 1:length(folders)
-    
-    s = dir([base_folder filesep folders(fInd).name filesep 'trimmed_cutinfo_cut_*.txt']);
-    
-    for cInd = 1:length(s)
-        
-        cutNumber = sscanf(s(cInd).name, 'trimmed_cutinfo_cut_%d.txt');
-        ex = '(?<date>\d+), Embryo (?<embryoNumber>\w+) upwards';
-        out = regexp(folders(fInd).name, ex, 'names');
-        
-        dataList = [dataList; cellstr(sprintf('Date = %s, Embryo = %s, Cut = %d', ...
-            out.date, out.embryoNumber, cutNumber))];
-        
+    for fInd = 1:length(folders)
+
+        s = dir([base_folder filesep folders(fInd).name filesep 'trimmed_cutinfo_cut_*.txt']);
+
+        for cInd = 1:length(s)
+
+            cutNumber = sscanf(s(cInd).name, 'trimmed_cutinfo_cut_%d.txt');
+            ex = '(?<date>\d+), Embryo (?<embryoNumber>\w+) upwards';
+            out = regexp(folders(fInd).name, ex, 'names');
+
+            dataList = [dataList; cellstr(sprintf('Date = %s, Embryo = %s, Cut = %d', ...
+                out.date, out.embryoNumber, cutNumber))];
+
+        end
+
     end
-    
-end
 
-set(handles.listData, 'String', dataList);
+    set(handles.listData, 'String', dataList);
 
-guidata(hObject, handles);
+    guidata(hObject, handles);
 
-%% Fire selection event for first item in list
-if ~isempty(dataList)
-    set(handles.listData, 'Value', 1);
-    callback = get(handles.listData, 'Callback');
-    callback(handles.listData, []);
+    %% Fire selection event for first item in list
+    if ~isempty(dataList)
+        set(handles.listData, 'Value', 1);
+        callback = get(handles.listData, 'Callback');
+        callback(handles.listData, []);
+    end
 end
 
 % guidata(hObject, handles);
@@ -535,13 +537,98 @@ function exportWizard_Callback(hObject, eventdata, handles)
 % hObject    handle to exportWizard (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-%% DIALOG TO CHECK WHETHER DATA SHOULD BE APPENDED OR WRITTEN ANEW
 
+%% CHECK IF THERE IS DATA TO SAVE?
+if isfield(handles, 'includedData')
+   if isempty(handles.includedData)
+       msgbox('No data included for export!');
+       return;
+   end
+else
+    msgbox('No data included for export!');
+    return;
+end
+
+%% DIALOG TO CHECK WHETHER DATA SHOULD BE APPENDED OR WRITTEN ANEW
+reply = questdlg('Create a new output file, or append output to an existing file?', ...
+    'Create/append?', 'Create new', 'Append', 'Create new');
+
+switch reply
+    case 'Create new'
+        [fname, pname] = uiputfile('*.xlsx');
+    case 'Append'
+        [fname, pname, ~] = uigetfile('*.xlsx');
+    otherwise
+        return;
+end
+
+if isequal(fname, 0)
+    return;
+else
+    outputName = [pname filesep fname];
+end
+        
 %% DIALOG TO CHECK WHICH STATS (MAX, MEAN, MEDIAN ETC.) SHOULD BE INCLUDED
+reply = questdlg('Save raw data only, or generate max, median, mean for each kymograph?', ...
+    'Include max/median/mean?', 'Include stats', 'Don''t include stats', 'Don''t include stats');
+
+switch reply
+    case 'Include stats'
+        includeStats = true;
+    case 'Don''t include stats'
+        includeStats = false;
+    otherwise
+        return;
+end
 
 %% EXPORT (TO CSV?)
 disp('Export...')
 
+busyOutput = busyDlg();
+set(handles.listData, 'Enable', 'off');
+
+headerLine = fields(handles.includedData)';
+data = struct2cell(handles.includedData)';
+xlswrite(outputName, [headerLine; data]);
+
+if includeStats
+    %% get list of kymograph IDs
+    [uniqueKymIDs,ia,ic]  = unique(data(:, strcmp(headerLine, 'ID')),'stable');
+    
+    %% for each kymograph, isolate the  relevant data rows and calculate stats
+    for ind = 1:max(ic)
+        mu(ind) = mean([data{ic == ind, strcmp(headerLine, 'speed')}]);
+        sd(ind) = std([data{ic == ind, strcmp(headerLine, 'speed')}]);
+        mx(ind) = max([data{ic == ind, strcmp(headerLine, 'speed')}]);
+        med(ind) = median([data{ic == ind, strcmp(headerLine, 'speed')}]);
+    end
+    
+    %% turn off "add sheet" warnings...
+    wid = 'MATLAB:xlswrite:AddSheet';
+    warning('off', wid);
+    
+    mudata = data(ia, :);
+    mudata(:, strcmp(headerLine, 'speed')) = num2cell(mu);
+    xlswrite(outputName, [headerLine; mudata], 'Mean speeds, ums^-1');
+    
+    sddata = data(ia, :);
+    sddata(:, strcmp(headerLine, 'speed')) = num2cell(sd);
+    xlswrite(outputName, [headerLine; sddata], 'SD on speeds, ums^-1');
+    
+    mxdata = data(ia, :);
+    mxdata(:, strcmp(headerLine, 'speed')) = num2cell(mx);
+    xlswrite(outputName, [headerLine; mxdata], 'Max speeds, ums^-1');
+    
+    meddata = data(ia, :);
+    meddata(:, strcmp(headerLine, 'speed')) = num2cell(med);
+    xlswrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
+    
+end
+   
+busyDlg(busyOutput);
+set(handles.listData, 'Enable', 'on');
+    
+    
 
 % --------------------------------------------------------------------
 function menuOverlayFitLine_Callback(hObject, eventdata, handles, callAx)
@@ -783,6 +870,7 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
         (cell2mat(cutNs{1}) == str2double(handles.cutNumber));
     
     incData = handles.experimentMetadata(expMetaIndices);
+    incData.ID = [handles.date '-' handles.embryoNumber '-' handles.cutNumber '-' direction];
     incData.kymPosition = handles.currentPosition;
     incData.speed = handles.currentSpeed;
     incData.direction = direction;
