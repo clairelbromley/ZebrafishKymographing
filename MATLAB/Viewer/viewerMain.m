@@ -58,8 +58,13 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
-funcPath = [pwd filesep '..'];
+dummy = [mfilename('fullpath') '.m'];
+currdir = fileparts(dummy);
+funcPath = [currdir filesep '..'];
 addpath(funcPath);
+
+javaaddpath([currdir filesep 'Archive' filesep 'jxl.jar']);
+javaaddpath([currdir filesep 'Archive' filesep 'MXL.jar']);
 
 set(handles.axUpFirstFrame, 'XTick', []);
 set(handles.axDownFirstFrame, 'XTick', []);
@@ -589,7 +594,7 @@ set(handles.listData, 'Enable', 'off');
 
 headerLine = fields(handles.includedData)';
 data = struct2cell(handles.includedData)';
-xlswrite(outputName, [headerLine; data]);
+xxwrite(outputName, [headerLine; data]);
 
 if includeStats
     %% get list of kymograph IDs
@@ -609,25 +614,33 @@ if includeStats
     
     mudata = data(ia, :);
     mudata(:, strcmp(headerLine, 'speed')) = num2cell(mu);
-    xlswrite(outputName, [headerLine; mudata], 'Mean speeds, ums^-1');
+    xxwrite(outputName, [headerLine; mudata], 'Mean speeds, ums^-1');
     
     sddata = data(ia, :);
     sddata(:, strcmp(headerLine, 'speed')) = num2cell(sd);
-    xlswrite(outputName, [headerLine; sddata], 'SD on speeds, ums^-1');
+    xxwrite(outputName, [headerLine; sddata], 'SD on speeds, ums^-1');
     
     mxdata = data(ia, :);
     mxdata(:, strcmp(headerLine, 'speed')) = num2cell(mx);
-    xlswrite(outputName, [headerLine; mxdata], 'Max speeds, ums^-1');
+    xxwrite(outputName, [headerLine; mxdata], 'Max speeds, ums^-1');
     
     meddata = data(ia, :);
     meddata(:, strcmp(headerLine, 'speed')) = num2cell(med);
-    xlswrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
+    xxwrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
     
 end
    
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
     
+    
+function xxwrite(varargin)
+
+if ~ispc
+    xlwrite(varargin);
+else
+    xlswrite(varargin);
+end
     
 
 % --------------------------------------------------------------------
