@@ -637,6 +637,8 @@ set(handles.listData, 'Enable', 'on');
 function xxwrite(varargin)
 
 if ~ispc
+    [pname, fname, ~] = fileparts(varargin{1});
+    varargin{1} = [pname filesep fname '.xls'];
     xlwrite(varargin);
 else
     xlswrite(varargin);
