@@ -7,10 +7,13 @@ function experimentMetadata = getExperimentMetadata(filepath)
     for shind = 1:length(sheets)
 
         dt = sheets{shind};
+        disp(dt)
                
         [~, ~, raw] = xlsread(filepath, dt);
+        
         flds = raw(headerLines,2:end);
         raw = raw(headerLines+1:end,:);
+        disp(raw);
         lbl = raw(:,1);
         
         rowsToKeep = cellfun(@ischar,lbl);
@@ -30,11 +33,11 @@ function experimentMetadata = getExperimentMetadata(filepath)
             
             for fInd = 1:length(flds)
                
-               disp(shind/length(sheets)*100);
+%                disp(shind/length(sheets)*100);
                 
                a = parseFieldNames(flds{fInd});
                if strcmp(a, 'depthActual')
-                   disp('break')
+%                    disp('break')
                end
                if ~strcmp(a, 'coordinatesxStartYstartxstopYstop')
                     xm.(a) = raw{cutind,fInd+1};

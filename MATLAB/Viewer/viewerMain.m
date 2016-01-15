@@ -635,13 +635,24 @@ set(handles.listData, 'Enable', 'on');
     
     
 function xxwrite(varargin)
-
+outName = varargin{1};
+data = varagin{2};
 if ~ispc
-    [pname, fname, ~] = fileparts(varargin{1});
-    varargin{1} = [pname filesep fname '.xls'];
-    xlwrite(varargin);
+    [pname, fname, ~] = fileparts(outName);
+    outName = [pname filesep fname '.xls'];
+    if nargin == 2
+        xlwrite(outName, data);
+    elseif nargin == 3
+        sht = varargin{3};
+        xlwrite(outName, data, sht);
+    end
 else
-    xlswrite(varargin);
+    if nargin ==2
+        xlswrite(outName, data);
+    elseif nargin == 3
+        sht = varargin{3};
+        xlswrite(outName, data, sht);
+    end
 end
     
 
