@@ -26,6 +26,7 @@ kymstarty = getNumericMetadataFromText(metafname, 'metadata.kym_region.cropped_k
 kymendx = getNumericMetadataFromText(metafname, 'metadata.kym_region.cropped_kym_endx');
 kymendy = getNumericMetadataFromText(metafname, 'metadata.kym_region.cropped_kym_endy');
 
+figH = figure;
 image(squeeze(im(:,:,1)));
 colormap gray;
 axis equal tight;
@@ -38,9 +39,10 @@ imScale = 64/max(im(:));
 for ind = 1:length(info)
     
     im1 = squeeze(im(:,:,ind))*imScale;
-    image(im1);
+    image(im1, 'Parent', ax);
     colormap gray
     axis equal tight;
+    axis off;
     ax = gca;
 
     cutLineH  = line(cutx, cuty, 'Color', 'c', 'LineStyle', '-');
@@ -60,9 +62,10 @@ if nargin == 3
     if ~strcmp(ext, 'avi')
         ext = 'avi';
     end
-    
+
     movfname = [pname filesep fname '.' ext];
-    v = videoWriter(movfname);
+    v = VideoWriter(movfname);
+    set(v, 'FrameRate', 2);
     open(v);
     writeVideo(v,F);
     close(v);

@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 10-Jan-2016 23:27:52
+% Last Modified by GUIDE v2.5 17-Jan-2016 23:08:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -925,3 +925,58 @@ end
 
 guidata(hObject, handles);
     
+
+
+% --------------------------------------------------------------------
+function menuMovies_Callback(hObject, eventdata, handles)
+% hObject    handle to menuMovies (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuViewMovie_Callback(hObject, eventdata, handles)
+% hObject    handle to menuViewMovie (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+if gca == handles.axUpFirstFrame
+    appendText = ' upwards';
+else
+    appendText = ' downwards';
+end
+
+folder = [baseFolder2 appendText];
+metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
+
+makeMovieOfProcessedData(imFName, metadataFName);
+
+
+% --------------------------------------------------------------------
+function menuViewSaveMovie_Callback(hObject, eventdata, handles)
+% hObject    handle to menuViewSaveMovie (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+if gca == handles.axUpFirstFrame
+    appendText = ' upwards';
+else
+    appendText = ' downwards';
+end
+
+folder = [baseFolder2 appendText];
+metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
+
+[fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
+    [folder filesep 'Movie of processed membrane movement, cut ' handles.cutNumber '.avi']);
+
+makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
+
+
+% --------------------------------------------------------------------
+function menuSaveMovie_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSaveMovie (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
