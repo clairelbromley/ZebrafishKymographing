@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 17-Jan-2016 23:08:16
+% Last Modified by GUIDE v2.5 17-Jan-2016 23:29:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -932,6 +932,27 @@ function menuMovies_Callback(hObject, eventdata, handles)
 % hObject    handle to menuMovies (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+if gca == handles.axUpFirstFrame
+    ax = 1;
+    appendText = ' upwards';
+else
+    ax = 2;
+    appendText = ' downwards';
+end
+
+if isfield(handles, 'movieFrames')
+    if length(handles.movieFrames) >= ax  
+        if ~isempty(handles.movieFrames{ax})
+            set(handles.menuSaveMovie, 'Enable', 'on');
+        else
+            set(handles.menuSaveMovie, 'Enable', 'off');
+        end
+    else
+        set(handles.menuSaveMovie, 'Enable', 'off');
+    end
+else
+    set(handles.menuSaveMovie, 'Enable', 'off');
+end
 
 
 % --------------------------------------------------------------------
@@ -939,10 +960,13 @@ function menuViewMovie_Callback(hObject, eventdata, handles)
 % hObject    handle to menuViewMovie (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+busyOutput = busyDlg();
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
 if gca == handles.axUpFirstFrame
+    ax = 1;
     appendText = ' upwards';
 else
+    ax = 2;
     appendText = ' downwards';
 end
 
@@ -950,7 +974,11 @@ folder = [baseFolder2 appendText];
 metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 
-makeMovieOfProcessedData(imFName, metadataFName);
+handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName);
+
+busyDlg(busyOutput);
+
+guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
@@ -958,10 +986,13 @@ function menuViewSaveMovie_Callback(hObject, eventdata, handles)
 % hObject    handle to menuViewSaveMovie (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+busyOutput = busyDlg();
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
 if gca == handles.axUpFirstFrame
+    ax = 1;
     appendText = ' upwards';
 else
+    ax = 2;
     appendText = ' downwards';
 end
 
@@ -972,11 +1003,32 @@ imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 [fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
     [folder filesep 'Movie of processed membrane movement, cut ' handles.cutNumber '.avi']);
 
-makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
+handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
 
+busyDlg(busyOutput);
+
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function menuSaveMovie_Callback(hObject, eventdata, handles)
 % hObject    handle to menuSaveMovie (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+busyOutput = busyDlg();
+baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+if gca == handles.axUpFirstFrame
+    ax = 1;
+    appendText = ' upwards';
+else
+    ax = 2;
+    appendText = ' downwards';
+end
+
+folder = [baseFolder2 appendText];
+metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
+[fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
+    [folder filesep 'Movie of processed membrane movement, cut ' handles.cutNumber '.avi']);
+
+makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName], handles.movieFrames{ax});
+busyDlg(busyOutput);
