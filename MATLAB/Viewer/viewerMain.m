@@ -261,6 +261,15 @@ for ind = 1:length(axHandles)
     offset = handles.umPerPixel * sqrt((x(1,1) - cut_line_x(1))^2 + (y(1,1) - cut_line_y(1))^2);
     handles.positionsAlongLine = fliplr(-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
     handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
+    
+%     %% find which attempted kymograph lines are represented in results
+%     plotPos = round(100*handles.poss{ind})/100;
+%     drawnPos = round(100*handles.positionsAlongLine)/100;
+%     [~,~,included] = intersect(plotPos, drawnPos);
+%     toRemove = 1:length(kym_lines);
+%     toRemove(included)=[];
+%     delete(kym_lines(toRemove));
+    
     handles.kymLines(ind,:) = kym_lines;
     
     set(imH, 'UIContextMenu', handles.menuPreCutFig);
