@@ -838,21 +838,21 @@ guidata(hObject, handles);
 function indices = checkIfStored(handles, direction)
 % Check whether currently selected kymograph data has been stored for
 % export
+indices = 0;
+if isfield(handles, 'includedData');
+    if isstruct(handles.includedData)
+        stored = struct2cell(handles.includedData);
+        f = fields(handles.includedData);
+        dates = {stored(strcmp(f, 'date'), :)};
+        embryoNs = {stored(strcmp(f, 'embryoNumber'), :)};
+        cutNs = cell2mat(stored(strcmp(f, 'cutNumber'), :));
+        directions = {stored(strcmp(f, 'direction'), :)}; 
+        positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
 
-if isstruct(handles.includedData)
-    stored = struct2cell(handles.includedData);
-    f = fields(handles.includedData);
-    dates = {stored(strcmp(f, 'date'), :)};
-    embryoNs = {stored(strcmp(f, 'embryoNumber'), :)};
-    cutNs = cell2mat(stored(strcmp(f, 'cutNumber'), :));
-    directions = {stored(strcmp(f, 'direction'), :)}; 
-    positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
-
-    indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
-        (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
-        positions == handles.currentPosition;
-else
-    indices = 0;
+        indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
+            (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
+            positions == handles.currentPosition;
+    end
 end
 
 disp(indices);
