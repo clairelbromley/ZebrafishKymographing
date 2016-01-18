@@ -61,11 +61,12 @@ guidata(hObject, handles);
 dummy = [mfilename('fullpath') '.m'];
 currdir = fileparts(dummy);
 funcPath = [currdir filesep '..'];
+addpath(genpath(currdir));
 addpath(funcPath);
 
 javaaddpath([currdir filesep 'Archive' filesep 'jxl.jar']);
 javaaddpath([currdir filesep 'Archive' filesep 'MXL.jar']);
-
+    
 set(handles.axUpFirstFrame, 'XTick', []);
 set(handles.axDownFirstFrame, 'XTick', []);
 set(handles.axUpFirstFrame, 'YTick', []);
