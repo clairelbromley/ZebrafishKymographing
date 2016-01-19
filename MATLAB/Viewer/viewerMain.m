@@ -482,8 +482,8 @@ membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
 
 % TODO: get data on frames/second and pre- and post-cut time from metadata
 membrane = get(dataObjs{2}, 'CData');
-prePad = zeros(size(membrane, 1), 5/0.2 + 2);
-postPad = zeros(size(membrane, 1), 10/.2 - size(membrane, 2) - 1);
+prePad = zeros(size(membrane, 1), 5/0.2 + 3);
+postPad = zeros(size(membrane, 1), 10/.2 - size(membrane, 2) - 2);
 handles.paddedMembrane{ax} = [prePad membrane postPad];
 
 % if(~strcmp(membraneOverlayState, 'on'))
