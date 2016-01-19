@@ -18,6 +18,7 @@ function output = kymographBase(varargin)
     userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
     userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
     
+    userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
     userOptions.outputFolder = 'C:\Users\Doug\Desktop\test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
