@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 17-Jan-2016 23:29:40
+% Last Modified by GUIDE v2.5 19-Jan-2016 23:29:22
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -382,11 +382,13 @@ if gca == handles.axUpSpeedVPosition
     appendText = ' upwards';
     kym_ax = handles.axUpSelectedKym;
     direction = 'up';
+    handles.currentDir = 'up';
 else
     ax = 2;
     appendText = ' downwards';
     kym_ax = handles.axDownSelectedKym;
     direction = 'down';
+    handles.currentDir = 'down';
 end
 
 folder = [baseFolder2 appendText];
@@ -1033,3 +1035,31 @@ imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 
 makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName], handles.movieFrames{ax});
 busyDlg(busyOutput);
+
+
+% --- Executes on key press with focus on figure1 or any of its controls.
+function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  structure with the following fields (see FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+% disp(eventdata.Key);
+% disp(eventdata.Character);
+% disp(eventdata.Modifier);
+
+if strcmp(eventdata.Key, 'e')
+    disp('edge');
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSelectedKym);
+        disp(gca);
+    else
+        axes(handles.axDownSelectedKym);
+        disp(gca);
+    end
+    callback = get(handles.menuOverlayEdge, 'Callback');
+    callback(handles.menuOverlayEdge, []);
+end
+
+guidata(hObject, handles);
