@@ -702,8 +702,10 @@ function menuSelectedKymFig_Callback(hObject, eventdata, handles)
 
 if (gca == handles.axUpSelectedKym)
     ax = 1;
+    handles.currentDir = 'up';
 elseif (gca == handles.axDownSelectedKym)
     ax = 2;
+    handles.currentDir = 'down';
 end
 
 if strcmp(get(handles.fitLine(ax), 'Visible'), 'on')
@@ -1053,13 +1055,22 @@ if strcmp(eventdata.Key, 'e')
     disp('edge');
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
-        disp(gca);
     else
         axes(handles.axDownSelectedKym);
-        disp(gca);
     end
     callback = get(handles.menuOverlayEdge, 'Callback');
     callback(handles.menuOverlayEdge, []);
+end
+
+if strcmp(eventdata.Key, 'i')
+    disp('include');
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSelectedKym);
+    else
+        axes(handles.axDownSelectedKym);
+    end
+    callback = get(handles.menuInclude, 'Callback');
+    callback(handles.menuInclude, []);
 end
 
 guidata(hObject, handles);
