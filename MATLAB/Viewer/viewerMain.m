@@ -370,13 +370,39 @@ function axUpSpeedVPosition_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to axUpSpeedVPosition (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+ 
+handles = guidata(gcf);
+
+if gca == handles.axUpSpeedVPosition
+    ax = 1;
+    appendText = ' upwards';
+    kym_ax = handles.axUpSelectedKym;
+    direction = 'up';
+    handles.currentDir = 'up';
+else
+    ax = 2;
+    appendText = ' downwards';
+    kym_ax = handles.axDownSelectedKym;
+    direction = 'down';
+    handles.currentDir = 'down';
+end
+
+a = get(gca, 'CurrentPoint');
+xpos = a(1,1);
+x = abs(handles.poss{ax} - xpos);
+
+closest = find(x == min(x));
+
+move_selected_point(closest);
+
+function move_selected_point(closest)
 
 handles = guidata(gcf);
 set(handles.listData, 'Enable', 'on');
 busyOutput = busyDlg();
 set(handles.listData, 'Enable', 'off');
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
-    
+
 if gca == handles.axUpSpeedVPosition
     ax = 1;
     appendText = ' upwards';
@@ -393,6 +419,8 @@ end
 
 folder = [baseFolder2 appendText];
 
+
+
 h = findobj('Parent', gca);
 
 for ind = 1:length(h)
@@ -401,11 +429,7 @@ for ind = 1:length(h)
     end
 end
 
-a = get(gca, 'CurrentPoint');
-xpos = a(1,1);
-x = abs(handles.poss{ax} - xpos);
 
-closest = find(x == min(x));
 
 hold on
 plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
@@ -518,7 +542,8 @@ end
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
-guidata(hObject, handles);
+guidata(gcbo, handles);
+% guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
@@ -736,6 +761,8 @@ function menuOverlayEdge_Callback(hObject, eventdata, handles)
 % hObject    handle to menuOverlayEdge (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+handles = guidata(gcf);
 
 if (gca == handles.axUpSelectedKym)
     ax = 1;
@@ -1073,4 +1100,57 @@ if strcmp(eventdata.Key, 'i')
     callback(handles.menuInclude, []);
 end
 
-guidata(hObject, handles);
+if strcmp(eventdata.Key, 'p')
+    disp('generateMovie');
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpFirstFrame);
+    else
+        axes(handles.axDownFirstFrame);
+    end
+    callback = get(handles.menuViewMovie, 'Callback');
+    callback(handles.menuViewMovie, []);
+end
+
+if strcmp(eventdata.Key, 'rightarrow')
+    disp('rightarrow');
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSpeedVPosition);
+        ax = 1;
+    else
+        axes(handles.axDownSpeedVPosition);
+        ax = 2;
+    end
+    % identify current point, and therefore point to the right
+    xpos = handles.currentPosition;
+    x = abs(handles.poss{ax} - xpos);
+
+    closest = find(x == min(x));
+
+    if closest < length(x)
+        move_selected_point(closest+1);
+    end
+    
+end
+
+if strcmp(eventdata.Key, 'leftarrow')
+    disp('leftarrow');
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSpeedVPosition);
+        ax = 1;
+    else
+        axes(handles.axDownSpeedVPosition);
+        ax = 2;
+    end
+    % identify current point, and therefore point to the right
+    xpos = handles.currentPosition;
+    x = abs(handles.poss{ax} - xpos);
+
+    closest = find(x == min(x));
+
+    if closest > 1
+        move_selected_point(closest-1);
+    end
+    
+end
+
+% guidata(hObject, handles);
