@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 19-Jan-2016 23:29:22
+% Last Modified by GUIDE v2.5 21-Jan-2016 00:58:23
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -592,8 +592,9 @@ else
 end
 
 %% DIALOG TO CHECK WHETHER DATA SHOULD BE APPENDED OR WRITTEN ANEW
-reply = questdlg('Create a new output file, or append output to an existing file?', ...
-    'Create/append?', 'Create new', 'Append', 'Create new');
+% reply = questdlg('Create a new output file, or append output to an existing file?', ...
+%     'Create/append?', 'Create new', 'Append', 'Create new');
+reply = 'Create new';
 
 switch reply
     case 'Create new'
@@ -885,11 +886,19 @@ if isfield(handles, 'includedData');
         stored = struct2cell(handles.includedData);
         f = fields(handles.includedData);
         dates = {stored(strcmp(f, 'date'), :)};
-        embryoNs = {stored(strcmp(f, 'embryoNumber'), :)};
+%         if isnumeric(dates{1}{1})
+%             dates = cellfun(@num2str, dates{1}, 'UniformOutput', false);
+%             dates = num2str(dates);
+%         end
+        dates = convertToStringUtil({stored(strcmp(f, 'date'), :)});
+        embryoNs = convertToStringUtil({stored(strcmp(f, 'embryoNumber'), :)});
         cutNs = cell2mat(stored(strcmp(f, 'cutNumber'), :));
-        directions = {stored(strcmp(f, 'direction'), :)}; 
+        directions = convertToStringUtil({stored(strcmp(f, 'direction'), :)}); 
         positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
 
+        
+        %TODO: check consistency between case when data is imported and
+        %when it is saved internally. 
         indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
             (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
             positions == handles.currentPosition;
@@ -897,6 +906,14 @@ if isfield(handles, 'includedData');
 end
 
 disp(indices);
+
+function outVar = convertToStringUtil(inVar)
+
+if isnumeric(inVar{1}{1})
+    outVar = cellfun(@num2str, inVar{1}, 'UniformOutput', false);
+else
+    outVar = inVar;
+end
 
 % --------------------------------------------------------------------
 function menuInclude_Callback(hObject, eventdata, handles)
@@ -1154,3 +1171,26 @@ if strcmp(eventdata.Key, 'leftarrow')
 end
 
 % guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuImportInclusion_Callback(hObject, eventdata, handles)
+% hObject    handle to menuImportInclusion (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+busyOutput = busyDlg();
+reply = questdlg('Overwrite unsaved inclusion data?', 'Are you sure?', 'Yes', 'No', 'No');
+
+if strcmp(reply, 'Yes')
+    handles.includedData = [];
+
+    [fname, pname, ~] = uigetfile('*.xlsx', 'Choose an exisiting kymograph inclusion file...');;
+
+    [~,~,dummy] = xlsread([pname fname], 'Sheet1');
+    
+    handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
+end
+
+busyDlg(busyOutput);
+
+guidata(hObject, handles);
