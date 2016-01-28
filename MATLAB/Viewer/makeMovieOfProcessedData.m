@@ -28,6 +28,7 @@ if nargin < 4
     kymendy = getNumericMetadataFromText(metafname, 'metadata.kym_region.cropped_kym_endy');
 
     figH = figure;
+    set(figH, 'CloseRequestFcn', []);
     image(squeeze(im(:,:,1)));
     colormap gray;
     axis equal tight;
@@ -55,6 +56,7 @@ if nargin < 4
 
     end
 
+    set(figH, 'CloseRequestFcn', 'closereq');
     close(figH);
 
     if nargin == 3

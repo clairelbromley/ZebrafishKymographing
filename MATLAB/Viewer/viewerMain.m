@@ -1194,7 +1194,12 @@ function menuImportInclusion_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 busyOutput = busyDlg();
-reply = questdlg('Overwrite unsaved inclusion data?', 'Are you sure?', 'Yes', 'No', 'No');
+reply = 'Yes';
+if isfield(handles, 'includedData')
+    if ~isempty(handles.includedData)
+        reply = questdlg('Overwrite unsaved inclusion data?', 'Are you sure?', 'Yes', 'No', 'No');
+    end
+end
 
 if strcmp(reply, 'Yes')
     handles.includedData = [];
