@@ -905,8 +905,6 @@ if isfield(handles, 'includedData');
     end
 end
 
-disp(indices);
-
 function outVar = convertToStringUtil(inVar)
 
 if isnumeric(inVar{1}{1})
@@ -1050,10 +1048,13 @@ metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt']
 imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 
 [fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
-    [folder filesep 'Movie of processed membrane movement, cut ' handles.cutNumber '.avi']);
+    [folder filesep 'Movie of processed membrane movement, date = ', handles.date ...
+    ', embryo = ' handles.embryoNumber ', cut ' handles.cutNumber ', .avi']);
 
-handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
-
+if fileName ~= 0
+    handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
+end
+    
 busyDlg(busyOutput);
 
 guidata(hObject, handles);
@@ -1186,9 +1187,14 @@ reply = questdlg('Overwrite unsaved inclusion data?', 'Are you sure?', 'Yes', 'N
 if strcmp(reply, 'Yes')
     handles.includedData = [];
 
-    [fname, pname, ~] = uigetfile('*.xlsx', 'Choose an exisiting kymograph inclusion file...');;
+    [fname, pname, ~] = uigetfile('*.xls;*.xlsx', 'Choose an exisiting kymograph inclusion file...');
+    filepath = [pname fname];
+    
+%     [~, sheets] = xlsfinfo(filepath);
+%     
+%     [~,~,dummy] = xlsread([pname fname], sheets{1});
 
-    [~,~,dummy] = xlsread([pname fname], 'Sheet1');
+    [~,~,dummy] = xlsread([pname fname]);
     
     handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
 end
