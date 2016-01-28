@@ -747,6 +747,16 @@ else
     set(handles.menuOverlayEdge, 'Checked', 'on');
 end
 
+if isfield(handles, 'experimentMetadata')
+    if ~isempty(handles.experimentMetadata)
+        set(handles.menuInclude, 'Enable', 'on');
+    else
+        set(handles.menuInclude, 'Enable', 'off');
+    end
+else
+    set(handles.menuInclude, 'Enable', 'off');
+end
+
 if ischar(get(handles.kymTitle{ax}, 'BackgroundColor'))
     if strcmp(get(handles.kymTitle{ax}, 'BackgroundColor'), 'none')
         set(handles.menuInclude, 'Checked', 'off');
@@ -849,12 +859,12 @@ else
 end
 
 reply = 'OK';
-if isfield(handles, 'includedData')
-    if ~isempty(handles.includedData)
-        reply = questdlg('Discard data currently set as "included" for export?', ...
-            'Discard data - are you sure?', 'OK', 'Cancel', 'Cancel');
-    end
-end
+% if isfield(handles, 'includedData')
+%     if ~isempty(handles.includedData)
+%         reply = questdlg('Discard data currently set as "included" for export?', ...
+%             'Discard data - are you sure?', 'OK', 'Cancel', 'Cancel');
+%     end
+% end
 
 if strcmp(reply, 'OK')
 
@@ -871,7 +881,10 @@ if strcmp(reply, 'OK')
     busyDlg(busyOutput);
     set(handles.listData, 'Enable', 'on');
 
-    handles.includedData = [];
+    if ~isfield(handles, 'includedData')
+        handles.includedData = [];
+    end
+%     handles.includedData = [];
 
 end
     
@@ -896,12 +909,16 @@ if isfield(handles, 'includedData');
         directions = convertToStringUtil({stored(strcmp(f, 'direction'), :)}); 
         positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
 
-        
-        %TODO: check consistency between case when data is imported and
-        %when it is saved internally. 
-        indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
-            (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
-            positions == handles.currentPosition;
+        if max(size(dates)) == 1
+            indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
+                (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
+                round(1000*positions)/1000 == round(1000*handles.currentPosition)/1000;
+        else
+            indices = strcmp(dates, handles.date) & strcmp(embryoNs, handles.embryoNumber) & ...
+                (cutNs == str2double(handles.cutNumber)) & strcmp(directions{:}, direction) & ...
+                round(1000*positions)/1000 == round(1000*handles.currentPosition)/1000;
+        end
+            
     end
 end
 
@@ -1099,7 +1116,6 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Modifier);
 
 if strcmp(eventdata.Key, 'e')
-    disp('edge');
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
     else
@@ -1110,7 +1126,6 @@ if strcmp(eventdata.Key, 'e')
 end
 
 if strcmp(eventdata.Key, 'i')
-    disp('include');
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
     else
@@ -1121,7 +1136,6 @@ if strcmp(eventdata.Key, 'i')
 end
 
 if strcmp(eventdata.Key, 'p')
-    disp('generateMovie');
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpFirstFrame);
     else
@@ -1132,7 +1146,6 @@ if strcmp(eventdata.Key, 'p')
 end
 
 if strcmp(eventdata.Key, 'rightarrow')
-    disp('rightarrow');
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSpeedVPosition);
         ax = 1;
@@ -1153,7 +1166,6 @@ if strcmp(eventdata.Key, 'rightarrow')
 end
 
 if strcmp(eventdata.Key, 'leftarrow')
-    disp('leftarrow');
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSpeedVPosition);
         ax = 1;
