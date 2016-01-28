@@ -335,7 +335,7 @@ for ind = 1:length(axHandles)
     
     zBox = handles.zoomBoxLTBR(ind,:);
     ax = axHandles(ind);
-    kym_lines = handles.kymLines(ind,:);
+    kym_lines = fliplr(handles.kymLines(ind,:));
     
     if zoomState
         set(ax, 'XLim', [0 512]);
@@ -432,8 +432,6 @@ for ind = 1:length(h)
         delete(h(ind));
     end
 end
-
-
 
 hold on
 plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
