@@ -984,7 +984,11 @@ end
 if sum(indices > 0) && strcmp(get(hObject, 'checked'), 'off')
    %% remove data from handles.includedData based on indices vector 
    set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
-   handles.includedData(indices) = [];
+   if length(handles.includedData) > 1
+        handles.includedData(indices) = [];
+   else
+       handles.includedData = [];
+   end
 end
 
 guidata(hObject, handles);
