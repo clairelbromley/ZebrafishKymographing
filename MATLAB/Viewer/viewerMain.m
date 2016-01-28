@@ -260,7 +260,7 @@ for ind = 1:length(axHandles)
     
     
     offset = handles.umPerPixel * sqrt((x(1,1) - cut_line_x(1))^2 + (y(1,1) - cut_line_y(1))^2);
-    handles.positionsAlongLine = fliplr(-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
+    handles.positionsAlongLine = (-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
     handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
     
 %     %% find which attempted kymograph lines are represented in results
@@ -335,7 +335,7 @@ for ind = 1:length(axHandles)
     
     zBox = handles.zoomBoxLTBR(ind,:);
     ax = axHandles(ind);
-    kym_lines = fliplr(handles.kymLines(ind,:));
+    kym_lines = (handles.kymLines(ind,:));
     
     if zoomState
         set(ax, 'XLim', [0 512]);
@@ -437,9 +437,11 @@ hold on
 plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
 hold off
 
+[~, closest_kymline] = min(abs(handles.positionsAlongLine - handles.poss{ax}(closest)));
+
 for kymInd = 1:length(handles.kymLines(ax,:))
-    if kymInd == closest
-        set(handles.kymLines(ax, closest), 'Color', 'g');
+    if kymInd == closest_kymline
+        set(handles.kymLines(ax, closest_kymline), 'Color', 'g');
     else
         set(handles.kymLines(ax, kymInd), 'Color', 'r');
     end
