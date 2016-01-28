@@ -271,7 +271,7 @@ for ind = 1:length(axHandles)
 %     toRemove(included)=[];
 %     delete(kym_lines(toRemove));
     
-    handles.kymLines(ind,:) = kym_lines;
+    handles.kymLines(ind,:) = fliplr(kym_lines);
     
     set(imH, 'UIContextMenu', handles.menuPreCutFig);
     set(handles.menuZoomToggle, 'Checked', 'off')
@@ -295,6 +295,10 @@ cla(handles.axDownSelectedKym, 'reset');
 % data has already been added to the list to be exported - upon this, we
 % can base the coloring of the title and the checked state in the UI menu. 
 set(handles.menuInclude, 'checked', 'off');
+% 
+figs = get(0,'children');
+figs(figs == handles.figure1) = []; % delete your current figure from the list
+close(figs)
 
 guidata(hObject, handles);
 
@@ -1070,7 +1074,7 @@ imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 
 [fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
     [folder filesep 'Movie of processed membrane movement, date = ', handles.date ...
-    ', embryo = ' handles.embryoNumber ', cut ' handles.cutNumber ', .avi']);
+    ', embryo = ' handles.embryoNumber ', cut = ' handles.cutNumber appendText '.avi']);
 
 if fileName ~= 0
     handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
@@ -1101,7 +1105,7 @@ metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt']
 imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 [fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
     [folder filesep 'Movie of processed membrane movement, date = ', handles.date ...
-    ', embryo = ' handles.embryoNumber ', cut ' handles.cutNumber ', .avi']);
+    ', embryo = ' handles.embryoNumber ', cut = ' handles.cutNumber appendText '.avi']);
 
 makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName], handles.movieFrames{ax}, fps);
 busyDlg(busyOutput);
