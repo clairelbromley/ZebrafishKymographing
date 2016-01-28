@@ -1077,7 +1077,8 @@ folder = [baseFolder2 appendText];
 metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 [fileName,pathName,~] = uiputfile('*.avi','Choose AVI filename...',...
-    [folder filesep 'Movie of processed membrane movement, cut ' handles.cutNumber '.avi']);
+    [folder filesep 'Movie of processed membrane movement, date = ', handles.date ...
+    ', embryo = ' handles.embryoNumber ', cut ' handles.cutNumber ', .avi']);
 
 makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName], handles.movieFrames{ax});
 busyDlg(busyOutput);
