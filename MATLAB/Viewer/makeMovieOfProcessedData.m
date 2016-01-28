@@ -1,4 +1,4 @@
-function movieFrames = makeMovieOfProcessedData(imfname, metafname, movfname, frames)
+function movieFrames = makeMovieOfProcessedData(imfname, metafname, movfname, frames, fps)
 % generate video from processed data frames, overlaying kymograph lines.
 % These will be labelled with positions once debug is complete. 
 % movieFrames = makeMovieOfProcessedData(imfname, metafname) generates and
@@ -66,7 +66,7 @@ if nargin < 4
 
         movfname = [pname filesep fname '.' ext];
         v = VideoWriter(movfname);
-        set(v, 'FrameRate', 2);
+        set(v, 'FrameRate', 15);
         open(v);
         writeVideo(v,F);
         close(v);
@@ -83,7 +83,7 @@ else
 
     movfname = [pname filesep fname '.' ext];
     v = VideoWriter(movfname);
-    set(v, 'FrameRate', 2);
+    set(v, 'FrameRate', fps);
     open(v);
     writeVideo(v,frames);
     close(v);

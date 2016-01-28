@@ -1063,6 +1063,7 @@ function menuSaveMovie_Callback(hObject, eventdata, handles)
 % hObject    handle to menuSaveMovie (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+fps = 15;
 busyOutput = busyDlg();
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
 if gca == handles.axUpFirstFrame
@@ -1080,7 +1081,7 @@ imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
     [folder filesep 'Movie of processed membrane movement, date = ', handles.date ...
     ', embryo = ' handles.embryoNumber ', cut ' handles.cutNumber ', .avi']);
 
-makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName], handles.movieFrames{ax});
+makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName], handles.movieFrames{ax}, fps);
 busyDlg(busyOutput);
 
 
