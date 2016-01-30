@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 21-Jan-2016 00:58:23
+% Last Modified by GUIDE v2.5 30-Jan-2016 16:10:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -51,6 +51,8 @@ function viewerMain_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to viewerMain (see VARARGIN)
+
+handles.softwareVersion = 1.0;
 
 % Choose default command line output for viewerMain
 handles.output = hObject;
@@ -1213,17 +1215,32 @@ if strcmp(reply, 'Yes')
     handles.includedData = [];
 
     [fname, pname, ~] = uigetfile('*.xls;*.xlsx', 'Choose an exisiting kymograph inclusion file...');
-    filepath = [pname fname];
     
-%     [~, sheets] = xlsfinfo(filepath);
-%     
-%     [~,~,dummy] = xlsread([pname fname], sheets{1});
+    if fname ~= 0
+        filepath = [pname fname];
+        [~,~,dummy] = xlsread([pname fname]);
 
-    [~,~,dummy] = xlsread([pname fname]);
-    
-    handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
+        handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
+    end
 end
 
 busyDlg(busyOutput);
 
 guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function Untitled_1_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuAbout_Callback(hObject, eventdata, handles)
+% hObject    handle to menuAbout (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+msgbox(sprintf('Software version: %0.1f', handles.softwareVersion), 'About', 'help');
+
