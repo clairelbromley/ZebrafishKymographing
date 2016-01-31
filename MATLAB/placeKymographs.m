@@ -18,8 +18,8 @@ if uO.fixedNumberOrFixedSpacing
     xspacing = cos(md.cutTheta) * uO.kymSpacingUm/md.umperpixel;
     yspacing = sin(md.cutTheta) * uO.kymSpacingUm/md.umperpixel;
 
-    kp.kym_startx = (-(num_kym-1)/2:(num_kym-1)/2)*xspacing + cut_centrex;
-    kp.kym_starty = (-(num_kym-1)/2:(num_kym-1)/2)*yspacing + cut_centrey;
+    kp.kym_startx = fliplr(-(num_kym-1)/2:(num_kym-1)/2)*xspacing + cut_centrex;
+    kp.kym_starty = fliplr(-(num_kym-1)/2:(num_kym-1)/2)*yspacing + cut_centrey;
         
 else
     % This now works by positioning one kymograph before start of cut, one
@@ -33,7 +33,9 @@ kp.kym_startx(kp.kym_startx < 1) = 1;
 kp.kym_starty(kp.kym_starty < 1) = 1;
 
 distanceOffset = sqrt((kp.kym_startx(1) - kp.xcut(1))^2 + (kp.kym_starty(1) - kp.ycut(1))^2)*md.umperpixel;
-kp.pos_along_cut = (0:(length(kp.kym_startx)-1))*uO.kymSpacingUm - distanceOffset;
+kp.pos_along_cut = (-((0:(length(kp.kym_startx)-1))*uO.kymSpacingUm - distanceOffset));
+% probably a better way of doing this, but fixes issue...
+kp.pos_along_cut = cut_length_um - kp.pos_along_cut;
 
 if uO.kymDownOrUp
     kp.deltay = -uO.kym_length * cos(md.cutTheta);
