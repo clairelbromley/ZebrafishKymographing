@@ -1,7 +1,18 @@
 function output = busyDlg(varargin)
 
+%% get handle to the main window...
+temp = get(0, 'Children');
+names = get(temp(:), 'Name');
+h = (temp(strcmp(names, 'viewerMain')));
+handles = guidata(h);
+
 if nargin == 0
     %% start busy
+    
+    %% disable windowPressKeyFcn
+    output.tempWindowKeyPressFcn = get(handles.figure1, 'WindowKeyPressFcn');
+    set(handles.figure1, 'WindowKeyPressFcn', []);
+    
     try
         % R2010a and newer
         iconsClassName = 'com.mathworks.widgets.BusyAffordance$AffordanceSize';
@@ -35,6 +46,7 @@ if nargin == 0
 elseif nargin == 1
     jObj = varargin{1}.jObj;
     hBusyContainer = varargin{1}.hBusyContainer;
+    tempKeyPressFcn = varargin{1}.tempWindowKeyPressFcn;
 
     %% end busy
     jObj.stop;
@@ -43,6 +55,9 @@ elseif nargin == 1
     drawnow;
     jObj.getComponent.setVisible(false)
     delete(hBusyContainer);
+    
+    %% re-enable windowPressKeyFcn
+    set(handles.figure1, 'WindowKeyPressFcn', tempKeyPressFcn);
 
 end
 
