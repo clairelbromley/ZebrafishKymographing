@@ -263,6 +263,11 @@ for ind = 1:length(axHandles)
     
     offset = handles.umPerPixel * sqrt((x(1,1) - cut_line_x(1))^2 + (y(1,1) - cut_line_y(1))^2);
     handles.positionsAlongLine = (-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
+    baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+    folder = [baseFolder2 ' downwards'];
+    mdfpath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+    handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);
+    
     handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
     
 %     %% find which attempted kymograph lines are represented in results
