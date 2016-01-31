@@ -58,6 +58,18 @@ if (redoPreprocess) || ~uO.loadPreprocessedImages || (exist(output_path, 'file')
     errorLog(uO.outputFolder, timeStr);
     md.isCropped = true;
 
+    %% Then re-check the removed scattered light based on intesity...
+    ms = squeeze(mean(mean(stack,1),2));
+    s = std(ms(1:5));
+    test = ms > (mean(ms(1:5) + s));
+    testind = find(test);
+    for ind = 1:length(testind)
+        if ms(testind - 1) == 0
+            stack(:,:,testind) = zeros(size(stack,1), size(stack,2));
+            ms = squeeze(mean(mean(stack,1),2));
+        end
+    end
+    
     %% Then perform median filtering
     tic
     disp('Median filtering...')
