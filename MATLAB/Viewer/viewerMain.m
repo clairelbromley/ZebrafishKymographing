@@ -499,6 +499,9 @@ handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_alon
 handles.currentDistanceFromEdge = distance_from_edge(round(1000*pos_along_cut)/1000 ...
     == round(1000*handles.currentPosition)/1000);
 
+%% get number of blocked out frames
+temp = regionprops(logical(sum(im,1) == 0));
+handles.currentBlockedFrames = max([temp.Area]);
 
 fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
     ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
@@ -992,6 +995,7 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData.distanceFromEdge = handles.currentDistanceFromEdge;
     incData.speed = handles.currentSpeed;
     incData.direction = direction;
+    incData.numberBlockedFrames = handles.currentBlockedFrames;
     
     handles.includedData = [handles.includedData; incData];
     
