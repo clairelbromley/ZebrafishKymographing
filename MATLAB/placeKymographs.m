@@ -34,6 +34,12 @@ kp.kym_starty(kp.kym_starty < 1) = 1;
 
 distanceOffset = sqrt((kp.kym_startx(1) - kp.xcut(1))^2 + (kp.kym_starty(1) - kp.ycut(1))^2)*md.umperpixel;
 kp.pos_along_cut = (-((0:(length(kp.kym_startx)-1))*uO.kymSpacingUm - distanceOffset));
+
+% try to account for weird negative numbers...
+if sum(kp.pos_along_cut) < 0
+    kp.pos_along_cut = -kp.pos_along_cut;
+end
+
 % probably a better way of doing this, but fixes issue...
 kp.pos_along_cut = cut_length_um - kp.pos_along_cut;
 kp.fraction_along_cut = kp.pos_along_cut/cut_length_um;
