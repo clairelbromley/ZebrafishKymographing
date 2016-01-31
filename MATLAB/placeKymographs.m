@@ -36,6 +36,8 @@ distanceOffset = sqrt((kp.kym_startx(1) - kp.xcut(1))^2 + (kp.kym_starty(1) - kp
 kp.pos_along_cut = (-((0:(length(kp.kym_startx)-1))*uO.kymSpacingUm - distanceOffset));
 % probably a better way of doing this, but fixes issue...
 kp.pos_along_cut = cut_length_um - kp.pos_along_cut;
+kp.fraction_along_cut = kp.pos_along_cut/cut_length_um;
+kp.distance_from_edge = min(abs(kp.pos_along_cut), abs(kp.pos_along_cut - cut_length_um));
 
 if uO.kymDownOrUp
     kp.deltay = -uO.kym_length * cos(md.cutTheta);
