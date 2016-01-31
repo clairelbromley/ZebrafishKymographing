@@ -266,8 +266,7 @@ for ind = 1:length(axHandles)
     baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
     folder = [baseFolder2 ' downwards'];
     mdfpath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
-    handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);
-    
+    handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);    
     handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
     
 %     %% find which attempted kymograph lines are represented in results
@@ -458,6 +457,8 @@ end
 %% Get relevant kymograph file and plot
 filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 pos_along_cut = getKymPosMetadataFromText(filepath);
+fractional_pos_along_cut = getNumericMetadataFromText(filepath, 'metadata.kym_region.fraction_along_cut');
+distance_from_edge = getNumericMetadataFromText(filepath, 'metadata.kym_region.distance_from_edge');
 kym_ind = find((round(100*pos_along_cut)/100) == (round(100*handles.poss{ax}(closest))/100)) - 2;
 handles.currentKymInd = kym_ind;
 
@@ -493,6 +494,11 @@ handles.kymTitle{ax} = title(kym_ax, title_txt);
 
 handles.currentPosition = handles.poss{ax}(closest);
 handles.currentSpeed = handles.speeds{ax}(closest);
+handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_along_cut)/1000 ...
+    == round(1000*handles.currentPosition)/1000);
+handles.currentDistanceFromEdge = distance_from_edge(round(1000*pos_along_cut)/1000 ...
+    == round(1000*handles.currentPosition)/1000);
+
 
 fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
     ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
@@ -982,6 +988,8 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData = handles.experimentMetadata(expMetaIndices);
     incData.ID = [handles.date '-' handles.embryoNumber '-' handles.cutNumber '-' direction];
     incData.kymPosition = handles.currentPosition;
+    incData.fractionalPosition = handles.currentFractionalPosition;
+    incData.distanceFromEdge = handles.currentDistanceFromEdge;
     incData.speed = handles.currentSpeed;
     incData.direction = direction;
     
