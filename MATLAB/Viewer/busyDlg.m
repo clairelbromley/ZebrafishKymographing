@@ -13,6 +13,11 @@ if nargin == 0
     output.tempWindowKeyPressFcn = get(handles.figure1, 'WindowKeyPressFcn');
     set(handles.figure1, 'WindowKeyPressFcn', []);
     
+    %% disable mouse click callback on speed v position plots
+    output.tempSpeedVPosClickFcn = get(handles.axUpSpeedVPosition, 'ButtonDownFcn');
+    set(handles.axUpSpeedVPosition, 'ButtonDownFcn', []);
+    set(handles.axDownSpeedVPosition, 'ButtonDownFcn', []);
+        
     try
         % R2010a and newer
         iconsClassName = 'com.mathworks.widgets.BusyAffordance$AffordanceSize';
@@ -47,6 +52,7 @@ elseif nargin == 1
     jObj = varargin{1}.jObj;
     hBusyContainer = varargin{1}.hBusyContainer;
     tempKeyPressFcn = varargin{1}.tempWindowKeyPressFcn;
+    tempMouseClickFcn = varargin{1}.tempSpeedVPosClickFcn;
 
     %% end busy
     jObj.stop;
@@ -58,6 +64,10 @@ elseif nargin == 1
     
     %% re-enable windowPressKeyFcn
     set(handles.figure1, 'WindowKeyPressFcn', tempKeyPressFcn);
+    
+    %% re-enable ButtonDownFcn
+    set(handles.axUpSpeedVPosition, 'ButtonDownFcn', tempMouseClickFcn);
+    set(handles.axDownSpeedVPosition, 'ButtonDownFcn', tempMouseClickFcn);
 
 end
 
