@@ -664,6 +664,8 @@ if includeStats
         sd(ind) = std([data{ic == ind, strcmp(headerLine, 'speed')}]);
         mx(ind) = max([data{ic == ind, strcmp(headerLine, 'speed')}]);
         med(ind) = median([data{ic == ind, strcmp(headerLine, 'speed')}]);
+%         filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+%             & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
     end
     
     %% turn off "add sheet" warnings...
@@ -685,6 +687,49 @@ if includeStats
     meddata = data(ia, :);
     meddata(:, strcmp(headerLine, 'speed')) = num2cell(med);
     xxwrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
+    
+    %% get list of embryo/cut/date
+    ids = data(:, strcmp(headerLine, 'ID'));
+    for ind = 1:length(ids)
+        r  = regexp(ids{ind}, '-', 'split');
+        ids{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
+    end
+    
+    [~, ia, ic] = unique(ids, 'stable');
+    %% for each kymograph, isolate the  relevant data rows and calculate stats
+    for ind = 1:max(ic)
+        filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        
+        filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        
+        try
+            filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        catch
+            filtmx(ind) = NaN;
+        end
+        
+        filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+    end
+       
+    filtmudata = data(ia, :);
+    filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+    xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
+    
+    filtsddata = data(ia, :);
+    filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+    xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
+    
+    filtmxdata = data(ia, :);
+    filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+    xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
+    
+    filtmeddata = data(ia, :);
+    filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+    xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
     
 end
    
