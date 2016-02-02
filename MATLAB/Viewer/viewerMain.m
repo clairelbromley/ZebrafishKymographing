@@ -535,11 +535,14 @@ handles.paddedMembrane{ax} = [prePad membrane postPad];
 % if(~strcmp(membraneOverlayState, 'on'))
     imshow(colBg, RI, 'Parent', kym_ax);
     handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
-if(~strcmp(membraneOverlayState, 'on'))    
+
+    % For now, default overlay to on
+% if(~strcmp(membraneOverlayState, 'on'))    
     set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
-else
-    set(handles.kymIm(ax), 'AlphaData', 1);
-end
+    set(handles.menuOverlayEdge, 'Checked', 'on');
+% else
+%     set(handles.kymIm(ax), 'AlphaData', 1);
+% end
     hold(kym_ax, 'off');
     set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
 % end
