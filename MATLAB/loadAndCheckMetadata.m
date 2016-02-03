@@ -36,6 +36,8 @@ function [outmd, outuO, redoPreprocess] = loadAndCheckMetadata(cutPath, inuO, in
                     redoPreprocess = true;
                     outmd = inmd;
                     outuO = inuO;
+                case 'Use saved data anyway'
+                    outuO.loadPreprocessedImages = true;
             end
         end
     end
@@ -97,7 +99,7 @@ function same = compareStruct(struct1, struct2)
 
     y = logical(zeros(1,length(s1)));
 
-    for ind = 1:length(s2)
+    for ind = 1:length(s1)
 
         w = false;
         if ischar(s1{ind})
