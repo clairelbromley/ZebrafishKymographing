@@ -44,10 +44,26 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     max_kym = max(subk, 2);
                     kymographs(ind, :, kpos) = max_kym(1:uO.kym_length-5);
                 end
+                
+                
 
         end
 
     end
+    
+    %% remove extraneous scattered light
+    for ind = 1:numel(kp.kym_startx)
+        kmean = squeeze(mean(kymographs(:,:,kpos),2));
+        s = std(kmean(1:5));
+        m = mean(kmean(1:5));
+        intensity_mask = [zeros(5,1); (kmean(6:end) > (m + 3*s))];
+        zs = (kmean == 0);
+        se = strel('arbitrary', [1 1 1 1 1]);
+        zs = imdilate(zs, se);
+        final_mask = intensity_mask & zs;
+        kymographs(final_mask, :, kpos) = 0;
+    end
+    
     t = toc;
     timeStr = sprintf('Plotting kymographs for E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
     errorLog(uO.outputFolder, timeStr);
