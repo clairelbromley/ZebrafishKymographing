@@ -1234,8 +1234,14 @@ if strcmp(eventdata.Key, 'rightarrow')
 
     closest = find(x == min(x));
 
-    if closest < length(x)
-        move_selected_point(closest+1);
+    if (handles.poss{ax}(2) - handles.poss{ax}(1)) > 0
+        delta = 1;
+    else
+        delta = -1;
+    end
+
+    if closest > 1 && closest < length(handles.poss{ax})
+        move_selected_point(closest + delta);
     end
     
 end
@@ -1253,9 +1259,15 @@ if strcmp(eventdata.Key, 'leftarrow')
     x = abs(handles.poss{ax} - xpos);
 
     closest = find(x == min(x));
+    
+    if (handles.poss{ax}(2) - handles.poss{ax}(1)) > 0
+        delta = -1;
+    else
+        delta = 1;
+    end
 
-    if closest > 1
-        move_selected_point(closest-1);
+    if closest > 1 && closest < length(handles.poss{ax})
+        move_selected_point(closest + delta);
     end
     
 end
