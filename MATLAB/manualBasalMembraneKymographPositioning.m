@@ -30,7 +30,7 @@ function mdout = manualBasalMembraneKymographPositioning(frame, userOptions, met
 
         h_cutline = line(kp.xcut, kp.ycut, 'LineStyle', '--', 'Color', 'b', 'LineWidth', 2);
         h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r');
-        m_cut = (kp.ycut(2) - kp.ycut(1))/(kp.xcut(2) - kp.xcut(1))
+        m_cut = (kp.ycut(2) - kp.ycut(1))/(kp.xcut(2) - kp.xcut(1));
         
         handles.kp = kp;
 
@@ -50,12 +50,19 @@ function mdout = manualBasalMembraneKymographPositioning(frame, userOptions, met
 
         %% pause running using waitfor
 %         waitfor(gcf);
+        beep;
         uiwait(gcf);
 
+        % reconfigure kymograph region
         handles = guidata(gcf);
-        mdout = md;
-        mdout.newcutx = handles.new_cut_x - handles.kp.deltax/2;
-        mdout.newcuty = handles.new_cut_y - handles.kp.deltay/2;
+        handles.frame = frame;
+        
+        mdout = reconfigureKymographRegion(handles, md, userOptions);
+        
+%         mdout = md;
+%         mdout.startPositionX = handles.new_cut_x(1) - kp.deltax/2;
+%         mdout.
+%         mdout.newcuty = handles.new_cut_y - kp.deltay/2;
         
         close(gcf);
     end
@@ -93,21 +100,53 @@ function getNewPosition(hObject, eventdata, handles)
     % to the cut centre to get to the centre of the new cut, and hence is
     % what needs to be added to either end of the cut line to get to the
     % new cut lines...
-    newx = handles.kp.xcut + proj_perp_to_cut(1) - handles.kp.deltax/2;;
-    newy = handles.kp.ycut + proj_perp_to_cut(2) - handles.kp.deltay/2;;
+    newx = handles.kp.xcut + proj_perp_to_cut(1);
+    newy = handles.kp.ycut + proj_perp_to_cut(2);
     handles.hnewline = line(newx, newy, 'LineStyle', '--', 'Color', 'c', 'LineWidth', 3);
     handles.new_cut_x = newx;
     handles.new_cut_y = newy;
-    
-    
-    % find perpendicular distance between point and cut line, i.e. distance
-    % between cut line and point projected onto perpendicular bisector. 
-    
-    
-    %% add/reposition cut line. 
-    
-    set(gcf, 'UserData', handles);
+    handles.offset_x = round(proj_perp_to_cut(1));
+    handles.offset_y = round(proj_perp_to_cut(2));
+       
+%     set(gcf, 'UserData', handles);
     
     guidata(gcf, handles);
+
+end
+
+function metadata = reconfigureKymographRegion(data_in, metadata, userOptions)
+
+    kp = metadata.kym_region;
+    uO = userOptions;
+    offset_x = data_in.offset_x - kp.deltax/2;
+    offset_y = data_in.offset_y - kp.deltay/2;
+    kp.xcut = kp.xcut + offset_x;
+    kp.ycut = kp.ycut + offset_y;
+    
+    kp.kym_startx = kp.kym_startx + offset_x;
+    kp.kym_endx = kp.kym_endx + offset_x;
+    kp.kym_endx(kp.kym_endx < 1) = 1;
+    kp.kym_endx(kp.kym_endx > size(data_in.frame,2)) = size(data_in.frame,2);
+    
+    kp.kym_starty = kp.kym_starty + offset_y;
+    kp.kym_endy = kp.kym_endy + offset_y;
+    kp.kym_endy(kp.kym_endy < 1) = 1;
+    kp.kym_endy(kp.kym_endy > size(data_in.frame,1)) = size(data_in.frame,1);
+    
+    kp.boundingBox_LTRB = [floor(min([kp.kym_startx kp.kym_endx]) - uO.kym_width) ...
+                        floor(min([kp.kym_starty kp.kym_endy]) - uO.kym_width) ...
+                        ceil(max([kp.kym_startx kp.kym_endx]) + uO.kym_width) ...
+                        ceil(max([kp.kym_starty kp.kym_endy]) + uO.kym_width)];
+
+    kp.boundingBox_LTRB(kp.boundingBox_LTRB < 1) = 1;
+
+    kp.cropped_xcut = kp.xcut - kp.boundingBox_LTRB(1);
+    kp.cropped_ycut = kp.ycut - kp.boundingBox_LTRB(2);
+    kp.cropped_kym_startx = kp.kym_startx - kp.boundingBox_LTRB(1);
+    kp.cropped_kym_endx = kp.kym_endx - kp.boundingBox_LTRB(1);
+    kp.cropped_kym_starty = kp.kym_starty - kp.boundingBox_LTRB(2);
+    kp.cropped_kym_endy = kp.kym_endy - kp.boundingBox_LTRB(2);
+    
+    metadata.kym_region = kp
 
 end

@@ -6,8 +6,11 @@ function kym_positioning = firstFigure(frame, md, uO)
 
 
 %% work out where the cut and kymograph lines should go
-kym_positioning = placeKymographs(md, uO);
-kp = kym_positioning;
+% kym_positioning = placeKymographs(md, uO);
+% kp = kym_positioning;
+
+kp = md.kym_region;
+kym_positioning = kp;
 
 if (uO.kymDownOrUp)
     direction = ' upwards';

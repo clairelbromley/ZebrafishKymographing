@@ -22,9 +22,9 @@ function [outmd, outuO, redoPreprocess] = loadAndCheckMetadata(cutPath, inuO, in
        data{ind} = temp(2:end);
     end
     
-    inmd
+%     inmd
     outmd = readInStruct(fields, fnames, data, 'metadata', inmd)
-    inuO
+%     inuO
     outuO = readInStruct(fields, fnames, data, 'userOptions', inuO)
     
     if check
