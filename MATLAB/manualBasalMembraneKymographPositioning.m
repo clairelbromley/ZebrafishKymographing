@@ -118,8 +118,8 @@ function metadata = reconfigureKymographRegion(data_in, metadata, userOptions)
 
     kp = metadata.kym_region;
     uO = userOptions;
-    offset_x = data_in.offset_x - kp.deltax/2;
-    offset_y = data_in.offset_y - kp.deltay/2;
+    offset_x = data_in.offset_x - kp.deltax/4;
+    offset_y = data_in.offset_y - kp.deltay/4;
     kp.xcut = kp.xcut + offset_x;
     kp.ycut = kp.ycut + offset_y;
     
