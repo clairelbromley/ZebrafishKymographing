@@ -3,6 +3,7 @@ function mdout = manualBasalMembraneKymographPositioning(frame, userOptions, met
     md = metadata;
     uO = userOptions;
     kp = md.kym_region;
+    mdout = md;
 
     if uO.basalMembraneKym
 
