@@ -99,7 +99,10 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         b = size(kymographs,1)-round(uO.timeBeforeCut/md.acqMetadata.cycleTime)-1;
         xt = md.acqMetadata.cycleTime*(a:b);
         yt = md.umperpixel*(1:size(kymographs,2));
-        imagesc(xt, yt, squeeze(kymographs(:,:,kpos))');
+        temp_for_scale = squeeze(kymographs(:,:,kpos));
+        temp_for_scale(temp_for_scale == 0) = [];
+        clims = [min(temp_for_scale) max(temp_for_scale)];
+        imagesc(xt, yt, squeeze(kymographs(:,:,kpos))', clims);
         axis equal tight;
         xlabel('Time relative to cut, s')
         ylabel('Position relative to cut, \mum')
