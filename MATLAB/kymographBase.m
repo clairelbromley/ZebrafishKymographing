@@ -10,7 +10,7 @@ function output = kymographBase(varargin)
     userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
     userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
     userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
-    userOptions.kymDownOrUp = false;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
+    userOptions.kymDownOrUp = true;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
     
     userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
     userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
@@ -30,7 +30,7 @@ function output = kymographBase(varargin)
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
     userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
     
-    userOptions.basalMembraneKym = true;
+    userOptions.basalMembraneKym = false;
 
     narginchk(1, 2);
     if nargin == 1
@@ -80,7 +80,7 @@ function output = kymographBase(varargin)
                %% Block out frames with scattered light from cut
                block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
                ind = 1;
-               last_frame_blocked = false;
+%                last_frame_blocked = false;
                for frame_ind = frames(1):frames(end)  
                    
                    test = frame_ind - curr_metadata.cutFrame;
@@ -90,21 +90,21 @@ function output = kymographBase(varargin)
                        try
                             stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
                                                        
-                            %% deal with stray cut scatter AFTER nominal cut
-                            if last_frame_blocked
-                                a = stack(:,:,1:5);
-                                ms = squeeze(mean(mean(a,1),2));
-                                m = mean(a(:));
-                                s = std(ms);
-                                curr_frame_mean = squeeze(mean(mean(...
-                                    squeeze(stack(:,:,ind)), 1), 2));
-                                if curr_frame_mean > (m + s)
-                                    stack(:,:,ind) = zeros(512,512);
-                                    last_frame_blocked = true;
-                                else
-                                    last_frame_blocked = false;
-                                end
-                            end
+%                             %% deal with stray cut scatter AFTER nominal cut
+%                             if last_frame_blocked
+%                                 a = stack(:,:,1:5);
+%                                 ms = squeeze(mean(mean(a,1),2));
+%                                 m = mean(a(:));
+%                                 s = std(ms);
+%                                 curr_frame_mean = squeeze(mean(mean(...
+%                                     squeeze(stack(:,:,ind)), 1), 2));
+%                                 if curr_frame_mean > (m + s)
+%                                     stack(:,:,ind) = zeros(512,512);
+%                                     last_frame_blocked = true;
+%                                 else
+%                                     last_frame_blocked = false;
+%                                 end
+%                             end
                             %%
                             
                         catch ME

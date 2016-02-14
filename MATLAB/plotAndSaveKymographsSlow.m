@@ -43,9 +43,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                 else                               
                     max_kym = max(subk, 2);
                     kymographs(ind, :, kpos) = max_kym(1:uO.kym_length-5);
-                end
-                
-                
+                end             
 
         end
 
@@ -54,14 +52,36 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     %% remove extraneous scattered light
     for ind = 1:numel(kp.kym_startx)
         kmean = squeeze(mean(kymographs(:,:,kpos),2));
-        s = std(kmean(1:5));
-        m = mean(kmean(1:5));
-        intensity_mask = [zeros(5,1); (kmean(6:end) > (m + 3*s))];
-        zs = (kmean == 0);
-        se = strel('arbitrary', [1 1 1 1 1]);
-        zs = imdilate(zs, se);
-        final_mask = intensity_mask & zs;
+        % for each time point along kmean, get the average and standard
+        % deviation of the preceeding 3 time points and compare to kmean
+        for nind = 1:length(kmean)
+            
+            bind = nind-4;
+            tind = nind-1;
+            
+            if bind < 1
+                bind = 1;
+            end
+            
+            if tind < 1
+                tind = 1;
+            end
+            
+            int_thresh = mean(kmean(bind:tind)) + 3 * std(kmean(bind:tind));
+            intensity_mask(nind) = kmean(nind) > int_thresh;
+            
+        end
+
+        % we're only interested in anomalously high values of kmean
+        % immediately around the actual cut (+/- 3 frames?)...
+        cut_start_frame = uO.timeBeforeCut / md.acqMetadata.cycleTime;
+        cut_end_frame = cut_start_frame + ceil(md.cutMetadata.time/(1000 * md.acqMetadata.cycleTime));
+        nr_cut = zeros(size(kmean));
+        nr_cut(cut_start_frame - 3 : cut_end_frame + 3) = 1;
+        
+        final_mask = intensity_mask & nr_cut';
         kymographs(final_mask, :, kpos) = 0;
+        
     end
     
     t = toc;
