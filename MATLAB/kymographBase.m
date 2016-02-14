@@ -29,6 +29,7 @@ function output = kymographBase(varargin)
     userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
     userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
+    userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
     
     userOptions.basalMembraneKym = true;
 
