@@ -111,8 +111,7 @@ function output = kymographBase(varargin)
                             errString = ['Error: ' ME.identifier ': ' ME.message];
                             errorLog(userOptions.outputFolder, errString);
                        end
-                   else
-                       last_frame_blocked = true;
+                       
                    end
                    ind = ind+1;
                end

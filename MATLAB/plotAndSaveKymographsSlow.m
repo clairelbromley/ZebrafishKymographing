@@ -31,7 +31,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                         subk_x = round([kp.kym_startx(kpos); kp.kym_endx(kpos)] + xshift);
                         subk_y = round([kp.kym_starty(kpos); kp.kym_endy(kpos)] + yshift);   
                     end
-                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y);
+                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length);
                     l = length(a);
                     subk(1:l, subkpos+1) = a;
 
@@ -39,10 +39,10 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
 
                 if uO.avgOrMax == 1
                     avg_kym = mean(subk, 2);
-                    kymographs(ind, :, kpos) = avg_kym(1:uO.kym_length-5);
+                    kymographs(ind, :, kpos) = avg_kym(1:uO.kym_length);
                 else                               
                     max_kym = max(subk, 2);
-                    kymographs(ind, :, kpos) = max_kym(1:uO.kym_length-5);
+                    kymographs(ind, :, kpos) = max_kym(1:uO.kym_length);
                 end             
 
         end
@@ -50,13 +50,13 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     end
     
     %% remove extraneous scattered light
-    for ind = 1:numel(kp.kym_startx)
+    for kpos = 1:numel(kp.kym_startx)
         kmean = squeeze(mean(kymographs(:,:,kpos),2));
         % for each time point along kmean, get the average and standard
         % deviation of the preceeding 3 time points and compare to kmean
         for nind = 1:length(kmean)
             
-            bind = nind-4;
+            bind = nind-3;
             tind = nind-1;
             
             if bind < 1
@@ -77,18 +77,11 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         cut_start_frame = uO.timeBeforeCut / md.acqMetadata.cycleTime;
         cut_end_frame = cut_start_frame + ceil(md.cutMetadata.time/(1000 * md.acqMetadata.cycleTime));
         nr_cut = zeros(size(kmean));
-        nr_cut(cut_start_frame - 3 : cut_end_frame + 3) = 1;
+        nr_cut(cut_start_frame - 1 : cut_end_frame + 3) = 1;
         
         final_mask = intensity_mask & nr_cut';
         kymographs(final_mask, :, kpos) = 0;
         
-    end
-    
-    t = toc;
-    timeStr = sprintf('Plotting kymographs for E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
-    errorLog(uO.outputFolder, timeStr);
-
-    for kpos = 1:numel(kp.kym_startx)
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));
         file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d', md.acquisitionDate, ...
@@ -121,5 +114,9 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         end
     
     end
+    
+    t = toc;
+    timeStr = sprintf('Plotting kymographs for E%s C%d took %f seconds', md.embryoNumber, md.cutNumber, t);
+    errorLog(uO.outputFolder, timeStr);
 
 end
