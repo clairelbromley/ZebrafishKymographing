@@ -31,18 +31,19 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                         subk_x = round([kp.kym_startx(kpos); kp.kym_endx(kpos)] + xshift);
                         subk_y = round([kp.kym_starty(kpos); kp.kym_endy(kpos)] + yshift);   
                     end
-                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y);
+                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length);
                     l = length(a);
+                    
                     subk(1:l, subkpos+1) = a;
 
                 end
 
                 if uO.avgOrMax == 1
                     avg_kym = mean(subk, 2);
-                    kymographs(ind, :, kpos) = avg_kym(1:uO.kym_length-5);
+                    kymographs(ind, :, kpos) = avg_kym(1:uO.kym_length);
                 else                               
                     max_kym = max(subk, 2);
-                    kymographs(ind, :, kpos) = max_kym(1:uO.kym_length-5);
+                    kymographs(ind, :, kpos) = max_kym(1:uO.kym_length);
                 end
                 
                 
@@ -86,7 +87,10 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         b = size(kymographs,1)-round(uO.timeBeforeCut/md.acqMetadata.cycleTime)-1;
         xt = md.acqMetadata.cycleTime*(a:b);
         yt = md.umperpixel*(1:size(kymographs,2));
-        imagesc(xt, yt, squeeze(kymographs(:,:,kpos))');
+        temp_for_scale = squeeze(kymographs(:,:,kpos));
+        temp_for_scale(temp_for_scale == 0) = [];
+        clims = [min(temp_for_scale) max(temp_for_scale)];
+        imagesc(xt, yt, squeeze(kymographs(:,:,kpos))', clims);
         axis equal tight;
         xlabel('Time relative to cut, s')
         ylabel('Position relative to cut, \mum')

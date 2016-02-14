@@ -31,7 +31,7 @@ function output = kymographBase(varargin)
     userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
     
-    userOptions.basalMembraneKym = true;
+    userOptions.basalMembraneKym = false;
 
     narginchk(1, 2);
     if nargin == 1
