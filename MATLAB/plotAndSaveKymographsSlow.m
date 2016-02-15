@@ -50,6 +50,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     end
     
     %% remove extraneous scattered light
+    final_mask = zeros(numel(kp.kym_startx), length(kymographs));
     for kpos = 1:numel(kp.kym_startx)
         kmean = squeeze(mean(kymographs(:,:,kpos),2));
         % for each time point along kmean, get the average and standard
@@ -77,9 +78,15 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         cut_start_frame = uO.timeBeforeCut / md.acqMetadata.cycleTime;
         cut_end_frame = cut_start_frame + ceil(md.cutMetadata.time/(1000 * md.acqMetadata.cycleTime));
         nr_cut = zeros(size(kmean));
-        nr_cut(cut_start_frame - 1 : cut_end_frame + 3) = 1;
+        nr_cut(cut_start_frame : cut_end_frame + 3) = 1;
         
-        final_mask = intensity_mask & nr_cut';
+        final_mask(kpos, :) = intensity_mask & nr_cut';
+        
+    end
+    
+    final_mask = logical(sum(final_mask,1));
+    
+    for kpos = 1:numel(kp.kym_startx)
         kymographs(final_mask, :, kpos) = 0;
         
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
