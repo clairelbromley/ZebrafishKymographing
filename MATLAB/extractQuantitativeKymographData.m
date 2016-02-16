@@ -126,6 +126,8 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             result.fit_results = fres;
             subplot(1,3,3);
             scatter(t,d);
+            set(gca, 'YDir', 'reverse');
+            ylim([0 size(kym_segment,1) * md.umperpixel])
             hold on
             plot(t, fres.p1*t + fres.p2, 'r');
             hold off
