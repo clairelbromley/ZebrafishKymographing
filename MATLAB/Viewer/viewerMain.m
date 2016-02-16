@@ -1240,7 +1240,7 @@ if strcmp(eventdata.Key, 'rightarrow')
         delta = -1;
     end
 
-    if closest > 1 && closest < length(handles.poss{ax})
+    if (closest + delta) > 1 && (closest + delta) < length(handles.poss{ax})
         move_selected_point(closest + delta);
     end
     
@@ -1266,7 +1266,7 @@ if strcmp(eventdata.Key, 'leftarrow')
         delta = 1;
     end
 
-    if closest > 1 && closest < length(handles.poss{ax})
+    if (closest + delta) > 1 && (closest + delta) < length(handles.poss{ax})
         move_selected_point(closest + delta);
     end
     
