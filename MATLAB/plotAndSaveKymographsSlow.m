@@ -17,7 +17,9 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     for ind = 1:size(stack, 3)
         for kpos = 1:numel(kp.kym_startx)
 
-                subk = zeros(uO.kym_length, uO.kym_width);            
+                subk = zeros(uO.kym_length, uO.kym_width);  
+                patchX = [];
+                patchY = [];
 
                 for subkpos = 0:uO.kym_width-1
 
@@ -25,18 +27,34 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     xshift = shift*cos(md.cutTheta);
                     yshift = shift*sin(md.cutTheta);
                     if md.isCropped
-                        subk_x = round([kp.cropped_kym_startx(kpos); kp.cropped_kym_endx(kpos)] + xshift);
-                        subk_y = round([kp.cropped_kym_starty(kpos); kp.cropped_kym_endy(kpos)] + yshift);   
+                        subk_x = ([kp.cropped_kym_startx(kpos); kp.cropped_kym_endx(kpos)] + xshift);
+                        subk_y = ([kp.cropped_kym_starty(kpos); kp.cropped_kym_endy(kpos)] + yshift);   
                     else
-                        subk_x = round([kp.kym_startx(kpos); kp.kym_endx(kpos)] + xshift);
-                        subk_y = round([kp.kym_starty(kpos); kp.kym_endy(kpos)] + yshift);   
+                        subk_x = ([kp.kym_startx(kpos); kp.kym_endx(kpos)] + xshift);
+                        subk_y = ([kp.kym_starty(kpos); kp.kym_endy(kpos)] + yshift);   
                     end
+                    
+                    if (subkpos == 0)
+                        patchX = [patchX; subk_x];
+                        patchY = [patchY; subk_y];
+                    elseif (subkpos == (uO.kym_width - 1))
+                        patchX = [patchX; flipud(subk_x)];
+                        patchY = [patchY; flipud(subk_y)];
+                    end
+                    
+                    subk_x = round(subk_x);
+                    subk_y = round(subk_y);
+                    
                     a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length);
                     l = length(a);
                     subk(1:l, subkpos+1) = a;
-
+                    
                 end
 
+                if userOptions.showKymographOverlapOverlay
+                    hp = patch(patchX, patchY, 'green', 'FaceAlpha', 0.5);
+                end
+                
                 if uO.avgOrMax == 1
                     avg_kym = mean(subk, 2);
                     kymographs(ind, :, kpos) = avg_kym(1:uO.kym_length);
@@ -48,53 +66,53 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         end
 
     end
+%     
+%     %% remove extraneous scattered light
+%     final_mask = zeros(numel(kp.kym_startx), length(kymographs));
+%     for kpos = 1:numel(kp.kym_startx)
+%         kmean = squeeze(mean(kymographs(:,:,kpos),2));
+%         nzeros = sum(kmean==0);
+%         cut_start_frame = find(kmean==0, 1, 'first');
+%         cut_end_frame = cut_start_frame + ceil(md.cutMetadata.time/(1000 * md.acqMetadata.cycleTime));
+%         kmeanTrim = kmean(kmean~=0);
+%         % for each time point along kmean, get the average and standard
+%         % deviation of the following 3 time points and compare to kmean
+%         for nind = 1:length(kmeanTrim)
+%             
+%             bind = nind+1;
+%             tind = nind+3;
+%             
+%             if bind > length(kmeanTrim)
+%                 bind = length(kmeanTrim);
+%             end
+%             
+%             if tind > length(kmeanTrim)
+%                 tind = length(kmeanTrim);
+%             end
+%             
+%             if nind < cut_start_frame 
+%                 int_thresh(nind) = mean(kmeanTrim(bind:tind)) + 1 * std(kmeanTrim(bind:tind));
+%                 intensity_mask(nind) = kmeanTrim(nind) > int_thresh(nind);
+%             else
+%                 int_thresh(nind) = mean(kmeanTrim(bind:tind)) + 1 * std(kmeanTrim(bind:tind));
+%                 intensity_mask(nind + nzeros) = kmeanTrim(nind) > int_thresh(nind);
+%             end
+%                 
+%         end
+% 
+%         % we're only interested in anomalously high values of kmean
+%         % immediately around the actual cut (+/- 3 frames?)...
+%         nr_cut = zeros(size(kmean));
+%         nr_cut(cut_start_frame : cut_end_frame + 1) = 1;
+%         
+%         final_mask(kpos, :) = intensity_mask & nr_cut';
+%         
+%     end
+%     
+%     final_mask = logical(sum(final_mask,1));
     
-    %% remove extraneous scattered light
-    final_mask = zeros(numel(kp.kym_startx), length(kymographs));
     for kpos = 1:numel(kp.kym_startx)
-        kmean = squeeze(mean(kymographs(:,:,kpos),2));
-        nzeros = sum(kmean==0);
-        cut_start_frame = find(kmean==0, 1, 'first');
-        cut_end_frame = cut_start_frame + ceil(md.cutMetadata.time/(1000 * md.acqMetadata.cycleTime));
-        kmeanTrim = kmean(kmean~=0);
-        % for each time point along kmean, get the average and standard
-        % deviation of the following 3 time points and compare to kmean
-        for nind = 1:length(kmeanTrim)
-            
-            bind = nind+1;
-            tind = nind+3;
-            
-            if bind > length(kmeanTrim)
-                bind = length(kmeanTrim);
-            end
-            
-            if tind > length(kmeanTrim)
-                tind = length(kmeanTrim);
-            end
-            
-            if nind < cut_start_frame 
-                int_thresh(nind) = mean(kmeanTrim(bind:tind)) + 1 * std(kmeanTrim(bind:tind));
-                intensity_mask(nind) = kmeanTrim(nind) > int_thresh(nind);
-            else
-                int_thresh(nind) = mean(kmeanTrim(bind:tind)) + 1 * std(kmeanTrim(bind:tind));
-                intensity_mask(nind + nzeros) = kmeanTrim(nind) > int_thresh(nind);
-            end
-                
-        end
-
-        % we're only interested in anomalously high values of kmean
-        % immediately around the actual cut (+/- 3 frames?)...
-        nr_cut = zeros(size(kmean));
-        nr_cut(cut_start_frame : cut_end_frame + 1) = 1;
-        
-        final_mask(kpos, :) = intensity_mask & nr_cut';
-        
-    end
-    
-    final_mask = logical(sum(final_mask,1));
-    
-    for kpos = 1:numel(kp.kym_startx)
-        kymographs(final_mask, :, kpos) = 0;
+%         kymographs(final_mask, :, kpos) = 0;
         
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));

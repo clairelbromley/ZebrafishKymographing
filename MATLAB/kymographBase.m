@@ -30,6 +30,7 @@ function output = kymographBase(varargin)
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
     userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
+    userOptions.showKymographOverlapOverlay = false;
     
     userOptions.basalMembraneKym = false;
 
