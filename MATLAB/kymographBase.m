@@ -15,12 +15,12 @@ function output = kymographBase(varargin)
     userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
     userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
     
-    userOptions.kym_width = 9;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
+    userOptions.kym_width = 5;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
     userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test3';
+    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test4';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -30,7 +30,7 @@ function output = kymographBase(varargin)
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
     userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
-    userOptions.showKymographOverlapOverlay = false;
+    userOptions.showKymographOverlapOverlay = true;
     
     userOptions.basalMembraneKym = false;
 

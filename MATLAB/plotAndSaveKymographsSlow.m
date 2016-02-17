@@ -34,12 +34,14 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                         subk_y = ([kp.kym_starty(kpos); kp.kym_endy(kpos)] + yshift);   
                     end
                     
-                    if (subkpos == 0)
-                        patchX = [patchX; subk_x];
-                        patchY = [patchY; subk_y];
-                    elseif (subkpos == (uO.kym_width - 1))
-                        patchX = [patchX; flipud(subk_x)];
-                        patchY = [patchY; flipud(subk_y)];
+                    if ind == 1
+                        if (subkpos == 0)
+                            patchX = [patchX; subk_x];
+                            patchY = [patchY; subk_y];
+                        elseif (subkpos == (uO.kym_width - 1))
+                            patchX = [patchX; flipud(subk_x)];
+                            patchY = [patchY; flipud(subk_y)];
+                        end
                     end
                     
                     subk_x = round(subk_x);
@@ -51,7 +53,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     
                 end
 
-                if userOptions.showKymographOverlapOverlay
+                if uO.showKymographOverlapOverlay
                     hp = patch(patchX, patchY, 'green', 'FaceAlpha', 0.5);
                 end
                 
@@ -65,6 +67,15 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
 
         end
 
+    end
+    
+    if uO.showKymographOverlapOverlay
+        disp('Saving overlay images...')
+        out_file = [uO.outputFolder filesep dir_txt filesep ...
+            'Overlay showing kymograph coverage for cut ' num2str(md.cutNumber)...
+            direction];
+        print(out_file, '-dpng', '-r300');
+        savefig(uO.figHandle, [out_file '.fig']);
     end
 %     
 %     %% remove extraneous scattered light
