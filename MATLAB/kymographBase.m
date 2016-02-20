@@ -82,40 +82,22 @@ function output = kymographBase(varargin)
                %% Block out frames with scattered light from cut
                block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
                ind = 1;
-%                last_frame_blocked = false;
+               
                for frame_ind = frames(1):frames(end)  
                    
-                   test = frame_ind - curr_metadata.cutFrame;
-                   cond1 = test < block_frames+1;
-                   cond2 = frame_ind - curr_metadata.cutFrame > 0;
-                   if ~(cond1 && cond2) || ~(userOptions.removeCutFrames)
                        try
                             stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
-                                                       
-%                             %% deal with stray cut scatter AFTER nominal cut
-%                             if last_frame_blocked
-%                                 a = stack(:,:,1:5);
-%                                 ms = squeeze(mean(mean(a,1),2));
-%                                 m = mean(a(:));
-%                                 s = std(ms);
-%                                 curr_frame_mean = squeeze(mean(mean(...
-%                                     squeeze(stack(:,:,ind)), 1), 2));
-%                                 if curr_frame_mean > (m + s)
-%                                     stack(:,:,ind) = zeros(512,512);
-%                                     last_frame_blocked = true;
-%                                 else
-%                                     last_frame_blocked = false;
-%                                 end
-%                             end
-                            %%
-                            
                         catch ME
                             errString = ['Error: ' ME.identifier ': ' ME.message];
                             errorLog(userOptions.outputFolder, errString);
                        end
                        
-                   end
                    ind = ind+1;
+               end
+               
+               if ~userOptions.removeCutFrames
+                   msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1));
+                   stack(:,:,msk) = zeros(size(stack,1), size(stack,2));
                end
 
                 %% Find position of cut, and generate first output figure: 

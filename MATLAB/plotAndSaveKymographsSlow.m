@@ -77,53 +77,8 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         print(out_file, '-dpng', '-r300');
         savefig(uO.figHandle, [out_file '.fig']);
     end
-%     
-%     %% remove extraneous scattered light
-%     final_mask = zeros(numel(kp.kym_startx), length(kymographs));
-%     for kpos = 1:numel(kp.kym_startx)
-%         kmean = squeeze(mean(kymographs(:,:,kpos),2));
-%         nzeros = sum(kmean==0);
-%         cut_start_frame = find(kmean==0, 1, 'first');
-%         cut_end_frame = cut_start_frame + ceil(md.cutMetadata.time/(1000 * md.acqMetadata.cycleTime));
-%         kmeanTrim = kmean(kmean~=0);
-%         % for each time point along kmean, get the average and standard
-%         % deviation of the following 3 time points and compare to kmean
-%         for nind = 1:length(kmeanTrim)
-%             
-%             bind = nind+1;
-%             tind = nind+3;
-%             
-%             if bind > length(kmeanTrim)
-%                 bind = length(kmeanTrim);
-%             end
-%             
-%             if tind > length(kmeanTrim)
-%                 tind = length(kmeanTrim);
-%             end
-%             
-%             if nind < cut_start_frame 
-%                 int_thresh(nind) = mean(kmeanTrim(bind:tind)) + 1 * std(kmeanTrim(bind:tind));
-%                 intensity_mask(nind) = kmeanTrim(nind) > int_thresh(nind);
-%             else
-%                 int_thresh(nind) = mean(kmeanTrim(bind:tind)) + 1 * std(kmeanTrim(bind:tind));
-%                 intensity_mask(nind + nzeros) = kmeanTrim(nind) > int_thresh(nind);
-%             end
-%                 
-%         end
-% 
-%         % we're only interested in anomalously high values of kmean
-%         % immediately around the actual cut (+/- 3 frames?)...
-%         nr_cut = zeros(size(kmean));
-%         nr_cut(cut_start_frame : cut_end_frame + 1) = 1;
-%         
-%         final_mask(kpos, :) = intensity_mask & nr_cut';
-%         
-%     end
-%     
-%     final_mask = logical(sum(final_mask,1));
     
     for kpos = 1:numel(kp.kym_startx)
-%         kymographs(final_mask, :, kpos) = 0;
         
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));
