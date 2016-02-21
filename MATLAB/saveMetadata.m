@@ -1,12 +1,21 @@
-function saveMetadata(filepath, metadata, userOptions)
+function saveMetadata(filepath, metadata, userOptions, varargin)
+
 
     md = metadata;
     uO = userOptions;
  
-    cutDataPath = [filepath filesep sprintf('trimmed_cutinfo_cut_%d.txt', md.cutNumber)];
-    fid = fopen(cutDataPath, 'wt');
-    structOut(md, fid, 'metadata');
-    structOut(uO, fid, 'userOptions');
+    if isempty(varargin)
+        cutDataPath = [filepath filesep sprintf('trimmed_cutinfo_cut_%d.txt', md.cutNumber)];
+        fid = fopen(cutDataPath, 'wt');
+        structOut(md, fid, 'metadata');
+        structOut(uO, fid, 'userOptions');
+    elseif length(varargin) == 2
+        cutDataPath = [filepath filesep sprintf('basal_kymograph_positioning_cut_%d.csv', md.cutNumber)];
+        kp = varargin{1};
+        ind = varargin{2};
+        fid = fopen(cutDataPath, 'a');
+        structOut(kp, fid, ['kym_region_' num2str(ind)])
+    end
     fclose(fid);
 
 end

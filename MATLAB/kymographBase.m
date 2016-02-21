@@ -32,7 +32,7 @@ function output = kymographBase(varargin)
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
     userOptions.showKymographOverlapOverlay = true;
     
-    userOptions.basalMembraneKym = false;
+    userOptions.basalMembraneKym = true;
 
     narginchk(1, 2);
     if nargin == 1
@@ -51,6 +51,8 @@ function output = kymographBase(varargin)
     %% Find all directories in the root directory
     dirs = dir([root filesep '*_*']);
     dirs = dirs([dirs.isdir]);
+    
+    getAllBasalMembranePositions(dirs, root, userOptions)
     
     try
 
