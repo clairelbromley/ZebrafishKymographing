@@ -80,7 +80,7 @@ function output = kymographBase(varargin)
                stack = zeros(512,512,length(frames));
 
                %% Block out frames with scattered light from cut
-               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
+               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime))
                ind = 1;
                
                for frame_ind = frames(1):frames(end)  
@@ -95,9 +95,9 @@ function output = kymographBase(varargin)
                    ind = ind+1;
                end
                
-               if ~userOptions.removeCutFrames
+               if userOptions.removeCutFrames
                    msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1));
-                   stack(:,:,msk) = zeros(size(stack,1), size(stack,2));
+                   stack(:,:,msk) = 0;
                end
 
                 %% Find position of cut, and generate first output figure: 
