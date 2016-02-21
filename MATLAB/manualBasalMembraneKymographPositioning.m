@@ -116,23 +116,25 @@ function getNewPosition(hObject, eventdata, handles)
 end
 
 function metadata = reconfigureKymographRegion(data_in, metadata, userOptions)
+    
+    % add 50 to deal with padding added to avoid running over edge of image
 
     kp = metadata.kym_region;
     uO = userOptions;
-    offset_x = data_in.offset_x - kp.deltax/4;
-    offset_y = data_in.offset_y - kp.deltay/4;
+    offset_x = data_in.offset_x - kp.deltax/4 + 50;
+    offset_y = data_in.offset_y - kp.deltay/4 + 50;
     kp.xcut = kp.xcut + offset_x;
     kp.ycut = kp.ycut + offset_y;
     
     kp.kym_startx = kp.kym_startx + offset_x;
     kp.kym_endx = kp.kym_endx + offset_x;
-    kp.kym_endx(kp.kym_endx < 1) = 1;
-    kp.kym_endx(kp.kym_endx > size(data_in.frame,2)) = size(data_in.frame,2);
+%     kp.kym_endx(kp.kym_endx < 1) = 1;
+%     kp.kym_endx(kp.kym_endx > size(data_in.frame,2)) = size(data_in.frame,2);
     
     kp.kym_starty = kp.kym_starty + offset_y;
     kp.kym_endy = kp.kym_endy + offset_y;
-    kp.kym_endy(kp.kym_endy < 1) = 1;
-    kp.kym_endy(kp.kym_endy > size(data_in.frame,1)) = size(data_in.frame,1);
+%     kp.kym_endy(kp.kym_endy < 1) = 1;
+%     kp.kym_endy(kp.kym_endy > size(data_in.frame,1)) = size(data_in.frame,1);
     
     kp.boundingBox_LTRB = [floor(min([kp.kym_startx kp.kym_endx]) - uO.kym_width) ...
                         floor(min([kp.kym_starty kp.kym_endy]) - uO.kym_width) ...

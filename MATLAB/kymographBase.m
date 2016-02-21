@@ -33,6 +33,7 @@ function output = kymographBase(varargin)
     userOptions.showKymographOverlapOverlay = true;
     
     userOptions.basalMembraneKym = true;
+    userOptions.usePreviouslySavedBasalPos = false;
 
     narginchk(1, 2);
     if nargin == 1
@@ -53,6 +54,14 @@ function output = kymographBase(varargin)
     dirs = dirs([dirs.isdir]);
     
     getAllBasalMembranePositions(dirs, root, userOptions)
+    if userOptions.basalMembraneKym
+        userOptions.outputFolder = [userOptions.outputFolder filesep 'Basal'];
+        mkdir(userOptions.outputFolder);
+    else
+        userOptions.outputFolder = [userOptions.outputFolder filesep 'Apical'];
+        mkdir(userOptions.outputFolder);
+    end
+    
     
     try
 
@@ -79,16 +88,24 @@ function output = kymographBase(varargin)
                frames = floor(curr_metadata.cutFrame ...
                    - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
                    + B/curr_metadata.acqMetadata.cycleTime); 
-               stack = zeros(512,512,length(frames));
+               
+               if userOptions.basalMembraneKym
+                   stack = zeros(612,612,length(frames));
+               else
+                    stack = zeros(512,512,length(frames));
+               end
 
                %% Block out frames with scattered light from cut
-               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime))
                ind = 1;
                
                for frame_ind = frames(1):frames(end)  
                    
                        try
-                            stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                           if userOptions.basalMembraneKym
+                                stack(51:562,51:562,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                           else
+                                stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                           end
                         catch ME
                             errString = ['Error: ' ME.identifier ': ' ME.message];
                             errorLog(userOptions.outputFolder, errString);
@@ -107,8 +124,13 @@ function output = kymographBase(varargin)
                 %   lines overlaid, along with a scale bar. 
                 
                 %% deal with basal membrane kymographing
-                curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-                curr_metadata = manualBasalMembraneKymographPositioning(squeeze(stack(:,:,1)), userOptions, curr_metadata);
+                if userOptions.basalMembraneKym
+                    % get kym positions from files
+                    curr_metadata = getKymographPositionMetadata(userOptions, curr_metadata, curr_path);
+                else
+                    curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
+                end
+%                 curr_metadata = manualBasalMembraneKymographPositioning(squeeze(stack(:,:,1)), userOptions, curr_metadata);
 
                 % FOR NOW (01/12/2015) do this three times with start, end and
                 % just after cut images

@@ -63,16 +63,21 @@ if (uO.saveFirstFrameFigure)
         h_kymline = line([kp.kym_startx; kp.kym_endx], [kp.kym_starty; kp.kym_endy], 'Color', 'r');
         
         %% Handle placement of the scale bar
-        scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)];
-        scy = [0.95 * size(frame,2) 0.95 * size(frame,2)];
+        if uO.basalMembraneKym
+            offs = 50;
+        else
+            offs = 0;
+        end
+        scx = [0.95 * size(frame,1) - uO.scale_bar_length/md.umperpixel 0.95 * size(frame,1)] - offs;
+        scy = [0.95 * size(frame,2) 0.95 * size(frame,2)] - offs;
         scline = line(scx, scy, 'Color', 'w', 'LineWidth', 6);
         scstr = [num2str(uO.scale_bar_length) ' \mum'];
 
         % these fields will likely need tweaking! - need to work out the extent
         % of the text box in order to do this properly
         nudgex = -25;
-        nudgey = 470;
-        sctxt = text(nudgex + scx(1) + (scx(2) - scx(1))/2, nudgey, scstr);
+        nudgey = -16;
+        sctxt = text(nudgex + scx(1) + (scx(2) - scx(1))/2, scy(1) + nudgey, scstr);
         set(sctxt, 'Color', 'w');
         set(sctxt, 'FontSize', 14);
     end
