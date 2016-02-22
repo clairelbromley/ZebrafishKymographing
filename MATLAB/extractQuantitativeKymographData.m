@@ -14,7 +14,8 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);
     
     results = [];
-    speeds = [];
+    linspeeds = [];
+    expspeeds = [];
     for kpos = 1:numel(kp.kym_startx)
 
         result.kym_number = kpos
@@ -122,41 +123,61 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     % Probably want to fit (or at least mention) an overdamped oscillator: 
     % https://en.wikipedia.org/wiki/Damping
     %         linfit = fittype('poly1');
-            fres = fit(t, d, 'poly1');
-            result.fit_results = fres;
+            [freslin, goflin] = fit(t, d, 'poly1');
+            result.fit_results = freslin;
             subplot(1,3,3);
             scatter(t,d);
             set(gca, 'YDir', 'reverse');
             ylim([0 size(kym_segment,1) * md.umperpixel])
             hold on
-            plot(t, fres.p1*t + fres.p2, 'r');
+            plot(t, freslin.p1*t + freslin.p2, 'r');
             hold off
             axis equal
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
-    % - convert to um/second
-%                 result.speed = fres.p1 * md.umperpixel * (1/md.acqMetadata.cycleTime);
-            result.speed = fres.p1;
-            s = [result.speed; kp.pos_along_cut(kpos)];
-            speeds = [speeds s];
-            title([sprintf('Membrane speed = %0.2f ', result.speed) '\mum s^{-1}'])
+            result.linspeed = freslin.p1;
+            s = [result.linspeed; kp.pos_along_cut(kpos)];
+            linspeeds = [linspeeds s];
+            title([sprintf('Membrane speed = %0.2f ', result.linspeed) '\mum s^{-1}'])
             %TODO: overlay line automatically on kymographs
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt];
             print(out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
+            
+            fitmodelexp = fittype('A*(1 - exp(-B*t)) + C', 'independent', 't');            
+            [fresexp, gofexp] = fit(t, d, fitmodelexp, 'Startpoint', [mean(d(end-3:end)) 1 mean(d(1:3))], 'Lower', [0 0 0]);
+            subplot(1,3,3);
+            scatter(t,d);
+            set(gca, 'YDir', 'reverse');
+            ylim([0 size(kym_segment,1) * md.umperpixel])
+            hold on
+            plot(t, fresexp.A * (1 - exp(- fresexp.B * t)) + fresexp.C, 'r');
+            hold off
+            axis equal
+            xlabel('Time after cut, s');
+            ylabel('Membrane position relative to cut, \mum');
+            result.expspeed = fresexp.B * fresexp.A;
+            s = [result.expspeed; kp.pos_along_cut(kpos)];
+            expspeeds = [expspeeds s];
+            title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum s^{-1}'])
+            %TODO: overlay line automatically on kymographs
+            out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt ' exponential fit'];
+            print(out_file, '-dpng', '-r300');
+            savefig(h, [out_file '.fig']);
+            
 
         else
             err_string = sprintf('Couldn''t find a membrane front for %s, cut %d kymograph position %d - no quantitative kymograph data generated', dir_txt, md.cutNumber, kpos);
             errorLog(uO.outputFolder, err_string)
         end
 
-%             results = [results; result];
-
-%         end
     end
-    % TODO: plot speeds for all kymographs along cut in a scatter graph. 
+    % TODO: improve DRY
+    % TODO: export results as text file, including goodness of fit (and 95%
+    % CI?) data
+    
     %% Plot speeds against kymograph position
-    if numel(speeds)>0
+    if numel(linspeeds)>0
             title_txt = sprintf('%s, Embryo %s, Cut %d, Speed against cut position', md.acquisitionDate, ...
                 md.embryoNumber, md.cutNumber);
 
@@ -169,7 +190,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             end
             
             subplot(1,1,1);
-            plot(speeds(2,:), speeds(1,:), '-x');
+            plot(linspeeds(2,:), linspeeds(1,:), '-x');
             xlabel('Kymograph position along cut, \mum');
             ylabel('Membrane speed, \mum s^{-1}');
             title([title_txt direction]);
@@ -189,6 +210,41 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
                 close(h);
             end
     end
+    
+
+    if numel(expspeeds)>0
+            title_txt = sprintf('%s, Embryo %s, Cut %d, exponential speed against cut position', md.acquisitionDate, ...
+                md.embryoNumber, md.cutNumber);
+
+            if ~isfield(uO, 'figHandle')
+                h = figure('Name', title_txt,'NumberTitle','off');
+            else
+                h = uO.figHandle;
+                set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
+                set(0, 'currentFigure', uO.figHandle)
+            end
+            
+            subplot(1,1,1);
+            plot(expspeeds(2,:), expspeeds(1,:), '-x');
+            xlabel('Kymograph position along cut, \mum');
+            ylabel('Membrane speed, \mum s^{-1}');
+            title([title_txt direction]);
+            
+            out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction ' exponential fit'];
+            print(out_file, '-dpng', '-r300');
+            savefig(h, [out_file '.fig']);            
+
+            xlim([uO.forcedPositionRange]);
+            ylim([uO.forcedSpeedRange]);
+            
+            out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction ' fixed axes exponential fit'];
+            print(out_file, '-dpng', '-r300');
+            savefig(h, [out_file '.fig']);
+
+            if ~isfield(uO, 'figHandle')
+                close(h);
+            end
+    end    
             
     % TODO: reference to excel spreadsheet with development time
 
