@@ -32,7 +32,7 @@ function output = kymographBase(varargin)
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
     userOptions.showKymographOverlapOverlay = true;
     
-    userOptions.basalMembraneKym = true;
+    userOptions.basalMembraneKym = false;
     userOptions.usePreviouslySavedBasalPos = false;
 
     narginchk(1, 2);
@@ -97,6 +97,8 @@ function output = kymographBase(varargin)
 
                %% Block out frames with scattered light from cut
                ind = 1;
+              block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime))
+
                
                for frame_ind = frames(1):frames(end)  
                    
@@ -116,6 +118,9 @@ function output = kymographBase(varargin)
                
                if userOptions.removeCutFrames
                    msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1));
+                   if sum(msk) < block_frames
+                       msk(find(msk, 1, 'last') + 1) = 1;
+                   end
                    stack(:,:,msk) = 0;
                end
 
