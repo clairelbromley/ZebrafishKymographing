@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 30-Jan-2016 16:10:47
+% Last Modified by GUIDE v2.5 23-Feb-2016 20:31:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -511,8 +511,8 @@ fAx = get(h, 'Children');
 dataObjs = get(fAx, 'Children');
 
 % TODO: get data on frames/second from metadata
-xoffset = (max(find(sum(im(:,25:30),1)==0))-2)*0.2;
-y=get(dataObjs{1}(1), 'YData');
+xoffset = (1+sum(sum(im(:,25:30),1)==0))*0.2;
+y=get(dataObjs{1}(1), 'YData')+0.218;
 x=get(dataObjs{1}(1), 'XData');
 x = x + xoffset;
 x = [x(1) x(end)];
@@ -528,8 +528,8 @@ membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
 
 % TODO: get data on frames/second and pre- and post-cut time from metadata
 membrane = get(dataObjs{2}, 'CData');
-prePad = zeros(size(membrane, 1), 5/0.2 + 3);
-postPad = zeros(size(membrane, 1), 10/.2 - size(membrane, 2) - 2);
+prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
+postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
 handles.paddedMembrane{ax} = [prePad membrane postPad];
 
 % if(~strcmp(membraneOverlayState, 'on'))
@@ -1321,3 +1321,24 @@ function menuAbout_Callback(hObject, eventdata, handles)
 
 msgbox(sprintf('Software version: %0.1f', handles.softwareVersion), 'About', 'help');
 
+
+
+% --------------------------------------------------------------------
+function menuFitType_Callback(hObject, eventdata, handles)
+% hObject    handle to menuFitType (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuLinearFit_Callback(hObject, eventdata, handles)
+% hObject    handle to menuLinearFit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuExpFit_Callback(hObject, eventdata, handles)
+% hObject    handle to menuExpFit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
