@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 23-Feb-2016 20:31:35
+% Last Modified by GUIDE v2.5 23-Feb-2016 22:51:55
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -81,6 +81,9 @@ xlabel(handles.axUpSpeedVPosition, xlab);
 ylabel(handles.axUpSpeedVPosition, ylab);
 xlabel(handles.axDownSpeedVPosition, xlab);
 ylabel(handles.axDownSpeedVPosition, ylab);
+
+handles.linTexpF = true;
+set(handles.menuExpFit,'Enable','off');
 
 % UIWAIT makes viewerMain wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -144,6 +147,11 @@ if ~isequal(base_folder, 0)
 
     end
 
+    exps = dir([base_folder filesep folders(1).name filesep '*exponential*']);
+    if ~isempty(exps)
+        set(handles.menuExpFit,'Enable','on');
+    end
+    
     set(handles.listData, 'String', dataList);
 
     guidata(hObject, handles);
@@ -886,6 +894,7 @@ function menuToggleFixedAxes_Callback(hObject, eventdata, handles)
 % hObject    handle to menuToggleFixedAxes (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+disp('toggle');
 
 
 % --------------------------------------------------------------------
@@ -1335,10 +1344,47 @@ function menuLinearFit_Callback(hObject, eventdata, handles)
 % hObject    handle to menuLinearFit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+disp('lin fit');
+if strcmp(get(hObject, 'Checked'), 'off')
+    set(hObject, 'Checked', 'on');
+    set(handles.menuExpFit, 'Checked', 'off');
+    
+    handles.linTexpF = true;
+    
+    callback = get(handles.listData, 'Callback');
+    callback(handles.listData, []);
+    
+end
+    
 
 
 % --------------------------------------------------------------------
 function menuExpFit_Callback(hObject, eventdata, handles)
 % hObject    handle to menuExpFit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+disp('exp fit');
+if strcmp(get(hObject, 'Checked'), 'off')
+    set(hObject, 'Checked', 'on');
+    set(handles.menuLinearFit, 'Checked', 'off');
+    
+    handles.linTexpF = false;
+    
+    callback = get(handles.listData, 'Callback');
+    callback(handles.listData, []);
+    
+end
+
+
+% --------------------------------------------------------------------
+function menuViewerOptions_Callback(hObject, eventdata, handles)
+% hObject    handle to menuViewerOptions (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_6_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
