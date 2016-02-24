@@ -23,7 +23,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         cut_frame = round(uO.timeBeforeCut/md.acqMetadata.cycleTime) + 1;
         x = find(sum(squeeze(kyms(cut_frame:cut_frame+5,:,kpos))',1)==0);
         first_frame = max(x) + cut_frame;
-        kym_segment = squeeze(kyms(first_frame:first_frame+20,:,kpos))';
+        kym_segment = squeeze(kyms(first_frame-1:first_frame+20,:,kpos))';
         %     correct_membrane = zeros(size(kym_segment,1), size(kym_segment,2), num_kyms);
         % - use canny edge filter to get binary image of membrane front movement
         filt_kym = edge(kym_segment, 'canny');
