@@ -123,43 +123,49 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
     % Probably want to fit (or at least mention) an overdamped oscillator: 
     % https://en.wikipedia.org/wiki/Damping
     %         linfit = fittype('poly1');
-            [freslin, goflin] = fit(t, d, 'poly1');
-            result.fit_results = freslin;
+            [linf.res, linf.gof] = fit(t, d, 'poly1');
+            result.fit_results = linf.res;
             subplot(1,3,3);
             scatter(t,d);
             set(gca, 'YDir', 'reverse');
             ylim([0 size(kym_segment,1) * md.umperpixel])
             hold on
-            plot(t, freslin.p1*t + freslin.p2, 'r');
+            plot(t, linf.res.p1*t + linf.res.p2, 'r');
             hold off
             axis equal
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
-            result.linspeed = freslin.p1;
+            result.linspeed = linf.res.p1;
             s = [result.linspeed; kp.pos_along_cut(kpos)];
             linspeeds = [linspeeds s];
             title([sprintf('Membrane speed = %0.2f ', result.linspeed) '\mum s^{-1}'])
+            
+            set(h, 'UserData', linf);
+            
             %TODO: overlay line automatically on kymographs
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt];
             print(out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
             
             fitmodelexp = fittype('A*(1 - exp(-B*t)) + C', 'independent', 't');            
-            [fresexp, gofexp] = fit(t, d, fitmodelexp, 'Startpoint', [mean(d(end-3:end)) 1 mean(d(1:3))], 'Lower', [0 0 0]);
+            [expf.res, expf.gof] = fit(t, d, fitmodelexp, 'Startpoint', [mean(d(end-3:end)) 1 mean(d(1:3))], 'Lower', [0 0 0]);
             subplot(1,3,3);
             scatter(t,d);
             set(gca, 'YDir', 'reverse');
             ylim([0 size(kym_segment,1) * md.umperpixel])
             hold on
-            plot(t, fresexp.A * (1 - exp(- fresexp.B * t)) + fresexp.C, 'r');
+            plot(t, expf.res.A * (1 - exp(- expf.res.B * t)) + expf.res.C, 'r');
             hold off
             axis equal
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
-            result.expspeed = fresexp.B * fresexp.A;
+            result.expspeed = expf.res.B * expf.res.A;
             s = [result.expspeed; kp.pos_along_cut(kpos)];
             expspeeds = [expspeeds s];
             title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum s^{-1}'])
+            
+            set(h, 'UserData', expf);
+            
             %TODO: overlay line automatically on kymographs
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt ' exponential fit'];
             print(out_file, '-dpng', '-r300');
@@ -172,6 +178,9 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         end
 
     end
+    
+    set(h, 'UserData', []);
+    
     % TODO: improve DRY
     % TODO: export results as text file, including goodness of fit (and 95%
     % CI?) data
