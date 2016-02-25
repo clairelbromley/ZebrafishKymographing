@@ -36,11 +36,11 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     
                     if ind == 1
                         if (subkpos == 0)
-                            patchX = [patchX; subk_x];
-                            patchY = [patchY; subk_y];
+                            patchX = [patchX; subk_x - xshift/(2 * shift)];
+                            patchY = [patchY; subk_y - yshift/(2 * shift)];
                         elseif (subkpos == (uO.kym_width - 1))
-                            patchX = [patchX; flipud(subk_x)];
-                            patchY = [patchY; flipud(subk_y)];
+                            patchX = [patchX; flipud(subk_x) + xshift/(2 * shift)];
+                            patchY = [patchY; flipud(subk_y) + yshift/(2 * shift)];
                         end
                     end
                     
