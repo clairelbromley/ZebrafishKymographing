@@ -8,10 +8,10 @@ function toMask = intensityScatterFinder(stack, nominalCutStart)
     
     for ind = searchStart:searchStart+9
         
-        mmInt = mean(mInt(ind + 4:ind+7));
-        sdmInt = std(mInt(ind+4:ind+7));
+        mmInt = mean(mInt(ind - 7:ind-4));
+        sdmInt = std(mInt(ind-7:ind-4));
         
-        if mInt(ind) > (mmInt + 3 * sdmInt)
+        if mInt(ind) > (mmInt + 2 * sdmInt)
             toMask(ind) = 1;
         end
         
