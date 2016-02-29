@@ -10,7 +10,7 @@ function output = kymographBase(varargin)
     userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
     userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
     userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
-    userOptions.kymDownOrUp = true;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
+    userOptions.kymDownOrUp = false;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
     
     userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
     userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
@@ -20,7 +20,7 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test4';
+    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test5\frames left in';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -97,7 +97,7 @@ function output = kymographBase(varargin)
 
                %% Block out frames with scattered light from cut
                ind = 1;
-              block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime))
+              block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
 
                
                for frame_ind = frames(1):frames(end)  
@@ -117,7 +117,7 @@ function output = kymographBase(varargin)
                end
                
                if userOptions.removeCutFrames
-                   msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1));
+                   msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1), block_frames);
                    if sum(msk) < block_frames
                        msk(find(msk, 1, 'last') + 1) = 1;
                    end

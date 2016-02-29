@@ -1,4 +1,4 @@
-function toMask = intensityScatterFinder(stack, nominalCutStart)
+function toMask = intensityScatterFinder(stack, nominalCutStart, noFramesToBlock)
 
     mInt = squeeze(mean(mean(stack,2),1));
     
@@ -8,8 +8,8 @@ function toMask = intensityScatterFinder(stack, nominalCutStart)
     
     for ind = searchStart:searchStart+9
         
-        mmInt = mean(mInt(ind - 7:ind-4));
-        sdmInt = std(mInt(ind-7:ind-4));
+        mmInt = mean(mInt(ind + 1:ind+3));
+        sdmInt = std(mInt(ind+1:ind+3));
         
         if mInt(ind) > (mmInt + 2 * sdmInt)
             toMask(ind) = 1;
@@ -22,6 +22,12 @@ function toMask = intensityScatterFinder(stack, nominalCutStart)
     rp = regionprops(bw);
     [~, idx] = sort([rp.Area]);
     toMask = bw==idx(end);
+    
+    % last frame is:
+    lastFrame = find(toMask, 1, 'last');
+    toMask = zeros(size(mInt));
+    toMask((lastFrame - noFramesToBlock + 1):lastFrame) = 1;
+    toMask = logical(toMask);
     
     numFrames = sum(toMask);
     % should we impose a minimum number (3?) of masked frames?
