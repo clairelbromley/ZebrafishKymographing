@@ -86,8 +86,8 @@ function output = kymographBase(varargin)
                A = userOptions.timeBeforeCut;
                B = userOptions.timeAfterCut;
                frames = floor(curr_metadata.cutFrame ...
-                   - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
-                   + B/curr_metadata.acqMetadata.cycleTime); 
+                   - A/curr_metadata.acqMetadata.cycleTime) + 2 : ceil(curr_metadata.cutFrame ...
+                   + B/curr_metadata.acqMetadata.cycleTime) + 2; 
                
                if userOptions.basalMembraneKym
                    stack = zeros(612,612,length(frames));
@@ -117,10 +117,7 @@ function output = kymographBase(varargin)
                end
                
                if userOptions.removeCutFrames
-                   msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1), block_frames);
-                   if sum(msk) < block_frames
-                       msk(find(msk, 1, 'last') + 1) = 1;
-                   end
+                   msk = intensityScatterFinderV2(stack, curr_metadata.cutFrame + 2 - frames(1), block_frames);
                    stack(:,:,msk) = 0;
                end
 
