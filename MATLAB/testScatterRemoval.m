@@ -1,0 +1,140 @@
+function testScatterRemoval(root)
+    %% User variables for setting up kymographs
+    userOptions.forcedSpeedRange = [-1.5 1.5];          % speed [min max]
+    userOptions.forcedPositionRange = [-5 20];      % position um [min max]
+    
+    userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
+    userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
+    userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
+    userOptions.kymDownOrUp = false;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
+    
+    userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
+    userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
+    
+    userOptions.kym_width = 5;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
+    userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
+    
+    userOptions.loadPreprocessedImages = false;
+    userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
+    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test5\frames left in';
+    userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
+    userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
+    userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
+    userOptions.removeCutFrames = true;             % Toggle removal of frames with scattered light.                                            Default = true
+    userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
+    userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
+    userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
+    userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
+    userOptions.showKymographOverlapOverlay = true;
+    
+    userOptions.basalMembraneKym = false;
+    userOptions.usePreviouslySavedBasalPos = false;
+    
+    
+%     preRemovalFig = figure;
+%     postRemovalFig = figure;
+    
+
+    %% Find all directories in the root directory
+    dirs = dir([root filesep '*_*']);
+    dirs = dirs([dirs.isdir]);
+    ds = {};
+        
+%     try
+
+        % Loop through these (tiff-containing) data directories
+%         for dind = 1:min(length(dirs), 10)
+        for dind = 1:length(dirs)
+            
+            if mod(dind,5) == 1
+                preRemovalFig = figure;
+                postRemovalFig = figure;
+            end
+
+           d = dirs(dind).name;
+           ds = [ds; d];
+           % Identify how many cuts were performed on this embryo
+           curr_path = [root filesep d];
+           num_cuts = length(dir([curr_path filesep '*.txt']))/2;
+
+           for cut_ind = 0:0
+
+               %% Get metadata for current cut
+               curr_metadata = getMetadata(curr_path, cut_ind);
+               disp(['Date: ' curr_metadata.acquisitionDate...
+                   ', Embryo: ' curr_metadata.embryoNumber...
+                   ', cut: ' num2str(curr_metadata.cutNumber)])
+
+               %% Get frames from  A seconds before cut to B seconds after cut
+               A = userOptions.timeBeforeCut + 2;
+               B = userOptions.timeAfterCut + 2;
+               frames = floor(curr_metadata.cutFrame ...
+                   - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
+                   + B/curr_metadata.acqMetadata.cycleTime); 
+               
+               stack = zeros(512,512,length(frames));
+              
+               ind = 1;
+               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
+
+               
+               for frame_ind = frames(1):frames(end)  
+
+                   try
+                        stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]); 
+                    catch ME
+                        errString = ['Error: ' ME.identifier ': ' ME.message];
+                        errorLog(userOptions.outputFolder, errString);
+                   end
+
+                   ind = ind+1;
+               end
+               
+               %% Figure out best place to block from, show pre-blocked images
+               clims = [mean(stack(:)) - std(stack(:)) mean(stack(:)) + 3*std(stack(:))];
+               nomStart = curr_metadata.cutFrame - frames(1);
+               set(0, 'currentfigure', preRemovalFig);
+               rows = 5;
+               for imind = 1:10
+                   subplot(rows, 10, rows * (mod(dind,5)-1)+imind);
+                   sz = size(stack,1)/4;
+                   im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
+                   imagesc(im, clims);
+                   colormap gray; 
+                   axis equal tight;
+                   set(gca, 'XTick', []);
+                   set(gca, 'YTick', []);
+               end
+               
+               %% Do blocking, show post-blocked images
+               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
+               msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1), block_frames);
+               if sum(msk) < block_frames
+                   msk(find(msk, 1, 'last') + 1) = 1;
+               end
+               
+               stack(:,:,msk) = 0;
+               
+               set(0, 'currentfigure', postRemovalFig);
+               
+               for imind = 1:10
+                   subplot(rows, 10, rows * (dind-1)+imind);
+                   sz = size(stack,1)/4;
+                   im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
+                   imagesc(im, clims); 
+                   colormap gray; 
+                   axis equal tight;
+                   set(gca, 'XTick', []);
+                   set(gca, 'YTick', []);
+               end
+               
+           end
+        end
+    
+%     catch ME
+%         beep;
+%         uiwait(msgbox(['Error on line ' num2str(ME.stack(1).line) ' of ' ME.stack(1).name ': ' ME.identifier ': ' ME.message], 'Argh!'));
+%         rethrow(ME);
+%     end
+    
+end
