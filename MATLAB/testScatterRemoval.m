@@ -62,12 +62,14 @@ function testScatterRemoval(root)
                cind = cind+1;
                
                if mod(cind,5) == 1
+                   if cind > 1
+                       savefig(preRemovalFig, [outdir filesep sprintf('Pre-removal %02d',  flind)]);
+                       savefig(postRemovalFig, [outdir filesep sprintf('Post-removal %02d',  flind)]);
+                       flind = flind+1;
+                   end
                     preRemovalFig = figure('Name', 'Pre-removal');
                     postRemovalFig = figure('Name', 'Post-removal');
-               elseif mod(cind,5) == 0
-                   savefig(preRemovalFig, [outdir filesep sprintf('Pre-removal %02d',  flind)]);
-                   savefig(postRemovalFig, [outdir filesep sprintf('Post-removal %02d',  flind)]);
-                   flind = flind+1;
+                   
                end
 
                %% Get metadata for current cut
@@ -87,8 +89,6 @@ function testScatterRemoval(root)
                stack = zeros(512,512,length(frames));
               
                ind = 1;
-               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
-
                
                for frame_ind = frames(1):frames(end)  
 
