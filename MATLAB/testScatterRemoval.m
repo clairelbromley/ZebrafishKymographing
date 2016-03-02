@@ -47,8 +47,8 @@ function testScatterRemoval(root)
         for dind = 1:length(dirs)
             
             if mod(dind,5) == 1
-                preRemovalFig = figure;
-                postRemovalFig = figure;
+                preRemovalFig = figure('Name', 'Pre-removal');
+                postRemovalFig = figure('Name', 'Post-removal');
             end
 
            d = dirs(dind).name;
@@ -61,9 +61,10 @@ function testScatterRemoval(root)
 
                %% Get metadata for current cut
                curr_metadata = getMetadata(curr_path, cut_ind);
-               disp(['Date: ' curr_metadata.acquisitionDate...
+               txt = ['Date: ' curr_metadata.acquisitionDate...
                    ', Embryo: ' curr_metadata.embryoNumber...
-                   ', cut: ' num2str(curr_metadata.cutNumber)])
+                   ', cut: ' num2str(curr_metadata.cutNumber)]; 
+               disp(txt)
 
                %% Get frames from  A seconds before cut to B seconds after cut
                A = userOptions.timeBeforeCut + 2;
@@ -96,7 +97,15 @@ function testScatterRemoval(root)
                set(0, 'currentfigure', preRemovalFig);
                rows = 5;
                for imind = 1:10
-                   subplot(rows, 10, rows * (mod(dind,5)-1)+imind);
+                   if imind == 10
+                        t = title(txt);
+                        set(t, 'horizontalAlignment', 'right')
+                        set(t, 'units', 'normalized')
+                        h1 = get(t, 'position');
+                        set(t, 'position', [1 h1(2) h1(3)])
+                    end
+
+                   subplot(rows, 10, 10 * mod(dind-1,5) + imind);
                    sz = size(stack,1)/4;
                    im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
                    imagesc(im, clims);
@@ -105,6 +114,7 @@ function testScatterRemoval(root)
                    set(gca, 'XTick', []);
                    set(gca, 'YTick', []);
                end
+               drawnow;
                
                %% Do blocking, show post-blocked images
                block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
@@ -118,7 +128,14 @@ function testScatterRemoval(root)
                set(0, 'currentfigure', postRemovalFig);
                
                for imind = 1:10
-                   subplot(rows, 10, rows * (dind-1)+imind);
+                    if imind == 10
+                        t = title(txt);
+                        set(t, 'horizontalAlignment', 'right')
+                        set(t, 'units', 'normalized')
+                        h1 = get(t, 'position');
+                        set(t, 'position', [1 h1(2) h1(3)])
+                    end
+                   subplot(rows, 10, 10 * mod(dind-1,5) + imind);
                    sz = size(stack,1)/4;
                    im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
                    imagesc(im, clims); 
@@ -127,6 +144,7 @@ function testScatterRemoval(root)
                    set(gca, 'XTick', []);
                    set(gca, 'YTick', []);
                end
+               drawnow;
                
            end
         end
