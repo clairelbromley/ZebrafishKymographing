@@ -39,6 +39,12 @@ function testScatterRemoval(root)
     dirs = dir([root filesep '*_*']);
     dirs = dirs([dirs.isdir]);
     ds = {};
+    cind = 0;
+    flind = 0;
+    
+    %% make output directory
+    outdir = [root filesep regexprep(datestr(now),':','-') ' scatter test output'];
+    mkdir(outdir)
         
 %     try
 
@@ -46,18 +52,23 @@ function testScatterRemoval(root)
 %         for dind = 1:min(length(dirs), 10)
         for dind = 1:length(dirs)
             
-            if mod(dind,5) == 1
-                preRemovalFig = figure('Name', 'Pre-removal');
-                postRemovalFig = figure('Name', 'Post-removal');
-            end
-
            d = dirs(dind).name;
            ds = [ds; d];
            % Identify how many cuts were performed on this embryo
            curr_path = [root filesep d];
            num_cuts = length(dir([curr_path filesep '*.txt']))/2;
 
-           for cut_ind = 0:0
+           for cut_ind = 0:num_cuts-1
+               cind = cind+1;
+               
+               if mod(cind,5) == 1
+                    preRemovalFig = figure('Name', 'Pre-removal');
+                    postRemovalFig = figure('Name', 'Post-removal');
+               elseif mod(cind,5) == 0
+                   savefig(preRemovalFig, [outdir filesep sprintf('Pre-removal %02d',  flind)]);
+                   savefig(postRemovalFig, [outdir filesep sprintf('Post-removal %02d',  flind)]);
+                   flind = flind+1;
+               end
 
                %% Get metadata for current cut
                curr_metadata = getMetadata(curr_path, cut_ind);
@@ -67,11 +78,11 @@ function testScatterRemoval(root)
                disp(txt)
 
                %% Get frames from  A seconds before cut to B seconds after cut
-               A = userOptions.timeBeforeCut + 2;
-               B = userOptions.timeAfterCut + 2;
+               A = userOptions.timeBeforeCut;
+               B = userOptions.timeAfterCut;
                frames = floor(curr_metadata.cutFrame ...
-                   - A/curr_metadata.acqMetadata.cycleTime) : ceil(curr_metadata.cutFrame ...
-                   + B/curr_metadata.acqMetadata.cycleTime); 
+                   - A/curr_metadata.acqMetadata.cycleTime) + 2 : ceil(curr_metadata.cutFrame ...
+                   + B/curr_metadata.acqMetadata.cycleTime) + 2; 
                
                stack = zeros(512,512,length(frames));
               
@@ -93,7 +104,7 @@ function testScatterRemoval(root)
                
                %% Figure out best place to block from, show pre-blocked images
                clims = [mean(stack(:)) - std(stack(:)) mean(stack(:)) + 3*std(stack(:))];
-               nomStart = curr_metadata.cutFrame - frames(1);
+               nomStart = curr_metadata.cutFrame + 2 - frames(1);
                set(0, 'currentfigure', preRemovalFig);
                rows = 5;
                for imind = 1:10
@@ -105,7 +116,7 @@ function testScatterRemoval(root)
                         set(t, 'position', [1 h1(2) h1(3)])
                     end
 
-                   subplot(rows, 10, 10 * mod(dind-1,5) + imind);
+                   subplot(rows, 10, 10 * mod(cind-1,5) + imind);
                    sz = size(stack,1)/4;
                    im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
                    imagesc(im, clims);
@@ -118,7 +129,7 @@ function testScatterRemoval(root)
                
                %% Do blocking, show post-blocked images
                block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
-               msk = intensityScatterFinder(stack, curr_metadata.cutFrame - frames(1), block_frames);
+               msk = intensityScatterFinderV2(stack, curr_metadata.cutFrame + 2 - frames(1), block_frames);
                if sum(msk) < block_frames
                    msk(find(msk, 1, 'last') + 1) = 1;
                end
@@ -135,7 +146,7 @@ function testScatterRemoval(root)
                         h1 = get(t, 'position');
                         set(t, 'position', [1 h1(2) h1(3)])
                     end
-                   subplot(rows, 10, 10 * mod(dind-1,5) + imind);
+                   subplot(rows, 10, 10 * mod(cind-1,5) + imind);
                    sz = size(stack,1)/4;
                    im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
                    imagesc(im, clims); 
