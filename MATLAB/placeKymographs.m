@@ -12,7 +12,13 @@ kp.ycut = ycut;
 
 if uO.fixedNumberOrFixedSpacing
     cut_length_um = sqrt((xcut(1) - xcut(2))^2 + (ycut(1) - ycut(2))^2) * md.umperpixel;
-    num_kym = floor(cut_length_um/uO.kymSpacingUm) + 3;
+    num_kym = floor(cut_length_um/uO.kymSpacingUm);
+    if mod(num_kym,2) == 1
+        num_kym = num_kym + 2;
+    else
+        num_kym = num_kym + 3;
+    end
+%     num_kym = floor(cut_length_um/uO.kymSpacingUm) + 3;
     cut_centrex = xcut(1) + round((xcut(2) - xcut(1))/2);
     cut_centrey = ycut(1) + round((ycut(2) - ycut(1))/2);
     xspacing = cos(md.cutTheta) * uO.kymSpacingUm/md.umperpixel;

@@ -536,7 +536,7 @@ membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
 
 % TODO: get data on frames/second and pre- and post-cut time from metadata
 membrane = get(dataObjs{2}, 'CData');
-prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last')) - 1;
+prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
 postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
 handles.paddedMembrane{ax} = [prePad membrane postPad];
 
@@ -556,7 +556,7 @@ handles.paddedMembrane{ax} = [prePad membrane postPad];
 % end
 
 handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-handles.fitText(ax) = text(x(2)+1, y(2), [sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'],...
+handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
     'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
 
 if(~strcmp(fitLineState, 'on'))
