@@ -28,12 +28,7 @@ function testScatterRemoval(root)
     userOptions.showKymographOverlapOverlay = true;
     
     userOptions.basalMembraneKym = false;
-    userOptions.usePreviouslySavedBasalPos = false;
-    
-    
-%     preRemovalFig = figure;
-%     postRemovalFig = figure;
-    
+    userOptions.usePreviouslySavedBasalPos = false;  
 
     %% Find all directories in the root directory
     dirs = dir([root filesep '*_*']);
@@ -128,7 +123,7 @@ function testScatterRemoval(root)
                drawnow;
                
                %% Do blocking, show post-blocked images
-               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime));
+               block_frames = ceil(curr_metadata.cutMetadata.time/(1000 * curr_metadata.acqMetadata.cycleTime))
                msk = intensityScatterFinderV2(stack, curr_metadata.cutFrame + 2 - frames(1), block_frames);
                if sum(msk) < block_frames
                    msk(find(msk, 1, 'last') + 1) = 1;
