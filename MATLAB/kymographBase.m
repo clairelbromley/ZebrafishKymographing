@@ -28,7 +28,7 @@ function output = kymographBase(varargin)
     userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window. 
     userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
-    userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
+    userOptions.medianFiltKernelSize = 9;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
     userOptions.showKymographOverlapOverlay = true;
     
@@ -138,6 +138,7 @@ function output = kymographBase(varargin)
                 % just after cut images
                 userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
                 curr_metadata.kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+                curr_metadata = findDistanceToMidline(stack, curr_metadata);
                 if (userOptions.saveCutPositioningFigs)
                     userOptions.firstFigureTitleAppend = ', immediately post-cut';
                     firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
