@@ -85,6 +85,8 @@ ylabel(handles.axDownSpeedVPosition, ylab);
 handles.linTexpF = true;
 set(handles.menuExpFit,'Enable','off');
 
+guidata(hObject, handles);
+
 % UIWAIT makes viewerMain wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
@@ -190,15 +192,23 @@ dt = s.date;
 embryoNumber = s.embryoNumber;
 cutNumber = s.cutNumber;
 
-figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position upwards.fig']);...
-    cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', Speed against cut position downwards.fig'])];
+if handles.linTexpF
+    expTxt = '';
+    expTxt2 = ', S';
+else
+    expTxt = ' exponential fit';
+    expTxt2 = ', exponential s';
+end
+
+figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
+    cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
 
 handles.date = dt;
 handles.cutNumber = cutNumber;
 handles.embryoNumber = embryoNumber;
 
 axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
-titleAppendices = {'upwards'; 'downwards'};
+titleAppendices = {['upwards' expTxt]; ['downwards' expTxt]};
 
 % buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
 %     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
@@ -291,6 +301,14 @@ for ind = 1:length(axHandles)
     set(handles.menuZoomToggle, 'Checked', 'off')
     
 end
+
+
+% Load distance from apical surface for current cut
+fname = [handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep ...
+    'trimmed_cutinfo_cut_' cutNumber '.txt' ];
+varn = 'metadata.distanceToApicalSurface';
+handles.currentApicalSurfaceToCutDistance = getNumericMetadataFromText(fname, varn);
+
 
 %% end busy
 busyDlg(busyOutput);
@@ -1054,6 +1072,8 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData.direction = direction;
     incData.numberBlockedFrames = handles.currentBlockedFrames;
     
+    incData.distanceCutToApicalSurfaceUm = handles.currentApicalSurfaceToCutDistance;
+    
     handles.includedData = [handles.includedData; incData];
     
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
@@ -1351,6 +1371,8 @@ if strcmp(get(hObject, 'Checked'), 'off')
     
     handles.linTexpF = true;
     
+    guidata(hObject, handles);
+    
     callback = get(handles.listData, 'Callback');
     callback(handles.listData, []);
     
@@ -1369,6 +1391,8 @@ if strcmp(get(hObject, 'Checked'), 'off')
     set(handles.menuLinearFit, 'Checked', 'off');
     
     handles.linTexpF = false;
+    
+    guidata(hObject, handles);
     
     callback = get(handles.listData, 'Callback');
     callback(handles.listData, []);
