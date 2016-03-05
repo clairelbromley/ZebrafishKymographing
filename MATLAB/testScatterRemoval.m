@@ -41,10 +41,7 @@ function testScatterRemoval(root)
     outdir = [root filesep regexprep(datestr(now),':','-') ' scatter test output'];
     mkdir(outdir)
         
-%     try
 
-        % Loop through these (tiff-containing) data directories
-%         for dind = 1:min(length(dirs), 10)
         for dind = 1:length(dirs)
             
            d = dirs(dind).name;
@@ -52,21 +49,12 @@ function testScatterRemoval(root)
            % Identify how many cuts were performed on this embryo
            curr_path = [root filesep d];
            num_cuts = length(dir([curr_path filesep '*.txt']))/2;
+           
+           hfig = figure('Name', d);
 
            for cut_ind = 0:num_cuts-1
                cind = cind+1;
                
-               if mod(cind,5) == 1
-                   if cind > 1
-                       savefig(preRemovalFig, [outdir filesep sprintf('Pre-removal %02d',  flind)]);
-                       savefig(postRemovalFig, [outdir filesep sprintf('Post-removal %02d',  flind)]);
-                       flind = flind+1;
-                   end
-                    preRemovalFig = figure('Name', 'Pre-removal');
-                    postRemovalFig = figure('Name', 'Post-removal');
-                   
-               end
-
                %% Get metadata for current cut
                curr_metadata = getMetadata(curr_path, cut_ind);
                txt = ['Date: ' curr_metadata.acquisitionDate...
@@ -100,20 +88,19 @@ function testScatterRemoval(root)
                %% Figure out best place to block from, show pre-blocked images
                clims = [mean(stack(:)) - std(stack(:)) mean(stack(:)) + 3*std(stack(:))];
                nomStart = curr_metadata.cutFrame + 2 - frames(1);
-               set(0, 'currentfigure', preRemovalFig);
-               rows = 5;
+               
                for imind = 1:10
-                   if imind == 10
-                        t = title(txt);
-                        set(t, 'horizontalAlignment', 'right')
+                   if imind == 6
+                        t = title([txt ' pre-blocking']);
+                        set(t, 'horizontalAlignment', 'center')
                         set(t, 'units', 'normalized')
                         h1 = get(t, 'position');
                         set(t, 'position', [1 h1(2) h1(3)])
                     end
 
-                   subplot(rows, 10, 10 * mod(cind-1,5) + imind);
+                   subplot(2 * num_cuts, 10, (10 * 2 * cut_ind) + imind);
                    sz = size(stack,1)/4;
-                   im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
+                   im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-2+imind));
                    imagesc(im, clims);
                    colormap gray; 
                    axis equal tight;
@@ -131,19 +118,17 @@ function testScatterRemoval(root)
                
                stack(:,:,msk) = 0;
                
-               set(0, 'currentfigure', postRemovalFig);
-               
                for imind = 1:10
-                    if imind == 10
-                        t = title(txt);
-                        set(t, 'horizontalAlignment', 'right')
+                    if imind == 6
+                        t = title([txt ' post-blocking']);
+                        set(t, 'horizontalAlignment', 'center')
                         set(t, 'units', 'normalized')
                         h1 = get(t, 'position');
                         set(t, 'position', [1 h1(2) h1(3)])
                     end
-                   subplot(rows, 10, 10 * mod(cind-1,5) + imind);
+                   subplot(2 * num_cuts, 10, (10 * 2 * cut_ind + 10) + imind);
                    sz = size(stack,1)/4;
-                   im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-1+imind));
+                   im = squeeze(stack(sz:3*sz,sz:3*sz,nomStart-2+imind));
                    imagesc(im, clims); 
                    colormap gray; 
                    axis equal tight;
@@ -153,12 +138,9 @@ function testScatterRemoval(root)
                drawnow;
                
            end
+           
+           savefig(hfig, [outdir filesep d]);
+           close(hfig);
         end
-    
-%     catch ME
-%         beep;
-%         uiwait(msgbox(['Error on line ' num2str(ME.stack(1).line) ' of ' ME.stack(1).name ': ' ME.identifier ': ' ME.message], 'Argh!'));
-%         rethrow(ME);
-%     end
-    
+        
 end
