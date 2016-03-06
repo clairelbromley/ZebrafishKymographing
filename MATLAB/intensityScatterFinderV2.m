@@ -1,5 +1,11 @@
 function toMask = intensityScatterFinderV2(stack, nominalCutStart, noFramesToBlock)
 
+    % ensure that data analysed for removal of frames is the same whether
+    % looking at basal membrane or near-cut movement
+    if size(stack,1) > 512
+        stack = stack(51:562,51:562,:);
+    end
+
     %% simply remove nominal number of frames to block (ceil(cut_duration/frame_duration)), then check following frame
     %% to see if a late starting cut has caused spillover of scatter
     
