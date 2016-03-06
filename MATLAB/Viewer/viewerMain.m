@@ -113,7 +113,7 @@ function menuLoadData_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-default_folder = 'C:\Users\Doug\Desktop\test';
+default_folder = 'C:\Users\Doug\Desktop\test2';
 if ~isfield(handles, 'baseFolder')
     sf = default_folder;
 else
@@ -130,7 +130,17 @@ if ~isequal(base_folder, 0)
     dataList = cell(0);
     handles.baseFolder = base_folder;
 
-    folders = dir([base_folder filesep '*upwards']);
+    folders = dir([base_folder filesep '*Embryo*']);
+    pattern = ' (down|up)?wards';
+    a = regexp({folders.name},pattern, 'split');
+    
+    for ind = 1:length(a)
+        b(ind) = a{ind}(1);
+    end
+    
+    [~,ia,~] = unique(b);
+    
+    folders = folders(ia);
 
     for fInd = 1:length(folders)
 
@@ -139,7 +149,7 @@ if ~isequal(base_folder, 0)
         for cInd = 1:length(s)
 
             cutNumber = sscanf(s(cInd).name, 'trimmed_cutinfo_cut_%d.txt');
-            ex = '(?<date>\d+), Embryo (?<embryoNumber>\w+) upwards';
+            ex = '(?<date>\d+), Embryo (?<embryoNumber>\w+) (up|down)?wards';
             out = regexp(folders(fInd).name, ex, 'names');
 
             dataList = [dataList; cellstr(sprintf('Date = %s, Embryo = %s, Cut = %d', ...
@@ -200,9 +210,6 @@ else
     expTxt2 = ', exponential s';
 end
 
-figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
-    cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
-
 handles.date = dt;
 handles.cutNumber = cutNumber;
 handles.embryoNumber = embryoNumber;
@@ -213,96 +220,122 @@ titleAppendices = {['upwards' expTxt]; ['downwards' expTxt]};
 % buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
 %     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
 
-for ind = 1:length(axHandles)
-    
-    fpath = figFilePaths{ind};
-    h = openfig(fpath, 'new', 'invisible');
-    ax = get(h, 'Children');
-    dataObjs = get(ax, 'Children');
-    handles.speeds{ind} = get(dataObjs, 'YData');
-    handles.poss{ind} = get(dataObjs, 'XData');
-    
-    handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
-    xlab = 'Kymograph position along cut, \mum';
-    ylab = 'Membrane speed, \mum s^{-1}';
-    xlabel(axHandles(ind), xlab);
-    ylabel(axHandles(ind), ylab);
-    title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
-      
-end
+try
+    for ind = 1:length(axHandles)
+        
+        
+        figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
+            cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
 
-%% Get and plot first frames and relevant lines
 
-figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut upwards.fig']);...
-    cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut downwards.fig'])];
+        axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
+    
+        fpath = figFilePaths{ind};
+        
+        h = openfig(fpath, 'new', 'invisible');
+        ax = get(h, 'Children');
+        dataObjs = get(ax, 'Children');
+        handles.speeds{ind} = get(dataObjs, 'YData');
+        handles.poss{ind} = get(dataObjs, 'XData');
 
-axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
-handles.kymLines = [];
+        handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+        xlab = 'Kymograph position along cut, \mum';
+        ylab = 'Membrane speed, \mum s^{-1}';
+        xlabel(axHandles(ind), xlab);
+        ylabel(axHandles(ind), ylab);
+        title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
+        
+        
+        %% Get and plot first frames and relevant lines
 
-for ind = 1:length(axHandles)
-    
-    fpath = figFilePaths{ind};
-    h = openfig(fpath, 'new', 'invisible');
-    ax = get(h, 'Children');
-    dataObjs = get(ax, 'Children');
-    im = get(dataObjs(end), 'CData');
-    
-    imH = imagesc(im, 'Parent', axHandles(ind));
-    colormap(axHandles(ind), gray)
-    
-    set(axHandles(ind), 'XTick', []);
-    set(axHandles(ind), 'YTick', []);
- 
-    %% scale bar...
-    sc_line_x = get(dataObjs(2), 'XData');
-    sc_line_y = get(dataObjs(2), 'YData');
-    line(sc_line_x, sc_line_y, 'Parent', axHandles(ind), 'Color', 'w', ...
-        'LineWidth', 3);
-    handles.umPerPixel = 20/diff(sc_line_x); %  ASSUMES SCALE BAR IS ALWAYS 20!
-    
-    %% cut line...
-    cut_line_x = get(dataObjs(end-1), 'XData');
-    cut_line_y = get(dataObjs(end-1), 'YData');
-    line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'c', ...
-        'LineWidth', 2);
-    
-    %% kymograph lines...   
-    kym_lines = zeros(1,length(dataObjs)-4);
-    x = [kym_lines; kym_lines];
-    y = x;
-    for lInd = 3:(length(dataObjs)-2)
-%         for lInd = 3:(length(dataObjs)-2)
-        x(:,lInd-2) = get(dataObjs(lInd), 'XData')';
-        y(:,lInd-2) = get(dataObjs(lInd), 'YData')';
-        kym_lines(lInd-2) = line(get(dataObjs(lInd), 'XData'), get(dataObjs(lInd), 'YData'), ...
-            'Parent', axHandles(ind), 'Color', 'r', 'LineStyle', '--');
+        figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut upwards.fig']);...
+            cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut downwards.fig'])];
+
+        axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
+        handles.kymLines = [];
+
+        for ind = 1:length(axHandles)
+
+            fpath = figFilePaths{ind};
+
+            h = openfig(fpath, 'new', 'invisible');
+            ax = get(h, 'Children');
+            dataObjs = get(ax, 'Children');
+            im = get(dataObjs(end), 'CData');
+
+            imH = imagesc(im, 'Parent', axHandles(ind));
+            colormap(axHandles(ind), gray)
+
+            set(axHandles(ind), 'XTick', []);
+            set(axHandles(ind), 'YTick', []);
+
+            %% scale bar...
+            sc_line_x = get(dataObjs(2), 'XData');
+            sc_line_y = get(dataObjs(2), 'YData');
+            line(sc_line_x, sc_line_y, 'Parent', axHandles(ind), 'Color', 'w', ...
+                'LineWidth', 3);
+            handles.umPerPixel = 20/diff(sc_line_x); %  ASSUMES SCALE BAR IS ALWAYS 20!
+
+            %% cut line...
+            cut_line_x = get(dataObjs(end-1), 'XData');
+            cut_line_y = get(dataObjs(end-1), 'YData');
+            line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'c', ...
+                'LineWidth', 2);
+
+            %% kymograph lines...   
+            kym_lines = zeros(1,length(dataObjs)-4);
+            x = [kym_lines; kym_lines];
+            y = x;
+            for lInd = 3:(length(dataObjs)-2)
+        %         for lInd = 3:(length(dataObjs)-2)
+                x(:,lInd-2) = get(dataObjs(lInd), 'XData')';
+                y(:,lInd-2) = get(dataObjs(lInd), 'YData')';
+                kym_lines(lInd-2) = line(get(dataObjs(lInd), 'XData'), get(dataObjs(lInd), 'YData'), ...
+                    'Parent', axHandles(ind), 'Color', 'r', 'LineStyle', '--');
+            end
+
+
+            offset = handles.umPerPixel * sqrt((x(1,1) - cut_line_x(1))^2 + (y(1,1) - cut_line_y(1))^2);
+            handles.positionsAlongLine = (-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
+            baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+            folder = [baseFolder2 ' downwards'];
+            mdfpath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+            handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);    
+            handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
+
+        %     %% find which attempted kymograph lines are represented in results
+        %     plotPos = round(100*handles.poss{ind})/100;
+        %     drawnPos = round(100*handles.positionsAlongLine)/100;
+        %     [~,~,included] = intersect(plotPos, drawnPos);
+        %     toRemove = 1:length(kym_lines);
+        %     toRemove(included)=[];
+        %     delete(kym_lines(toRemove));
+
+            handles.kymLines(ind,:) = fliplr(kym_lines);
+
+            set(imH, 'UIContextMenu', handles.menuPreCutFig);
+            set(handles.menuZoomToggle, 'Checked', 'off')
+%             catch
+%                 msgbox(['No figure to load at ' fpath]);
+%             end
+        end
     end
-    
-    
-    offset = handles.umPerPixel * sqrt((x(1,1) - cut_line_x(1))^2 + (y(1,1) - cut_line_y(1))^2);
-    handles.positionsAlongLine = (-handles.umPerPixel * sqrt((x(1,end) - x(1,:)).^2 + (y(1,end) - y(1,:)).^2) + offset);
-    baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
-    folder = [baseFolder2 ' downwards'];
-    mdfpath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
-    handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);    
-    handles.zoomBoxLTBR(ind,:) = [min(x(:)) min(y(:)) max(x(:)) max(y(:))];
-    
-%     %% find which attempted kymograph lines are represented in results
-%     plotPos = round(100*handles.poss{ind})/100;
-%     drawnPos = round(100*handles.positionsAlongLine)/100;
-%     [~,~,included] = intersect(plotPos, drawnPos);
-%     toRemove = 1:length(kym_lines);
-%     toRemove(included)=[];
-%     delete(kym_lines(toRemove));
-    
-    handles.kymLines(ind,:) = fliplr(kym_lines);
-    
-    set(imH, 'UIContextMenu', handles.menuPreCutFig);
-    set(handles.menuZoomToggle, 'Checked', 'off')
-    
+catch ME
+    disp(ME)
+    uiwait(msgbox(['No figure to load at ' fpath]));   
+
+    % deal with this explicitly without knowing where error was
+    % thrown...
+    axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
+%         cla(axHandles(ind));
+    imagesc(zeros(5),'Parent',axHandles(ind));
+    axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
+%         cla(axHandles(ind));
+    plot([1,2,3,4,5], zeros(1,5),'Parent',axHandles(ind));
 end
+            
 
-
+      
 % Load distance from apical surface for current cut
 fname = [handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep ...
     'trimmed_cutinfo_cut_' cutNumber '.txt' ];
@@ -316,7 +349,12 @@ tempHand = [handles.axDownSpeedVPosition; handles.axUpSpeedVPosition];
 for ind = 1:length(handles.plotHandles)
     tempHand = [tempHand; handles.plotHandles{ind}];
 end
-disableEnableOnClick(tempHand, butDownFcns);
+
+% surround with try...catch in case no figures have been loaded...
+% try
+%     disableEnableOnClick(tempHand, butDownFcns);
+% catch
+%     disp('no figures loaded; modification of button down fcns 
 set(handles.listData, 'Enable', 'on');
 close(h);
 
@@ -885,6 +923,7 @@ else
 end
 
 guidata(hObject, handles);
+
 
 % --------------------------------------------------------------------
 function menuManualLine_Callback(hObject, eventdata, handles)
