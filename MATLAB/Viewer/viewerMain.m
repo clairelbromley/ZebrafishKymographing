@@ -339,7 +339,11 @@ end
 fname = [handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep ...
     'trimmed_cutinfo_cut_' cutNumber '.txt' ];
 varn = 'metadata.distanceToApicalSurface';
-handles.currentApicalSurfaceToCutDistance = getNumericMetadataFromText(fname, varn);
+try
+    handles.currentApicalSurfaceToCutDistance = getNumericMetadataFromText(fname, varn);
+catch
+    handles.currentApicalSurfaceToCutDistance = NaN;
+end
 
 
 %% end busy
@@ -349,7 +353,6 @@ for ind = 1:length(handles.plotHandles)
     tempHand = [tempHand; handles.plotHandles{ind}];
 end
 
-% surround with try...catch in case no figures have been loaded...
 disableEnableOnClick(tempHand, butDownFcns);
 
 set(handles.listData, 'Enable', 'on');
