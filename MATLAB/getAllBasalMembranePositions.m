@@ -26,7 +26,15 @@ function uO = getAllBasalMembranePositions(dirs, root, userOptions)
                else
                    uO.usePreviouslySavedBasalPos = false;
                end
+           else
+               if exist([curr_path filesep 'basal_kymograph_positioning_cut_1.csv'], 'file') ~= 2
+                   beep;
+                   msgbox('I was asked to use previously saved basal position data but couldn''t find any. You''ll have to re-assign basal positions...');
+                   uO.usePreviouslySavedBasalPos = false;
+               end
            end
+           
+           
 
            if ~uO.usePreviouslySavedBasalPos
                num_cuts = length(dir([curr_path filesep '*.txt']))/2;
