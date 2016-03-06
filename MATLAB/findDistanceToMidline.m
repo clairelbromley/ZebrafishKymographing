@@ -49,7 +49,7 @@ function md = findDistanceToMidline(stack, md, uO)
         handles = guidata(gcf);
         md.distanceToApicalSurface = handles.distance_cut_to_apical_surface * md.umperpixel;
         
-
+        close(uifig);
         
     else
 
@@ -105,10 +105,10 @@ function md = findDistanceToMidline(stack, md, uO)
 
         distance_cut_to_apical_surface = sqrt((x_apical_point - a)^2 + ...
             (y_apical_point - b)^2);
+        
+        md.distanceToApicalSurface = distance_cut_to_apical_surface * md.umperpixel;
 
     end
-    
-    md.distanceToApicalSurface = distance_cut_to_apical_surface * md.umperpixel;
     
 end
 
