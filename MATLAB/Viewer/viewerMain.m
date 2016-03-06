@@ -222,8 +222,7 @@ titleAppendices = {['upwards' expTxt]; ['downwards' expTxt]};
 
 try
     for ind = 1:length(axHandles)
-        
-        
+
         figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
             cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
 
@@ -245,9 +244,15 @@ try
         ylabel(axHandles(ind), ylab);
         title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
         
-        
+    end
+catch ME
+    disp(ME)
+    uiwait(msgbox(['No figure to load at ' fpath]));   
+    axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
+    handles.plotHandles{ind} = plot([1,2,3,4,5], zeros(1,5),'Parent',axHandles(ind));
+end
         %% Get and plot first frames and relevant lines
-
+try
         figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut upwards.fig']);...
             cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut downwards.fig'])];
 
@@ -319,19 +324,13 @@ try
 %                 msgbox(['No figure to load at ' fpath]);
 %             end
         end
-    end
+    
 catch ME
     disp(ME)
     uiwait(msgbox(['No figure to load at ' fpath]));   
-
-    % deal with this explicitly without knowing where error was
-    % thrown...
     axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
-%         cla(axHandles(ind));
     imagesc(zeros(5),'Parent',axHandles(ind));
-    axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
-%         cla(axHandles(ind));
-    plot([1,2,3,4,5], zeros(1,5),'Parent',axHandles(ind));
+
 end
             
 
@@ -351,10 +350,8 @@ for ind = 1:length(handles.plotHandles)
 end
 
 % surround with try...catch in case no figures have been loaded...
-% try
-%     disableEnableOnClick(tempHand, butDownFcns);
-% catch
-%     disp('no figures loaded; modification of button down fcns 
+disableEnableOnClick(tempHand, butDownFcns);
+
 set(handles.listData, 'Enable', 'on');
 close(h);
 
@@ -529,103 +526,107 @@ handles.currentKymInd = kym_ind;
 fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
     ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
     appendText '.fig'];
-h = openfig(fpath, 'new', 'invisible');
-fAx = get(h, 'Children');
-dataObjs = get(fAx, 'Children');
-im = get(dataObjs(end), 'CData');
-x = get(dataObjs(end), 'XData');
-y = get(dataObjs(end), 'YData');
+try
+    h = openfig(fpath, 'new', 'invisible');
 
-% imH = imagesc(x, y, im, 'Parent', kym_ax);
-hold(kym_ax, 'on');
-RI = imref2d(size(im));
-RI.XWorldLimits = [min(x) max(x)];
-RI.YWorldLimits = [min(y) max(y)];
-bg = zeros(size(im));
-cmap = gray;
-cmap(1,:) = [0 1 1];
-colBg = ind2rgb(bg, cmap);
-% hold off;
-handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
-axis tight;
-handles.kymData(ax,:,:) = im;
-xlabel(kym_ax, 'Time relative to cut, s')
-ylabel(kym_ax, 'Position relative to cut, \mum')
+    fAx = get(h, 'Children');
+    dataObjs = get(fAx, 'Children');
+    im = get(dataObjs(end), 'CData');
+    x = get(dataObjs(end), 'XData');
+    y = get(dataObjs(end), 'YData');
 
-title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
-    ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
-handles.kymTitle{ax} = title(kym_ax, title_txt);
-
-handles.currentPosition = handles.poss{ax}(closest);
-handles.currentSpeed = handles.speeds{ax}(closest);
-handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_along_cut)/1000 ...
-    == round(1000*handles.currentPosition)/1000);
-handles.currentDistanceFromEdge = distance_from_edge(round(1000*pos_along_cut)/1000 ...
-    == round(1000*handles.currentPosition)/1000);
-
-%% get number of blocked out frames
-temp = regionprops(logical(sum(im,1) == 0));
-handles.currentBlockedFrames = max([temp.Area]);
-
-fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
-    ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
-   ' - quantitative kymograph.fig'];
-h = openfig(fpath, 'new', 'invisible');
-fAx = get(h, 'Children');
-dataObjs = get(fAx, 'Children');
-
-% TODO: get data on frames/second from metadata
-xoffset = (1+sum(sum(im(:,25:30),1)==0))*0.2;
-y=get(dataObjs{1}(1), 'YData')+0.218;
-x=get(dataObjs{1}(1), 'XData');
-x = x + xoffset;
-x = [x(1) x(end)];
-y = [y(1) y(end)];
-
-set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
-
-% handles.kymIm(ax) = imH;
-
-fitLineState = get(handles.menuOverlayFitLine, 'Checked');
-membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
-
-
-% TODO: get data on frames/second and pre- and post-cut time from metadata
-membrane = get(dataObjs{2}, 'CData');
-prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
-postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
-handles.paddedMembrane{ax} = [prePad membrane postPad];
-
-% if(~strcmp(membraneOverlayState, 'on'))
-    imshow(colBg, RI, 'Parent', kym_ax);
+    % imH = imagesc(x, y, im, 'Parent', kym_ax);
+    hold(kym_ax, 'on');
+    RI = imref2d(size(im));
+    RI.XWorldLimits = [min(x) max(x)];
+    RI.YWorldLimits = [min(y) max(y)];
+    bg = zeros(size(im));
+    cmap = gray;
+    cmap(1,:) = [0 1 1];
+    colBg = ind2rgb(bg, cmap);
+    % hold off;
     handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+    axis tight;
+    handles.kymData(ax,:,:) = im;
+    xlabel(kym_ax, 'Time relative to cut, s')
+    ylabel(kym_ax, 'Position relative to cut, \mum')
 
-    % For now, default overlay to on
-% if(~strcmp(membraneOverlayState, 'on'))    
-    set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
-    set(handles.menuOverlayEdge, 'Checked', 'on');
-% else
-%     set(handles.kymIm(ax), 'AlphaData', 1);
-% end
-    hold(kym_ax, 'off');
+    title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
+        ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
+    handles.kymTitle{ax} = title(kym_ax, title_txt);
+
+    handles.currentPosition = handles.poss{ax}(closest);
+    handles.currentSpeed = handles.speeds{ax}(closest);
+    handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_along_cut)/1000 ...
+        == round(1000*handles.currentPosition)/1000);
+    handles.currentDistanceFromEdge = distance_from_edge(round(1000*pos_along_cut)/1000 ...
+        == round(1000*handles.currentPosition)/1000);
+
+    %% get number of blocked out frames
+    temp = regionprops(logical(sum(im,1) == 0));
+    handles.currentBlockedFrames = max([temp.Area]);
+
+    fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+        ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
+       ' - quantitative kymograph.fig'];
+    h = openfig(fpath, 'new', 'invisible');
+    fAx = get(h, 'Children');
+    dataObjs = get(fAx, 'Children');
+
+    % TODO: get data on frames/second from metadata
+    xoffset = (1+sum(sum(im(:,25:30),1)==0))*0.2;
+    y=get(dataObjs{1}(1), 'YData')+0.218;
+    x=get(dataObjs{1}(1), 'XData');
+    x = x + xoffset;
+    x = [x(1) x(end)];
+    y = [y(1) y(end)];
+
     set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
-% end
 
-handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
-    'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+    % handles.kymIm(ax) = imH;
 
-if(~strcmp(fitLineState, 'on'))
-    set(handles.fitLine(ax), 'Visible', 'off');
-    set(handles.fitText(ax), 'Visible', 'off');
+    fitLineState = get(handles.menuOverlayFitLine, 'Checked');
+    membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
+
+
+    % TODO: get data on frames/second and pre- and post-cut time from metadata
+    membrane = get(dataObjs{2}, 'CData');
+    prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
+    postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
+    handles.paddedMembrane{ax} = [prePad membrane postPad];
+
+    % if(~strcmp(membraneOverlayState, 'on'))
+        imshow(colBg, RI, 'Parent', kym_ax);
+        handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+
+        % For now, default overlay to on
+    % if(~strcmp(membraneOverlayState, 'on'))    
+        set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
+        set(handles.menuOverlayEdge, 'Checked', 'on');
+    % else
+    %     set(handles.kymIm(ax), 'AlphaData', 1);
+    % end
+        hold(kym_ax, 'off');
+        set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+    % end
+
+    handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+    handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
+        'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+
+    if(~strcmp(fitLineState, 'on'))
+        set(handles.fitLine(ax), 'Visible', 'off');
+        set(handles.fitText(ax), 'Visible', 'off');
+    end
+
+    if sum(checkIfStored(handles, direction)) > 0 
+        set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+    else
+        set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+    end
+catch ME
+    disp(ME);
 end
-
-if sum(checkIfStored(handles, direction)) > 0 
-    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
-else
-    set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
-end
-
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
