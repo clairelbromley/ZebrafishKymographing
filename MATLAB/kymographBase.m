@@ -34,6 +34,7 @@ function output = kymographBase(varargin)
     
     userOptions.basalMembraneKym = false;
     userOptions.usePreviouslySavedBasalPos = false;
+    userOptions.manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
 
     narginchk(1, 2);
     if nargin == 1
@@ -140,7 +141,7 @@ function output = kymographBase(varargin)
                 curr_metadata.kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
                 
                 if ~userOptions.basalMembraneKym
-                    curr_metadata = findDistanceToMidline(stack, curr_metadata);
+                    curr_metadata = findDistanceToMidline(stack, curr_metadata, userOptions);
                 end
                 
                 if (userOptions.saveCutPositioningFigs)
