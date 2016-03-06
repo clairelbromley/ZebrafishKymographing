@@ -18,6 +18,8 @@ function mdout = manualBasalMembraneKymographPositioning(frame, userOptions, met
 
         uifig = figure('Name', ['Choose' direction '-facing basal membrane position']...
             ,'NumberTitle','off');
+        set(uifig, 'Units', 'normalized')
+        set(uifig, 'Position', [0 0 1 1]);
         handles = guidata(gcf);
         subplot(1,1,1); % To deal with potential for last loop of figures having subplots and messing things up
         imagesc(frame);
