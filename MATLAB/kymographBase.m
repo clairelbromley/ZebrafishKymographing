@@ -20,7 +20,7 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test2';
+    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test3';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -35,6 +35,7 @@ function output = kymographBase(varargin)
     userOptions.basalMembraneKym = false;
     userOptions.usePreviouslySavedBasalPos = false;
     userOptions.manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
+    userOptions.usePreviouslySavedApicalSurfacePos = false;
 
     narginchk(1, 2);
     if nargin == 1
@@ -55,6 +56,11 @@ function output = kymographBase(varargin)
     dirs = dirs([dirs.isdir]);
     
     getAllBasalMembranePositions(dirs, root, userOptions)
+    
+    if ~userOptions.basalMembraneKym
+        getAllApicalSurfacePositions(dirs, root, userOptions);
+    end
+    
     if userOptions.basalMembraneKym
         userOptions.outputFolder = [userOptions.outputFolder filesep 'Basal'];
         mkdir(userOptions.outputFolder);
@@ -141,7 +147,8 @@ function output = kymographBase(varargin)
                 curr_metadata.kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
                 
                 if ~userOptions.basalMembraneKym
-                    curr_metadata = findDistanceToMidline(stack, curr_metadata, userOptions);
+%                     curr_metadata = findDistanceToMidline(stack, curr_metadata, userOptions);
+                    curr_metadata.distanceToApicalSurface = getApicalSurfacePositionMetadata(userOptions, curr_metadata, curr_path);
                 end
                 
                 if (userOptions.saveCutPositioningFigs)
