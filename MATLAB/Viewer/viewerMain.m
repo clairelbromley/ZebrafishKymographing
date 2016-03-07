@@ -134,6 +134,7 @@ if ~isequal(base_folder, 0)
     pattern = ' (down|up)?wards';
     a = regexp({folders.name},pattern, 'split');
     
+    b=[];
     for ind = 1:length(a)
         b(ind) = a{ind}(1);
     end
@@ -806,6 +807,11 @@ if includeStats
     %% Now do Jon-style ("inside cut only") filtering, but separating up and down kymographs for
     % meaningful comparison of apical and basal surface movement in order
     % to assess whether cells are moving or changing size:
+    
+    filtmu = [];
+    filtsd = [];
+    filtmx = [];
+    filtmed = [];
     
     [~, ia, ic] = unique(ids, 'stable');
     %% for each kymograph, isolate the  relevant data rows and calculate stats
