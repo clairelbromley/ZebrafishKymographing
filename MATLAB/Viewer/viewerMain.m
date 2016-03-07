@@ -134,7 +134,6 @@ if ~isequal(base_folder, 0)
     pattern = ' (down|up)?wards';
     a = regexp({folders.name},pattern, 'split');
     
-    b=[];
     for ind = 1:length(a)
         b(ind) = a{ind}(1);
     end
