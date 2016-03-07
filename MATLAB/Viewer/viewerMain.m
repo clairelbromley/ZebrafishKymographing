@@ -763,10 +763,10 @@ if includeStats
     ids = data(:, strcmp(headerLine, 'ID'));
     for ind = 1:length(ids)
         r  = regexp(ids{ind}, '-', 'split');
-        ids{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
+        ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
     end
     
-    [~, ia, ic] = unique(ids, 'stable');
+    [~, ia, ic] = unique(ids2, 'stable');
     %% for each kymograph, isolate the  relevant data rows and calculate stats
     for ind = 1:max(ic)
         filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
@@ -801,6 +801,47 @@ if includeStats
     filtmeddata = data(ia, :);
     filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
     xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
+    
+    
+    %% Now do Jon-style ("inside cut only") filtering, but separating up and down kymographs for
+    % meaningful comparison of apical and basal surface movement in order
+    % to assess whether cells are moving or changing size:
+    
+    [~, ia, ic] = unique(ids, 'stable');
+    %% for each kymograph, isolate the  relevant data rows and calculate stats
+    for ind = 1:max(ic)
+        filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        
+        filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        
+        try
+            filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        catch
+            filtmx(ind) = NaN;
+        end
+        
+        filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+    end
+       
+    filtmudata = data(ia, :);
+    filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+    xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
+    
+    filtsddata = data(ia, :);
+    filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+    xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
+    
+    filtmxdata = data(ia, :);
+    filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+    xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
+    
+    filtmeddata = data(ia, :);
+    filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+    xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
     
 end
    
