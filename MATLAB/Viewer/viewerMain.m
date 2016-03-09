@@ -723,6 +723,35 @@ set(handles.listData, 'Enable', 'off');
 
 headerLine = fields(handles.includedData)';
 data = struct2cell(handles.includedData)';
+
+if ~isfield(handles.includedData, 'distanceCutToApicalSurfaceUm')
+
+	varn = 'metadata.distanceToApicalSurface';
+
+	distances = cell(0);
+
+	for ind = 1:size(data,1)
+	 
+	 
+		fdate = data{ind,1};
+		fENumber = data{ind,2};
+		fDirection = data{ind, 31};
+		fCNumber = data{ind, 3};
+		
+		fpath = [handles.baseFolder filesep fdate ', Embryo ' fENumber...
+		 ' ' fDirection 'wards' filesep 'trimmed_cutinfo_cut_' num2str(fCNumber)...
+		 '.txt'];
+	 
+		distances = [distances; num2cell(getNumericMetadataFromText(fpath, varn))];
+		
+	end
+	
+	data = [data distances];
+	
+	headerLine = [headerLine 'distanceCutToApicalSurfaceUm'];
+ 
+end
+
 xxwrite(outputName, [headerLine; data]);
 
 if includeStats
