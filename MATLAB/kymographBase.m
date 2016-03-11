@@ -1,4 +1,4 @@
-function output = kymographBase(varargin)
+MOREfunction output = kymographBase(varargin)
 % kymographBase takes a directory containing data directories as an
 % argument and performs all steps for generation of quantitative kymograph
 % data. 
@@ -20,7 +20,7 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test3';
+    userOptions.outputFolder = '/Users/clairebromley/Desktop/Basal output';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -32,7 +32,7 @@ function output = kymographBase(varargin)
     userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
     userOptions.showKymographOverlapOverlay = true;
     
-    userOptions.basalMembraneKym = false;
+    userOptions.basalMembraneKym = true;
     userOptions.usePreviouslySavedBasalPos = false;
     userOptions.manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
     userOptions.usePreviouslySavedApicalSurfacePos = false;

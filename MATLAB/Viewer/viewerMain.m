@@ -737,6 +737,18 @@ if ~isfield(handles.includedData, 'distanceCutToApicalSurfaceUm')
 		fENumber = data{ind,2};
 		fDirection = data{ind, 31};
 		fCNumber = data{ind, 3};
+        
+        if isa(fdate, 'double')
+            fdate = num2str(fdate);
+        end
+        
+        if isa(fCNumber, 'double')
+            fCNumber = num2str(fCNumber);
+        end
+        
+        if isa(fENumber, 'double')
+            fENumber = num2str(fENumber);
+        end
 		
 		fpath = [handles.baseFolder filesep fdate ', Embryo ' fENumber...
 		 ' ' fDirection 'wards' filesep 'trimmed_cutinfo_cut_' num2str(fCNumber)...
