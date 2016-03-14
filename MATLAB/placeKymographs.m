@@ -7,6 +7,22 @@ function kym_positioning = placeKymographs(md, uO)
 cm = md.cutMetadata;
 xcut = [cm.startPositionX cm.stopPositionX] + md.xoffset;
 ycut = [cm.startPositionY cm.stopPositionY] + md.yoffset;
+
+if uO.flip90DegForShortCuts
+
+    theta_d = 90;
+    centre_xy = [(xcut(1) + xcut(2))/2; (ycut(1) + ycut(2))/2];
+    xy1 = [xcut(1); ycut(1)];
+    xy2 = [xcut(2); ycut(2)];
+    xy1 = shift_rot(xy1, theta_d, centre_xy);
+    xy2 = shift_rot(xy2, theta_d, centre_xy);
+    xcut = [xy1(1) xy2(1)];
+    ycut = [xy1(2) xy2(2)];
+    
+    md.cutTheta = md.cutTheta + pi/2;
+    
+end
+
 kp.xcut = xcut;
 kp.ycut = ycut;
 
@@ -81,3 +97,17 @@ kp.cropped_kym_endy = kp.kym_endy - kp.boundingBox_LTRB(2);
 
 
 kym_positioning = kp;
+
+end
+
+function xy = shift_rot(xy, theta_d, centre_xy)
+
+    xy = xy - centre_xy;
+    
+    rot_mat = [cosd(theta_d) -sind(theta_d); ...
+        sind(theta_d) cosd(theta_d)];
+    xy = rot_mat * xy;
+    
+    xy = xy + centre_xy;
+
+end

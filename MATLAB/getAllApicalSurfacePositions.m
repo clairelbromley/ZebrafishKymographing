@@ -49,7 +49,12 @@ function getAllApicalSurfacePositions(dirs, root, userOptions)
 
                    im = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
 
+                   % temporarily make sure that cut is angled correctly
+                   temp = uO.flip90DegForShortCuts;
+                   uO.flip90DegForShortCuts = false;
                    curr_metadata.kym_region = placeKymographs(curr_metadata, uO);
+                   uO.flip90DegForShortCuts = temp;
+                   
                    curr_metadata = findDistanceToMidline(im, curr_metadata, uO);
                    % save positions to a csv metadata file so as not to mess up
                    % simplistic way in which # cuts is originally assessed.
