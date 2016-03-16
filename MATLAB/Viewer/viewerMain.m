@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 23-Feb-2016 22:51:55
+% Last Modified by GUIDE v2.5 16-Mar-2016 22:19:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -82,6 +82,8 @@ ylabel(handles.axUpSpeedVPosition, ylab);
 xlabel(handles.axDownSpeedVPosition, xlab);
 ylabel(handles.axDownSpeedVPosition, ylab);
 
+handles.manualSpeeds = [];
+
 handles.linTexpF = true;
 set(handles.menuExpFit,'Enable','off');
 
@@ -113,7 +115,7 @@ function menuLoadData_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-default_folder = 'C:\Users\Doug\Desktop\test2';
+default_folder = 'C:\Users\Doug\Documents\DOug- cuts\Processed data 20160314\080316 apical surface distance values\Apical';
 if ~isfield(handles, 'baseFolder')
     sf = default_folder;
 else
@@ -1022,13 +1024,32 @@ function menuManualLine_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+if strcmp(get(hObject, 'checked'), 'on')
+    set(hObject, 'checked', 'off');
+    set(handles.menuSaveManualSpeed, 'Enable', 'off')
+    if isfield(handles, 'manualLine')
+        delete(handles.manualLine);
+        handles.currentManualLineSpeed = [];
+    end
+else
+    set(hObject, 'checked', 'on');
+    set(handles.menuSaveManualSpeed, 'Enable', 'on')
+    nonsense = get(gca);
+    handles.manualLine = imline(gca, [0 4], [1 1]);
+%     addNewPositionCallback(handles.manualLine, manualLineCallback(hObject, handles))
+end
 
-% --------------------------------------------------------------------
-function menuRepositionLine_Callback(hObject, eventdata, handles)
-% hObject    handle to menuRepositionLine (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+guidata(hObject, handles)
 
+
+function pos = manualLineCallback(hObject, handles)
+
+    disp('nonsense');
+%     pos = handles.manualLine.getPosition;
+%     handles.currentManualLineSpeed = (pos(1,2) - pos(2,2))/...
+%         (pos(1,1) - pos(2,1));
+
+guidata(hObject, handles)
 
 % --------------------------------------------------------------------
 function menuFixAxisLimits_Callback(hObject, eventdata, handles)
@@ -1203,6 +1224,12 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData.numberBlockedFrames = handles.currentBlockedFrames;
     
     incData.distanceCutToApicalSurfaceUm = handles.currentApicalSurfaceToCutDistance;
+    
+    if isfield(handles.currentManualLineSpeed)
+        incData.manualSpeed = handles.currentManualLineSpeed;
+    else
+        incData.manualSpeed = nan;
+    end
     
     handles.includedData = [handles.includedData; incData];
     
@@ -1466,13 +1493,6 @@ guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
-function Untitled_1_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
 function menuAbout_Callback(hObject, eventdata, handles)
 % hObject    handle to menuAbout (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1537,8 +1557,42 @@ function menuViewerOptions_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
+
 % --------------------------------------------------------------------
-function Untitled_6_Callback(hObject, eventdata, handles)
-% hObject    handle to Untitled_6 (see GCBO)
+function menuManualSpeedDetermination_Callback(hObject, eventdata, handles)
+% hObject    handle to menuManualSpeedDetermination (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuSaveManualSpeed_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSaveManualSpeed (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if isfield(handles, 'manualLine')
+   
+    if gca == handles.axUpSelectedKym
+        direction = 'up';
+        ax = 1;
+    else
+        direction = 'down';
+        ax = 2;
+    end
+
+   pos = handles.manualLine.getPosition;
+   handles.currentManualLineSpeed = (pos(1,2) - pos(2,2))/(pos(1,1) - pos(2,1));
+   
+   indices = checkIfStored(handles, direction);
+   if sum(indices) > 0
+      handles.includedData(indices(1)).manualSpeed = handles.currentManualLineSpeed;
+   end
+   
+   id = [handles.date '-' handles.embryoNumber '-' handles.cutNumber '-' direction '-' handles.currentKymInd];
+   
+   handles.manualSpeeds = [handles.manualSpeeds; {id handles.currentManualLineSpeed}];
+   
+end
+
+guidata(hObject, handles)
