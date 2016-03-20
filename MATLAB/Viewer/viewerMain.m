@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 16-Mar-2016 22:19:31
+% Last Modified by GUIDE v2.5 20-Mar-2016 18:05:53
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -185,6 +185,12 @@ function listData_Callback(hObject, eventdata, handles)
 % hObject    handle to listData (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+if isfield(handles, 'manualLine')
+    if ~isempty(handles.manualLine)
+        delete(handles.manualLine);
+    end
+end
 
 contents = cellstr(get(hObject,'String')); % returns listData contents as cell array
 selected = contents{get(hObject,'Value')}; % returns selected item from listData
@@ -1596,3 +1602,114 @@ if isfield(handles, 'manualLine')
 end
 
 guidata(hObject, handles)
+
+
+% --------------------------------------------------------------------
+function menuPreCutExport_Callback(hObject, eventdata, handles)
+% hObject    handle to menuPreCutExport (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if strcmp(get(handles.menuZoomToggle, 'Checked'), 'on')
+    zoomState = true;
+else
+    zoomState = false;
+end
+% 
+% if zoomState
+%     set(handles.menuPreCutExportLabels, 'Enable', 'on');
+% else
+%     set(handles.menuPreCutExportLabels, 'Enable', 'off');
+% end
+
+%for now, only allow export of full size image...
+if ~zoomState
+    set(handles.menuPreCutExportLabels,'Enable', 'off');
+    set(handles.menuPreCutExportNoLabels, 'Enable', 'on');
+else
+    set(handles.menuPreCutExportLabels,'Enable', 'off');
+    set(handles.menuPreCutExportNoLabels, 'Enable', 'off');
+end
+
+% --------------------------------------------------------------------
+function menuPreCutExportLabels_Callback(hObject, eventdata, handles)
+% hObject    handle to menuPreCutExportLabels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuPreCutExportNoLabels_Callback(hObject, eventdata, handles)
+% hObject    handle to menuPreCutExportNoLabels (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+%% start busy
+busyOutput = busyDlg();
+
+pname = uigetdir(handles.baseFolder, 'Choose a folder to save figures...');
+
+if pname
+
+    ax = gca;
+    newfh = figure('Visible', 'off');
+    newax = copyobj(ax, newfh);
+    T = get(newax, 'TightInset');
+%     set(newax, 'Position', [T(1) T(2) 1-T(1)-T(3) 1-T(2)-T(4)]);
+    set(newfh, 'Units', 'normalized');
+    set(newax, 'OuterPosition', [0 0 1 1]);
+    axis equal tight;
+    colormap gray;
+    txth = findobj(newax, 'Type', 'Text');
+    
+    % get rid of labels if they exist
+    if ~isempty(txth)
+        delete(txth);
+    end
+
+%     dtstr = datestr(now);
+%     dtstr = regexprep(dtstr,':','_');
+
+    if ax == handles.axUpFirstFrame
+        direction = 'up';
+        ind = 1;
+    else
+        direction = 'down';
+        ind = 2;
+    end
+    
+    fname = ['Pre-cut figure, scalebar=20um, ' handles.date '-E' handles.embryoNumber '-C' handles.cutNumber '-' direction];
+    set(newfh, 'Name', fname);
+
+    savefig(newfh, [pname filesep fname '.fig']);
+    set(gcf,'PaperPositionMode','auto');
+    set(gcf,'InvertHardcopy','off')
+
+    print(newfh, [pname filesep fname '.png'], '-dpng', '-r600', '-loose');
+    
+    %get rid of scalebar if it exists...
+    
+    % zoom in...
+    zBox = handles.zoomBoxLTBR(ind,:);
+    padding=round(5/handles.umPerPixel);
+    set(newax, 'XLim', [max(zBox(1)-padding,1) min(zBox(3)+padding,512)]);
+    set(newax, 'YLim', [max(zBox(2)-padding,1) min(zBox(4)+padding,512)]);
+    
+    % add new scale bar...
+    scx = [min(zBox(3)+padding,512) - 10 - padding   min(zBox(3)+padding,512) - 10];
+    scy = [min(zBox(4)+padding,512)-10 min(zBox(4)+padding,512)-10];
+    scline = line(scx, scy, 'Color', 'w', 'LineWidth',3);
+    fname = ['Cropped pre-cut figure, scalebar=5um, ' handles.date '-E' handles.embryoNumber '-C' handles.cutNumber '-' direction];
+    set(newfh, 'Name', fname);
+    
+    savefig(newfh, [pname filesep fname '.fig']);
+    set(gcf,'PaperPositionMode','auto');
+    set(gcf,'InvertHardcopy','off')
+
+    print(newfh, [pname filesep fname '.png'], '-dpng', '-r600', '-loose');
+
+    close(newfh);
+    
+end
+
+busyDlg(busyOutput);
+
