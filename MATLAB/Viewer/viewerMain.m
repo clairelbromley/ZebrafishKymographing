@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 20-Mar-2016 18:05:53
+% Last Modified by GUIDE v2.5 28-Mar-2016 16:35:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -86,6 +86,8 @@ handles.manualSpeeds = [];
 
 handles.linTexpF = true;
 set(handles.menuExpFit,'Enable','off');
+
+handles.kymAxisThickness = 1;
 
 guidata(hObject, handles);
 
@@ -292,7 +294,7 @@ try
             %% cut line...
             cut_line_x = get(dataObjs(end-1), 'XData');
             cut_line_y = get(dataObjs(end-1), 'YData');
-            line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'c', ...
+            line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'b', ...
                 'LineWidth', 2);
 
             %% kymograph lines...   
@@ -304,7 +306,7 @@ try
                 x(:,lInd-2) = get(dataObjs(lInd), 'XData')';
                 y(:,lInd-2) = get(dataObjs(lInd), 'YData')';
                 kym_lines(lInd-2) = line(get(dataObjs(lInd), 'XData'), get(dataObjs(lInd), 'YData'), ...
-                    'Parent', axHandles(ind), 'Color', 'r', 'LineStyle', '--');
+                    'Parent', axHandles(ind), 'Color', 'r', 'LineStyle', '--', 'LineWidth', 2);
             end
 
 
@@ -1680,6 +1682,8 @@ if pname
     fname = ['Pre-cut figure, scalebar=20um, ' handles.date '-E' handles.embryoNumber '-C' handles.cutNumber '-' direction];
     set(newfh, 'Name', fname);
 
+    set(newfh, 'Color', [1 1 1]);
+    
     savefig(newfh, [pname filesep fname '.fig']);
     set(gcf,'PaperPositionMode','auto');
     set(gcf,'InvertHardcopy','off')
@@ -1713,3 +1717,35 @@ end
 
 busyDlg(busyOutput);
 
+
+
+% --------------------------------------------------------------------
+function menuSetLineThickness_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSetLineThickness (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+prompt = 'Line width for kymograph axis thickness:';
+dlg_title = 'Set line width...';
+num_lines = 1;
+default_val = num2str(handles.kymAxisThickness);
+answer = inputdlg(prompt, dlg_title, num_lines, {default_val});
+
+handles.kymAxisThickness = str2double(answer);
+
+axs = {handles.axUpFirstFrame; handles.axDownFirstFrame};
+
+for ax_ind = 1:length(axs)
+    cut_line = findobj('Parent', axs{ax_ind}, 'type', 'line', 'Color', 'b');
+    kym_lines = findobj('Parent', axs{ax_ind}, 'type', 'line', 'Color', 'r');
+
+    for kl_ind = 1:length(kym_lines)
+
+        set(kym_lines(kl_ind), 'LineWidth', handles.kymAxisThickness);
+
+    end
+    
+    set(cut_line, 'LineWidth', round((3/2) * handles.kymAxisThickness));
+end
+
+guidata(hObject, handles);
