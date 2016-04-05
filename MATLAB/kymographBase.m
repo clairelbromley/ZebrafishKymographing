@@ -20,10 +20,10 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\Doug\Desktop\test5';
+    userOptions.outputFolder = 'C:\Users\Doug\Desktop\cross test';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
-    userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
+    userOptions.saveCutPositioningFigs = true;     % Toggle saving of helper images for checking cut positioning.                              Default = false
     userOptions.removeCutFrames = true;             % Toggle removal of frames with scattered light.                                            Default = true
     userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window. 
     userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
@@ -36,7 +36,9 @@ function output = kymographBase(varargin)
     userOptions.usePreviouslySavedBasalPos = false;
     userOptions.manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
     userOptions.usePreviouslySavedApicalSurfacePos = false;
-    userOptions.flip90DegForShortCuts = true;      % Rotate "cut axis" 90 degrees
+    userOptions.flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
+    
+    userOptions.nonBeepSound = load('train');
 
     narginchk(1, 2);
     if nargin == 1
@@ -161,6 +163,9 @@ function output = kymographBase(varargin)
                     testCutPositioningSlow(stack, curr_metadata, userOptions);
                     userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
                     testCutPositioningFast(stack, curr_metadata, userOptions);
+                    ME = MException('Done', ...
+                                    'This version of the software will only run up to the point of saving cut position videos if saveCutPositioningFigs is TRUE!');
+                    throw(ME);
                 end
                 
                 

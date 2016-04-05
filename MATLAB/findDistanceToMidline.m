@@ -41,7 +41,7 @@ function md = findDistanceToMidline(stack, md, uO)
 
         %% pause running using waitfor
 %         waitfor(gcf);
-        beep;
+        sound(uO.nonBeepSound.y,uO.nonBeepSound.Fs)
         handles.kp = kp;
         uiwait(gcf);
 

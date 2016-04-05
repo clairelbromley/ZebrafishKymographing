@@ -53,7 +53,7 @@ function mdout = manualBasalMembraneKymographPositioning(frame, userOptions, met
 
         %% pause running using waitfor
 %         waitfor(gcf);
-        beep;
+        sound(userOptions.nonBeepSound.y,userOptions.nonBeepSound.Fs)
         uiwait(gcf);
 
         % reconfigure kymograph region
