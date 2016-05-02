@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 02-May-2016 22:31:54
+% Last Modified by GUIDE v2.5 02-May-2016 23:53:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -121,6 +121,8 @@ function buttonCancel_Callback(hObject, eventdata, handles)
 % hObject    handle to buttonCancel (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+disp('nsda');
 
 
 % --- Executes on button press in buttonSave.
@@ -147,7 +149,7 @@ handles = guidata(gcf);
 [fname, pname, ~] = uigetfile('*.czi');
 
 set(handles.txtImagePath, 'String', [pname fname]);
-imagePathChanged({[pname fname]});
+imagePathChanged({[pname fname]}, hObject);
 
 
 function txtImagePath_Callback(hObject, eventdata, handles)
@@ -163,13 +165,17 @@ handles = guidata(gcf);
 input = get(hObject,'String');
 display(input);
 
-imagePathChanged(input);
+imagePathChanged(input, hObject);
+
+handles.cutLine = imline(handles.axImage, [handles.params.cutStartX handles.params.cutEndX], ...
+            [handles.params.cutStartY handles.params.cutEndY]);
+set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
 
 % Update handles structure
 guidata(hObject, handles);
 
 % --- handles changes to image path independently of source of change. 
-function imagePathChanged(new_image_path)
+function imagePathChanged(new_image_path, hObject)
 handles = guidata(gcf);
 
 % make sure UI reflects underlying data
@@ -201,13 +207,23 @@ else
         updateUIParams(handles.params);
         
         
+        disp('hjeloo');
+        
+        
     catch ME
         errorHandler(ME);
         
     end
         
 end
+% Update handles structure
+guidata(gcf, handles);
 
+
+function cutLine_ButtonDownFcn(hObject, eventdata, handles)
+% handles = guidata(gcf);
+disp('button down!');
+   
 
 % --- Executes during object creation, after setting all properties.
 function txtImagePath_CreateFcn(hObject, eventdata, handles)
@@ -446,5 +462,12 @@ function menuFile_Callback(hObject, eventdata, handles)
 % --------------------------------------------------------------------
 function menuSelectFolder_Callback(hObject, eventdata, handles)
 % hObject    handle to menuSelectFolder (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on mouse press over axes background.
+function axImage_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to axImage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
