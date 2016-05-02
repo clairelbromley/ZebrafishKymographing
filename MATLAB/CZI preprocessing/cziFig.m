@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 02-May-2016 17:26:48
+% Last Modified by GUIDE v2.5 02-May-2016 22:31:54
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,7 +61,19 @@ funcPath = [currdir filesep '..'];
 addpath(genpath(currdir));
 addpath(funcPath);
 
-handles.date = '020516';
+handles.params.date = '020516';
+handles.params.embryoNumber = 1;
+handles.params.cutStartX = 1;
+handles.params.cutStartY = 1;
+handles.params.cutEndX = 50;
+handles.params.cutEndY = 50;
+handles.params.pixelSize = 1;
+handles.params.frameTime = 1000;
+
+set(handles.axImage, 'XTick', []);
+set(handles.axImage, 'YTick', []);
+
+updateUIParams(handles.params)
 
 % Update handles structure
 guidata(hObject, handles);
@@ -80,11 +92,29 @@ function varargout = cziFig_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
+function updateUIParams(params)
+    
+handles = guidata(gcf);
 
+set(handles.txtDate, 'String', params.date);
+set(handles.txtENumber, 'String', num2str(params.embryoNumber));
+set(handles.txtPixelSize, 'String', num2str(params.pixelSize));
+set(handles.txtFrameTime, 'String', num2str(params.frameTime));
+set(handles.txtStartX, 'String', num2str(params.cutStartX));
+set(handles.txtEndX, 'String', num2str(params.cutEndX));
+set(handles.txtStartY, 'String', num2str(params.cutStartY));
+set(handles.txtEndY, 'String', num2str(params.cutEndY));
+
+   
 % --- handle errors. 
-function errorHandler(msg)
+function errorHandler(ME)
 
-uiwait(errordlg(msg, 'Error!', 'modal'));
+if ischar(ME)
+    uiwait(errordlg(ME, 'Error!', 'modal'));
+else
+    uiwait(errordlg(ME.message, 'Error!', 'modal'));
+    rethrow(ME);
+end
 
 % --- Executes on button press in buttonCancel.
 function buttonCancel_Callback(hObject, eventdata, handles)
@@ -93,9 +123,9 @@ function buttonCancel_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in buttonSaveQuit.
-function buttonSaveQuit_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonSaveQuit (see GCBO)
+% --- Executes on button press in buttonSave.
+function buttonSave_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonSave (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -116,9 +146,8 @@ handles = guidata(gcf);
 
 [fname, pname, ~] = uigetfile('*.czi');
 
-set(handles.txtImagePath, 'String', [pname '\' fname]);
-
-
+set(handles.txtImagePath, 'String', [pname fname]);
+imagePathChanged({[pname fname]});
 
 
 function txtImagePath_Callback(hObject, eventdata, handles)
@@ -153,16 +182,27 @@ if ~strcmp(ext, '.czi')
 else
     try
         % load first frame to image preview pane
-        data = bfopen(new_image_path{1});
-        omeMeta = data{1,4};
-        im = data{1}{1};
+%         data = bfopen(new_image_path{1});
+%         omeMeta = data{1,4};
+%         im = data{1}{1};
+        % don't load whole series yet...
+        reader = bfGetReader(new_image_path{1});
+        omeMeta = reader.getMetadataStore();
+        im = bfGetPlane(reader, 1);
+        
         imagesc(im);
         colormap gray;
         set(gca, 'XTick', []);
         set(gca, 'YTick', []);
+        
         % figure out and populate default parameters
+        handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
+        handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+        updateUIParams(handles.params);
+        
+        
     catch ME
-        errorHandler(ME.message);
+        errorHandler(ME);
         
     end
         
@@ -252,18 +292,18 @@ end
 
 
 
-function edit5_Callback(hObject, eventdata, handles)
-% hObject    handle to edit5 (see GCBO)
+function txtPixelSize_Callback(hObject, eventdata, handles)
+% hObject    handle to txtPixelSize (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit5 as text
-%        str2double(get(hObject,'String')) returns contents of edit5 as a double
+% Hints: get(hObject,'String') returns contents of txtPixelSize as text
+%        str2double(get(hObject,'String')) returns contents of txtPixelSize as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit5_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit5 (see GCBO)
+function txtPixelSize_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txtPixelSize (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
