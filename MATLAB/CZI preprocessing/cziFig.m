@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 02-May-2016 23:53:15
+% Last Modified by GUIDE v2.5 03-May-2016 22:38:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -105,6 +105,10 @@ set(handles.txtEndX, 'String', num2str(params.cutEndX));
 set(handles.txtStartY, 'String', num2str(params.cutStartY));
 set(handles.txtEndY, 'String', num2str(params.cutEndY));
 
+guidata(gcf, handles);
+
+
+
    
 % --- handle errors. 
 function errorHandler(ME)
@@ -150,6 +154,14 @@ handles = guidata(gcf);
 
 set(handles.txtImagePath, 'String', [pname fname]);
 imagePathChanged({[pname fname]}, hObject);
+
+handles.cutLine = imline(handles.axImage, [handles.params.cutStartX handles.params.cutEndX], ...
+            [handles.params.cutStartY handles.params.cutEndY]);
+set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
+
+% Update handles structure
+guidata(hObject, handles);
+
 
 
 function txtImagePath_Callback(hObject, eventdata, handles)
@@ -205,10 +217,7 @@ else
         handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
         handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
         updateUIParams(handles.params);
-        
-        
-        disp('hjeloo');
-        
+               
         
     catch ME
         errorHandler(ME);
@@ -216,8 +225,9 @@ else
     end
         
 end
+
 % Update handles structure
-guidata(gcf, handles);
+guidata(hObject, handles);
 
 
 function cutLine_ButtonDownFcn(hObject, eventdata, handles)
@@ -369,6 +379,15 @@ function txtStartX_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of txtStartX as text
 %        str2double(get(hObject,'String')) returns contents of txtStartX as a double
 
+handles = guidata(gcf);
+handles.params.cutStartX = str2double(get(hObject, 'String'));
+set(hObject, 'Enable', 'inactive');
+xy = handles.cutLine.getPosition();
+xy(1,1) = handles.params.cutStartX;
+handles.cutLine.setPosition(xy);
+
+guidata(hObject, handles);
+
 
 % --- Executes during object creation, after setting all properties.
 function txtStartX_CreateFcn(hObject, eventdata, handles)
@@ -391,6 +410,14 @@ function txtStartY_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of txtStartY as text
 %        str2double(get(hObject,'String')) returns contents of txtStartY as a double
+handles = guidata(gcf);
+handles.params.cutStartY = str2double(get(hObject, 'String'));
+set(hObject, 'Enable', 'inactive');
+xy = handles.cutLine.getPosition();
+xy(1,2) = handles.params.cutStartY;
+handles.cutLine.setPosition(xy);
+
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -414,7 +441,14 @@ function txtEndX_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of txtEndX as text
 %        str2double(get(hObject,'String')) returns contents of txtEndX as a double
+handles = guidata(gcf);
+handles.params.cutEndX = str2double(get(hObject, 'String'));
+set(hObject, 'Enable', 'inactive');
+xy = handles.cutLine.getPosition();
+xy(2,1) = handles.params.cutEndX;
+handles.cutLine.setPosition(xy);
 
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function txtEndX_CreateFcn(hObject, eventdata, handles)
@@ -437,7 +471,14 @@ function txtEndY_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of txtEndY as text
 %        str2double(get(hObject,'String')) returns contents of txtEndY as a double
+handles = guidata(gcf);
+handles.params.cutEndY = str2double(get(hObject, 'String'));
+set(hObject, 'Enable', 'inactive');
+xy = handles.cutLine.getPosition();
+xy(2,2) = handles.params.cutEndY;
+handles.cutLine.setPosition(xy);
 
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function txtEndY_CreateFcn(hObject, eventdata, handles)
@@ -471,3 +512,91 @@ function axImage_ButtonDownFcn(hObject, eventdata, handles)
 % hObject    handle to axImage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over txtStartX.
+function txtStartX_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to txtStartX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+set(handles.txtStartX, 'Enable', 'on');
+
+if isfield(handles, 'cutLine')
+    xy = handles.cutLine.getPosition();
+    handles.params.cutStartX = round(xy(1,1));
+    handles.params.cutEndX = round(xy(2,1));
+    handles.params.cutStartY = round(xy(1,2));
+    handles.params.cutEndY = round(xy(2,2));
+    guidata(hObject, handles);
+    updateUIParams(handles.params);
+end
+
+guidata(hObject, handles);
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over txtEndX.
+function txtEndX_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to txtEndX (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+set(handles.txtEndX, 'Enable', 'on');
+
+if isfield(handles, 'cutLine')
+    xy = handles.cutLine.getPosition();
+    handles.params.cutStartX = round(xy(1,1));
+    handles.params.cutEndX = round(xy(2,1));
+    handles.params.cutStartY = round(xy(1,2));
+    handles.params.cutEndY = round(xy(2,2));
+    guidata(hObject, handles);
+    updateUIParams(handles.params);
+end
+
+guidata(hObject, handles);
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over txtStartY.
+function txtStartY_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to txtStartY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+set(handles.txtStartY, 'Enable', 'on');
+
+if isfield(handles, 'cutLine')
+    xy = handles.cutLine.getPosition();
+    handles.params.cutStartX = round(xy(1,1));
+    handles.params.cutEndX = round(xy(2,1));
+    handles.params.cutStartY = round(xy(1,2));
+    handles.params.cutEndY = round(xy(2,2));
+    guidata(hObject, handles);
+    updateUIParams(handles.params);
+end
+
+guidata(hObject, handles);
+
+
+% --- If Enable == 'on', executes on mouse press in 5 pixel border.
+% --- Otherwise, executes on mouse press in 5 pixel border or over txtEndY.
+function txtEndY_ButtonDownFcn(hObject, eventdata, handles)
+% hObject    handle to txtEndY (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+set(handles.txtEndY, 'Enable', 'on');
+
+if isfield(handles, 'cutLine')
+    xy = handles.cutLine.getPosition();
+    handles.params.cutStartX = round(xy(1,1));
+    handles.params.cutEndX = round(xy(2,1));
+    handles.params.cutStartY = round(xy(1,2));
+    handles.params.cutEndY = round(xy(2,2));
+    guidata(hObject, handles);
+    updateUIParams(handles.params);
+end
+
+guidata(hObject, handles);
