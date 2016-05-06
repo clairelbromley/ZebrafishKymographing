@@ -42,7 +42,11 @@ function output = kymographBase(varargin)
 
     narginchk(1, 2);
     if nargin == 1
-        root = varargin{1};
+        if isa(varargin(1), 'UserOptions')
+            userOptions = strut(varargin(1)); % hacky workaround for now
+        elseif isa(varargin(1), 'char')
+            root = varargin{1};
+        end
     elseif nargin == 2
         root = varargin{1};
         userOptions.kymDownOrUp = varargin{2};
