@@ -103,7 +103,7 @@ function output = kymographBase(varargin)
                    - A/curr_metadata.acqMetadata.cycleTime) + 2 : ceil(curr_metadata.cutFrame ...
                    + B/curr_metadata.acqMetadata.cycleTime) + 2; 
                
-               if userOptions.basalMembraneKym
+               if userOptions.basalMembraneKym || userOptions.lumenOpening
                    stack = zeros(612,612,length(frames));
                else
                     stack = zeros(512,512,length(frames));

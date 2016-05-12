@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 03-May-2016 22:38:12
+% Last Modified by GUIDE v2.5 07-May-2016 23:09:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -106,10 +106,7 @@ set(handles.txtStartY, 'String', num2str(params.cutStartY));
 set(handles.txtEndY, 'String', num2str(params.cutEndY));
 
 guidata(gcf, handles);
-
-
-
-   
+ 
 % --- handle errors. 
 function errorHandler(ME)
 
@@ -136,11 +133,45 @@ function buttonSave_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in buttonSaveNext.
-function buttonSaveNext_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonSaveNext (see GCBO)
+% --- Executes on button press in buttonGenerateKym.
+function buttonGenerateKym_Callback(hObject, eventdata, handles)
+% hObject    handle to buttonGenerateKym (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+initialString = get(hObject, 'String');
+set(hObject, 'String', 'Working...');
+set(hObject, 'Enable', 'off');
+
+% check all fields are filled in sensibly...
+
+% generate image data in expected format
+data = bfopen(get(handles.txtImagePath, 'String'));
+data = data{1}(1:2:end,1);
+data = cell2mat(data);
+data = reshape(data, size(data{1}, 1), length(data), size(data{1}, 2));
+stack = permute(data, [2 1 3]);
+
+% get (OME) metadata from data
+omeMeta = data{1,4};
+getMetadataFromOME(omeMeta, handles.params);
+
+clear(data);
+
+%% Pre-process images in stack
+[stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+
+%% Plot and save kymographs
+kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+
+
+
+
+set(hObject, 'String', initialString);
+set(hObject, 'Enable', 'on');
+
 
 
 % --- Executes on button press in buttonBrowseImagePath.
@@ -161,7 +192,6 @@ set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
 
 % Update handles structure
 guidata(hObject, handles);
-
 
 
 function txtImagePath_Callback(hObject, eventdata, handles)

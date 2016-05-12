@@ -29,7 +29,8 @@ classdef UserOptions
          preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
          showKymographOverlapOverlay = true;
 
-         basalMembraneKym = false;
+         lumenOpening = false;              % is data of physiological lumen opening?
+         basalMembraneKym = false;          % is data looking at movement of basal membranes?
          usePreviouslySavedBasalPos = false;
          manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
          usePreviouslySavedApicalSurfacePos = false;
