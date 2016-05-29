@@ -91,7 +91,7 @@ if (uO.saveFirstFrameFigure)
         mkdir([uO.outputFolder filesep dir_txt])
     end
     out_file = [uO.outputFolder filesep dir_txt filesep title_txt];
-    print(out_file, '-dpng', '-r300');
+    print(h, out_file, '-dpng', '-r300');
     savefig(h, [out_file '.fig']);
 
     if ~isfield(uO, 'figHandle')

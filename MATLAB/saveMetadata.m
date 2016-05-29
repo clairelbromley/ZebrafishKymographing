@@ -21,6 +21,10 @@ function saveMetadata(filepath, metadata, userOptions, varargin)
 end
 
 function structOut(inStruct, fid, parentName)
+
+    if ~isstruct(inStruct)
+        inStruct = struct(inStruct);
+    end
     
     cStruct = struct2cell(inStruct);
     fStruct = fields(inStruct);

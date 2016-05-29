@@ -99,15 +99,17 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         yt = md.umperpixel*(1:size(kymographs,2));
         temp_for_scale = squeeze(kymographs(:,:,kpos));
         temp_for_scale(temp_for_scale == 0) = [];
+        colormap gray;
         clims = [min(temp_for_scale(:)) max(temp_for_scale(:))];
         imagesc(xt, yt, squeeze(kymographs(:,:,kpos))', clims);
-        axis equal tight;
+%         axis equal tight;
+        axis tight;
         xlabel('Time relative to cut, s')
         ylabel('Position relative to cut, \mum')
         title([title_txt direction]);
 
         out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
-        print(out_file, '-dpng', '-r300');
+        print(h, out_file, '-dpng', '-r300');
         savefig(h, [out_file '.fig']);
         
         if ~isfield(uO, 'figHandle')

@@ -68,7 +68,7 @@ handles.params.cutStartY = 1;
 handles.params.cutEndX = 50;
 handles.params.cutEndY = 50;
 handles.params.pixelSize = 1;
-handles.params.frameTime = 1000;
+handles.params.frameTime = 1;
 
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
@@ -126,6 +126,7 @@ handles = guidata(gcf);
 disp('nsda');
 
 
+
 % --- Executes on button press in buttonSave.
 function buttonSave_Callback(hObject, eventdata, handles)
 % hObject    handle to buttonSave (see GCBO)
@@ -140,26 +141,53 @@ function buttonGenerateKym_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(gcf);
 
+% ensure that visualised cut position corresponds properly with underlying
+% data
+xy = handles.cutLine.getPosition();
+
+handles.params.cutStartX = round(xy(1,1));
+handles.params.cutEndX = round(xy(2,1));
+handles.params.cutStartY = round(xy(1,2));
+handles.params.cutEndY = round(xy(2,2));
+
+
 initialString = get(hObject, 'String');
 set(hObject, 'String', 'Working...');
-set(hObject, 'Enable', 'off');
+% set(hObject, 'Enable', 'off');
 
 % check all fields are filled in sensibly...
 
 % generate image data in expected format
-data = bfopen(get(handles.txtImagePath, 'String'));
+fcell = get(handles.txtImagePath, 'String');
+data = bfopen(fcell{1});
+omeMeta = data{1,4};
 data = data{1}(1:2:end,1);
+newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
 data = cell2mat(data);
-data = reshape(data, size(data{1}, 1), length(data), size(data{1}, 2));
-stack = permute(data, [2 1 3]);
+data = reshape(data, newshape);
+stack = permute(data, [1 3 2]);
+
+% pad 50 pixels on each side...
+newstack = zeros(size(stack, 1) + 100, size(stack, 2) + 100, size(stack, 3));
+newstack(50:49 + size(stack, 1), 50:49 + size(stack, 2), :) = stack;
+stack = newstack;
+clear newstack;
 
 % get (OME) metadata from data
-omeMeta = data{1,4};
-getMetadataFromOME(omeMeta, handles.params);
+curr_metadata = getMetadataFromOME(omeMeta, handles.params);
+curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
 
-clear(data);
+clear data;
+
+userOptions = getUserOptions(handles);
+
+%DEBUG w/SMALL MEDIAN FILTER
+userOptions.medianFiltKernelSize = 9;
+userOptions.showKymographOverlapOverlay = false;
+userOptions.kymSpacingUm = 8;
 
 %% Pre-process images in stack
+curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
 [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
 
 %% Plot and save kymographs
@@ -172,6 +200,12 @@ results = extractQuantitativeKymographData(kymographs, curr_metadata, userOption
 set(hObject, 'String', initialString);
 set(hObject, 'Enable', 'on');
 
+function userOptions = getUserOptions(handles)
+
+    userOptions = UserOptions();
+    userOptions.outputFolder = get(handles.txtSaveRoot, 'String');
+
+    
 
 
 % --- Executes on button press in buttonBrowseImagePath.
@@ -237,6 +271,10 @@ else
         reader = bfGetReader(new_image_path{1});
         omeMeta = reader.getMetadataStore();
         im = bfGetPlane(reader, 1);
+        padim = zeros(size(im, 1)+100, size(im, 2)+100);
+        padim(50:49+size(im, 1), 50:49+size(im, 2)) = im;
+        im = padim;
+        clear padim; 
         
         imagesc(im);
         colormap gray;
@@ -395,10 +433,20 @@ end
 
 % --- Executes on button press in buttonBrowseSaveRoot.
 function buttonBrowseSaveRoot_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonBrowseSaveRoot (see GCBO)
+% hObject    handle to buttonBrowseImagePath (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
+filename = get(handles.txtImagePath, 'String');
+filename = filename{1};
+[default_folder ,~,~] = fileparts(filename) 
+pname = uigetdir(default_folder);
+
+set(handles.txtSaveRoot, 'String', pname);
+
+% Update handles structure
+guidata(hObject, handles);
 
 
 function txtStartX_Callback(hObject, eventdata, handles)
