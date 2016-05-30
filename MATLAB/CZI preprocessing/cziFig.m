@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 07-May-2016 23:09:40
+% Last Modified by GUIDE v2.5 30-May-2016 09:13:10
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -70,10 +70,12 @@ handles.params.cutEndY = 50;
 handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
 
+handles.params.dir = 1 % up
+
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
 
-updateUIParams(handles.params)
+updateUIParams(handles)
 
 % Update handles structure
 guidata(hObject, handles);
@@ -92,18 +94,19 @@ function varargout = cziFig_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-function updateUIParams(params)
+function updateUIParams(n)
     
+disp(n)
 handles = guidata(gcf);
 
-set(handles.txtDate, 'String', params.date);
-set(handles.txtENumber, 'String', num2str(params.embryoNumber));
-set(handles.txtPixelSize, 'String', num2str(params.pixelSize));
-set(handles.txtFrameTime, 'String', num2str(params.frameTime));
-set(handles.txtStartX, 'String', num2str(params.cutStartX));
-set(handles.txtEndX, 'String', num2str(params.cutEndX));
-set(handles.txtStartY, 'String', num2str(params.cutStartY));
-set(handles.txtEndY, 'String', num2str(params.cutEndY));
+set(handles.txtDate, 'String', handles.params.date);
+set(handles.txtENumber, 'String', num2str(handles.params.embryoNumber));
+set(handles.txtPixelSize, 'String', num2str(handles.params.pixelSize));
+set(handles.txtFrameTime, 'String', num2str(handles.params.frameTime));
+set(handles.txtStartX, 'String', num2str(handles.params.cutStartX));
+set(handles.txtEndX, 'String', num2str(handles.params.cutEndX));
+set(handles.txtStartY, 'String', num2str(handles.params.cutStartY));
+set(handles.txtEndY, 'String', num2str(handles.params.cutEndY));
 
 guidata(gcf, handles);
  
@@ -186,15 +189,19 @@ userOptions.medianFiltKernelSize = 9;
 userOptions.showKymographOverlapOverlay = false;
 userOptions.kymSpacingUm = 8;
 
-%% Pre-process images in stack
-curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-[stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+for dind = handles.params.dir
+    
+    userOptions.kymDownOrUp = dind;
+    
+    %% Pre-process images in stack
+    curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
+    [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
 
-%% Plot and save kymographs
-kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
-results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+    %% Plot and save kymographs
+    kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+    results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
 
-
+end
 
 
 set(hObject, 'String', initialString);
@@ -284,7 +291,8 @@ else
         % figure out and populate default parameters
         handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
         handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-        updateUIParams(handles.params);
+        guidata(hObject, handles);
+        updateUIParams(handles);
                
         
     catch ME
@@ -608,7 +616,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    updateUIParams(handles);
 end
 
 guidata(hObject, handles);
@@ -630,7 +638,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    updateUIParams(handles);
 end
 
 guidata(hObject, handles);
@@ -652,7 +660,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    updateUIParams(handles);
 end
 
 guidata(hObject, handles);
@@ -674,7 +682,28 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    updateUIParams(handles);
 end
 
 guidata(hObject, handles);
+
+
+% --- Executes when selected object is changed in panelKymDir.
+function panelKymDir_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in panelKymDir 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+
+switch get(eventdata.NewValue,'Tag') % Get Tag of selected object.
+    case 'radioUp'
+        handles.params.dir = 1;
+    case 'radioDown'
+        handles.params.dir = 0;
+    case 'radioBoth'
+        handles.params.dir = [0 1];
+    
+end
+
