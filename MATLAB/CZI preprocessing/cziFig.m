@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 30-May-2016 09:13:10
+% Last Modified by GUIDE v2.5 30-May-2016 21:35:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,7 +61,7 @@ funcPath = [currdir filesep '..'];
 addpath(genpath(currdir));
 addpath(funcPath);
 
-handles.params.date = '020516';
+handles.params.date = '230514';
 handles.params.embryoNumber = 1;
 handles.params.cutStartX = 1;
 handles.params.cutStartY = 1;
@@ -69,13 +69,14 @@ handles.params.cutEndX = 50;
 handles.params.cutEndY = 50;
 handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
+handles.params.kymSpacing = 1;
 
-handles.params.dir = 1 % up
+handles.params.dir = [0 1]; % up
 
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
 
-updateUIParams(handles)
+updateUIParams(handles.params)
 
 % Update handles structure
 guidata(hObject, handles);
@@ -94,19 +95,19 @@ function varargout = cziFig_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-function updateUIParams(n)
+function updateUIParams(params)
     
-disp(n)
 handles = guidata(gcf);
 
-set(handles.txtDate, 'String', handles.params.date);
-set(handles.txtENumber, 'String', num2str(handles.params.embryoNumber));
-set(handles.txtPixelSize, 'String', num2str(handles.params.pixelSize));
-set(handles.txtFrameTime, 'String', num2str(handles.params.frameTime));
-set(handles.txtStartX, 'String', num2str(handles.params.cutStartX));
-set(handles.txtEndX, 'String', num2str(handles.params.cutEndX));
-set(handles.txtStartY, 'String', num2str(handles.params.cutStartY));
-set(handles.txtEndY, 'String', num2str(handles.params.cutEndY));
+set(handles.txtDate, 'String', params.date);
+set(handles.txtENumber, 'String', num2str(params.embryoNumber));
+set(handles.txtPixelSize, 'String', num2str(params.pixelSize));
+set(handles.txtFrameTime, 'String', num2str(params.frameTime));
+set(handles.txtStartX, 'String', num2str(params.cutStartX));
+set(handles.txtEndX, 'String', num2str(params.cutEndX));
+set(handles.txtStartY, 'String', num2str(params.cutStartY));
+set(handles.txtEndY, 'String', num2str(params.cutEndY));
+set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
 
 guidata(gcf, handles);
  
@@ -156,7 +157,8 @@ handles.params.cutEndY = round(xy(2,2));
 
 initialString = get(hObject, 'String');
 set(hObject, 'String', 'Working...');
-% set(hObject, 'Enable', 'off');
+set(hObject, 'Enable', 'off');
+drawnow;
 
 % check all fields are filled in sensibly...
 
@@ -170,9 +172,9 @@ data = cell2mat(data);
 data = reshape(data, newshape);
 stack = permute(data, [1 3 2]);
 
-% pad 50 pixels on each side...
-newstack = zeros(size(stack, 1) + 100, size(stack, 2) + 100, size(stack, 3));
-newstack(50:49 + size(stack, 1), 50:49 + size(stack, 2), :) = stack;
+% pad 100 pixels on each side...
+newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
+newstack(100:99 + size(stack, 1), 100:99 + size(stack, 2), :) = stack;
 stack = newstack;
 clear newstack;
 
@@ -187,7 +189,8 @@ userOptions = getUserOptions(handles);
 %DEBUG w/SMALL MEDIAN FILTER
 userOptions.medianFiltKernelSize = 9;
 userOptions.showKymographOverlapOverlay = false;
-userOptions.kymSpacingUm = 8;
+userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
+
 
 for dind = handles.params.dir
     
@@ -195,10 +198,10 @@ for dind = handles.params.dir
     
     %% Pre-process images in stack
     curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-    [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+    [trim_stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
 
     %% Plot and save kymographs
-    kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+    kymographs = plotAndSaveKymographsSlow(trim_stack, curr_metadata, userOptions);
     results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
 
 end
@@ -231,6 +234,8 @@ handles.cutLine = imline(handles.axImage, [handles.params.cutStartX handles.para
             [handles.params.cutStartY handles.params.cutEndY]);
 set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
 
+addNewPositionCallback(handles.cutLine,@updateLinePos);
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -253,6 +258,8 @@ imagePathChanged(input, hObject);
 handles.cutLine = imline(handles.axImage, [handles.params.cutStartX handles.params.cutEndX], ...
             [handles.params.cutStartY handles.params.cutEndY]);
 set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
+
+addNewPositionCallback(handles.cutLine,updateLinePos);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -278,8 +285,8 @@ else
         reader = bfGetReader(new_image_path{1});
         omeMeta = reader.getMetadataStore();
         im = bfGetPlane(reader, 1);
-        padim = zeros(size(im, 1)+100, size(im, 2)+100);
-        padim(50:49+size(im, 1), 50:49+size(im, 2)) = im;
+        padim = zeros(size(im, 1)+200, size(im, 2)+200);
+        padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
         im = padim;
         clear padim; 
         
@@ -291,8 +298,8 @@ else
         % figure out and populate default parameters
         handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
         handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-        guidata(hObject, handles);
-        updateUIParams(handles);
+%         guidata(hObject, handles);
+        updateUIParams(handles.params);
                
         
     catch ME
@@ -466,10 +473,10 @@ function txtStartX_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of txtStartX as a double
 
 handles = guidata(gcf);
-handles.params.cutStartX = str2double(get(hObject, 'String'));
-set(hObject, 'Enable', 'inactive');
+% handles.params.cutStartX = str2double(get(hObject, 'String'));
+% set(hObject, 'Enable', 'inactive');
 xy = handles.cutLine.getPosition();
-xy(1,1) = handles.params.cutStartX;
+xy(1,1) = str2double(get(hObject, 'String'));
 handles.cutLine.setPosition(xy);
 
 guidata(hObject, handles);
@@ -497,10 +504,10 @@ function txtStartY_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of txtStartY as text
 %        str2double(get(hObject,'String')) returns contents of txtStartY as a double
 handles = guidata(gcf);
-handles.params.cutStartY = str2double(get(hObject, 'String'));
-set(hObject, 'Enable', 'inactive');
+% handles.params.cutStartY = str2double(get(hObject, 'String'));
+% set(hObject, 'Enable', 'inactive');
 xy = handles.cutLine.getPosition();
-xy(1,2) = handles.params.cutStartY;
+xy(1,2) = str2double(get(hObject, 'String'));
 handles.cutLine.setPosition(xy);
 
 guidata(hObject, handles);
@@ -528,10 +535,10 @@ function txtEndX_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of txtEndX as text
 %        str2double(get(hObject,'String')) returns contents of txtEndX as a double
 handles = guidata(gcf);
-handles.params.cutEndX = str2double(get(hObject, 'String'));
-set(hObject, 'Enable', 'inactive');
+% handles.params.cutEndX = str2double(get(hObject, 'String'));
+% set(hObject, 'Enable', 'inactive');
 xy = handles.cutLine.getPosition();
-xy(2,1) = handles.params.cutEndX;
+xy(2,1) = str2double(get(hObject, 'String'));
 handles.cutLine.setPosition(xy);
 
 guidata(hObject, handles);
@@ -558,10 +565,10 @@ function txtEndY_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of txtEndY as text
 %        str2double(get(hObject,'String')) returns contents of txtEndY as a double
 handles = guidata(gcf);
-handles.params.cutEndY = str2double(get(hObject, 'String'));
-set(hObject, 'Enable', 'inactive');
+% handles.params.cutEndY = str2double(get(hObject, 'String'));
+% set(hObject, 'Enable', 'inactive');
 xy = handles.cutLine.getPosition();
-xy(2,2) = handles.params.cutEndY;
+xy(2,2) = str2double(get(hObject, 'String'));
 handles.cutLine.setPosition(xy);
 
 guidata(hObject, handles);
@@ -616,7 +623,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles);
+    updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -638,7 +645,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles);
+    updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -660,7 +667,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles);
+    updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -673,7 +680,6 @@ function txtEndY_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(gcf);
-set(handles.txtEndY, 'Enable', 'on');
 
 if isfield(handles, 'cutLine')
     xy = handles.cutLine.getPosition();
@@ -682,7 +688,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles);
+    updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -707,3 +713,38 @@ switch get(eventdata.NewValue,'Tag') % Get Tag of selected object.
     
 end
 
+
+function updateLinePos(hObject, eventdata)
+
+disp(hObject)
+
+handles = guidata(gcf);
+
+set(handles.txtStartX, 'String', num2str(hObject(1)));
+set(handles.txtEndX, 'String', num2str(hObject(2)));
+set(handles.txtStartY, 'String', num2str(hObject(3)));
+set(handles.txtEndY, 'String', num2str(hObject(4)));
+
+
+
+function txtKymSpacingUm_Callback(hObject, eventdata, handles)
+% hObject    handle to txtKymSpacingUm (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of txtKymSpacingUm as text
+%        str2double(get(hObject,'String')) returns contents of txtKymSpacingUm as a double
+
+
+
+% --- Executes during object creation, after setting all properties.
+function txtKymSpacingUm_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to txtKymSpacingUm (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end

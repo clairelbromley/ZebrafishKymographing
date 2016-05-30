@@ -37,7 +37,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d - quantitative kymograph', md.acquisitionDate, ...
         md.embryoNumber, md.cutNumber, (kpos-2));
 
-        if ~isfield(uO, 'figHandle')
+        if ~(isfield(uO, 'figHandle') || any(strcmp(properties(uO), 'figHandle')))
             h = figure('Name', title_txt,'NumberTitle','off');
         else
             h = uO.figHandle;
@@ -147,7 +147,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             
             %TODO: overlay line automatically on kymographs
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt];
-            print(out_file, '-dpng', '-r300');
+            print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
             
             fitmodelexp = fittype('A*(1 - exp(-B*t)) + C', 'independent', 't');            
@@ -171,7 +171,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             
             %TODO: overlay line automatically on kymographs
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt ' exponential fit'];
-            print(out_file, '-dpng', '-r300');
+            print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
             
 

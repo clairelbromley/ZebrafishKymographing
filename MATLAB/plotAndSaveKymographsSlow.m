@@ -80,40 +80,46 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     
     for kpos = 1:numel(kp.kym_startx)
         
-        title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
-        md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));
-        file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d', md.acquisitionDate, ...
-        md.embryoNumber, md.cutNumber, (kpos-2));
+        kymim = squeeze(kymographs(:,:,kpos))';
         
-        if ~isfield(uO, 'figHandle')
-            h = figure('Name', title_txt,'NumberTitle','off');
-        else
-            h = uO.figHandle;
-            set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
-            set(0, 'currentFigure', uO.figHandle)
-        end
-        
-        a = -round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
-        b = size(kymographs,1)-round(uO.timeBeforeCut/md.acqMetadata.cycleTime)-1;
-        xt = md.acqMetadata.cycleTime*(a:b);
-        yt = md.umperpixel*(1:size(kymographs,2));
-        temp_for_scale = squeeze(kymographs(:,:,kpos));
-        temp_for_scale(temp_for_scale == 0) = [];
-        colormap gray;
-        clims = [min(temp_for_scale(:)) max(temp_for_scale(:))];
-        imagesc(xt, yt, squeeze(kymographs(:,:,kpos))', clims);
-%         axis equal tight;
-        axis tight;
-        xlabel('Time relative to cut, s')
-        ylabel('Position relative to cut, \mum')
-        title([title_txt direction]);
+        if sum(kymim(:)) > 0
 
-        out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
-        print(h, out_file, '-dpng', '-r300');
-        savefig(h, [out_file '.fig']);
-        
-        if ~isfield(uO, 'figHandle')
-            close(h);
+            title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
+            md.embryoNumber, md.cutNumber, kp.pos_along_cut(kpos));
+            file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d', md.acquisitionDate, ...
+            md.embryoNumber, md.cutNumber, (kpos-2));
+
+            if ~isfield(uO, 'figHandle')
+                h = figure('Name', title_txt,'NumberTitle','off');
+            else
+                h = uO.figHandle;
+                set(uO.figHandle, 'Name', title_txt,'NumberTitle','off');
+                set(0, 'currentFigure', uO.figHandle)
+            end
+
+            a = -round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
+            b = size(kymographs,1)-round(uO.timeBeforeCut/md.acqMetadata.cycleTime)-1;
+            xt = md.acqMetadata.cycleTime*(a:b);
+            yt = md.umperpixel*(1:size(kymographs,2));
+            temp_for_scale = squeeze(kymographs(:,:,kpos));
+            temp_for_scale(temp_for_scale == 0) = [];
+            colormap gray;
+            clims = [min(temp_for_scale(:)) max(temp_for_scale(:))];
+            imagesc(xt, yt, kymim, clims);
+    %         axis equal tight;
+            axis tight;
+            xlabel('Time relative to cut, s')
+            ylabel('Position relative to cut, \mum')
+            title([title_txt direction]);
+
+            out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
+            print(h, out_file, '-dpng', '-r300');
+            savefig(h, [out_file '.fig']);
+
+            if ~isfield(uO, 'figHandle')
+                close(h);
+            end
+            
         end
     
     end
