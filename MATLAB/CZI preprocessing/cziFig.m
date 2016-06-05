@@ -268,47 +268,53 @@ guidata(hObject, handles);
 function imagePathChanged(new_image_path, hObject)
 handles = guidata(gcf);
 
-% make sure UI reflects underlying data
-set(handles.txtImagePath, 'String', new_image_path);
+% check that new image path is a character string, anc dialog hasn't been
+% cancelled
+if ischar(new_image_path)
 
-% check that path is a .czi file
-[~,~,ext] = fileparts(new_image_path{1});
-if ~strcmp(ext, '.czi')
-    errorHandler('Image must be CZI format!');
-else
-    try
-        % load first frame to image preview pane
-%         data = bfopen(new_image_path{1});
-%         omeMeta = data{1,4};
-%         im = data{1}{1};
-        % don't load whole series yet...
-        reader = bfGetReader(new_image_path{1});
-        omeMeta = reader.getMetadataStore();
-        im = bfGetPlane(reader, 1);
-        padim = zeros(size(im, 1)+200, size(im, 2)+200);
-        padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
-        im = padim;
-        clear padim; 
-        
-        imagesc(im);
-        colormap gray;
-        set(gca, 'XTick', []);
-        set(gca, 'YTick', []);
-        
-        % figure out and populate default parameters
-        handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
-        handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-%         guidata(hObject, handles);
-        updateUIParams(handles.params);
-               
-        
-    catch ME
-        errorHandler(ME);
-        
+    % make sure UI reflects underlying data
+    set(handles.txtImagePath, 'String', new_image_path);
+
+    % check that path is a .czi file
+    [~,~,ext] = fileparts(new_image_path{1});
+    if ~strcmp(ext, '.czi')
+        errorHandler('Image must be CZI format!');
+    else
+        try
+            % load first frame to image preview pane
+    %         data = bfopen(new_image_path{1});
+    %         omeMeta = data{1,4};
+    %         im = data{1}{1};
+            % don't load whole series yet...
+            reader = bfGetReader(new_image_path{1});
+            omeMeta = reader.getMetadataStore();
+            im = bfGetPlane(reader, 1);
+            padim = zeros(size(im, 1)+200, size(im, 2)+200);
+            padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+            im = padim;
+            clear padim; 
+
+            imagesc(im);
+            colormap gray;
+            set(gca, 'XTick', []);
+            set(gca, 'YTick', []);
+
+            % figure out and populate default parameters
+            handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
+            handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    %         guidata(hObject, handles);
+            updateUIParams(handles.params);
+
+
+        catch ME
+            errorHandler(ME);
+
+        end
+
     end
-        
-end
 
+end
+    
 % Update handles structure
 guidata(hObject, handles);
 

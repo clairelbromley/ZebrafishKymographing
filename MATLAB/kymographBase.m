@@ -14,6 +14,7 @@ function output = kymographBase(varargin)
     
     userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
     userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
+    userOptions.quantAnalysisTime = 4;              % Time over which quantitative data is fitted. 
     
     userOptions.kym_width = 5;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
     userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
