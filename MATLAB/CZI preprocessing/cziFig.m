@@ -106,10 +106,10 @@ set(handles.txtDate, 'String', params.date);
 set(handles.txtENumber, 'String', num2str(params.embryoNumber));
 set(handles.txtPixelSize, 'String', num2str(params.pixelSize));
 set(handles.txtFrameTime, 'String', num2str(params.frameTime));
-set(handles.txtStartX, 'String', num2str(params.cutStartX));
-set(handles.txtEndX, 'String', num2str(params.cutEndX));
-set(handles.txtStartY, 'String', num2str(params.cutStartY));
-set(handles.txtEndY, 'String', num2str(params.cutEndY));
+% set(handles.txtStartX, 'String', num2str(params.cutStartX));
+% set(handles.txtEndX, 'String', num2str(params.cutEndX));
+% set(handles.txtStartY, 'String', num2str(params.cutStartY));
+% set(handles.txtEndY, 'String', num2str(params.cutEndY));
 set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
 set(handles.txtFirstFrameDisplay, 'String', sprintf('(%d/%d)', params.firstFrame, params.sequenceLength));
 set(handles.txtLastFrameDisplay, 'String', sprintf('(%d/%d)', params.lastFrame, params.sequenceLength));
@@ -165,12 +165,15 @@ handles = guidata(gcf);
 
 % ensure that visualised cut position corresponds properly with underlying
 % data
-xy = handles.cutLine.getPosition();
+% xy = handles.cutLine.getPosition();
 
-handles.params.cutStartX = round(xy(1,1));
-handles.params.cutEndX = round(xy(2,1));
-handles.params.cutStartY = round(xy(1,2));
-handles.params.cutEndY = round(xy(2,2));
+% handles.params.cutStartX = round(xy(1,1));
+% handles.params.cutEndX = round(xy(2,1));
+% handles.params.cutStartY = round(xy(1,2));
+% handles.params.cutEndY = round(xy(2,2));
+% handles.params.embryoNumber = str2double(get(handles.txtENumber, 'String'))
+
+handles.params = getParams();
 
 
 initialString = get(hObject, 'String');
@@ -235,7 +238,29 @@ function userOptions = getUserOptions(handles)
     userOptions = UserOptions();
     userOptions.outputFolder = get(handles.txtSaveRoot, 'String');
 
-    
+function params = getParams()
+
+handles = guidata(gcf);
+
+xy = handles.cutLine.getPosition();
+
+params.date = get(handles.txtDate, 'String');
+params.embryoNumber = str2num(get(handles.txtENumber, 'String'));
+params.cutStartX = round(xy(1,1));
+params.cutEndX = round(xy(2,1));
+params.cutStartY = round(xy(1,2));
+params.cutEndY = round(xy(2,2));
+params.pixelSize = str2num(get(handles.txtPixelSize, 'String'));
+params.frameTime = str2num(get(handles.txtFrameTime, 'String'));
+if get(handles.radioUp, 'Value')
+    params.dir = 1;
+elseif get(handles.radioDown, 'Value')
+    params.dir = 0;
+elseif get(handles.radioBoth, 'Value');
+    params.dir = [0 1];
+end
+params.firstFrame = get(handles.scrollFirstFrame, 'Value');
+params.lastFrame = get(handles.scrollLastFrame, 'Value');
 
 
 % --- Executes on button press in buttonBrowseImagePath.
@@ -319,7 +344,7 @@ if ischar(new_image_path{1})
             im = padim;
             clear padim; 
 
-            imagesc(im);
+            imagesc(im, 'Parent', handles.axImage);
             colormap gray;
             set(gca, 'XTick', []);
             set(gca, 'YTick', []);
@@ -751,8 +776,6 @@ end
 
 function updateLinePos(hObject, eventdata)
 
-% disp(hObject)
-
 handles = guidata(gcf);
 
 set(handles.txtStartX, 'String', num2str(hObject(1)));
@@ -763,7 +786,6 @@ set(handles.txtEndY, 'String', num2str(hObject(4)));
 cut_line_len = sqrt((hObject(1) - hObject(2))^2 + ...
     (hObject(3) - hObject(4))^2);
 set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len/handles.params.pixelSize));
-
 
 
 function txtKymSpacingUm_Callback(hObject, eventdata, handles)
@@ -820,11 +842,11 @@ padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
 
-imagesc(im);
-colormap gray;
-set(gca, 'XTick', []);
-set(gca, 'YTick', []);
-axis equal tight;
+curr_im_obj = get(handles.axImage, 'Children');
+curr_im_obj = curr_im_obj(2);
+set(curr_im_obj, 'CData', im);
+
+updateUIParams(handles.params)
 
 set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (%d)', new_first_frame));
 % uistack(handles.cutLine, 'top');
@@ -869,6 +891,20 @@ end
 handles.params.lastFrame = new_last_frame;
 handles.params = updateUIParams(handles.params);
 
+omeMeta = handles.reader.getMetadataStore();
+im = bfGetPlane(handles.reader, new_last_frame * omeMeta.getPixelsSizeC(0).getValue() - 1);
+padim = zeros(size(im, 1)+200, size(im, 2)+200);
+padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+im = padim;
+clear padim; 
+
+curr_im_obj = get(handles.axImage, 'Children');
+curr_im_obj = curr_im_obj(2);
+set(curr_im_obj, 'CData', im);
+
+updateUIParams(handles.params)
+
+set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last frame (%d)', new_last_frame));
 
 
 guidata(hObject, handles);
