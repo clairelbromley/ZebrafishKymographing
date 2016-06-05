@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 30-May-2016 21:35:40
+% Last Modified by GUIDE v2.5 05-Jun-2016 13:19:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -70,6 +70,9 @@ handles.params.cutEndY = 50;
 handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
 handles.params.kymSpacing = 1;
+handles.params.firstFrame = 1;
+handles.params.lastFrame = 10;
+handles.params.sequenceLength = 10;
 
 handles.params.dir = [0 1]; % up
 
@@ -95,7 +98,7 @@ function varargout = cziFig_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-function updateUIParams(params)
+function params = updateUIParams(params)
     
 handles = guidata(gcf);
 
@@ -108,6 +111,21 @@ set(handles.txtEndX, 'String', num2str(params.cutEndX));
 set(handles.txtStartY, 'String', num2str(params.cutStartY));
 set(handles.txtEndY, 'String', num2str(params.cutEndY));
 set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
+set(handles.txtFirstFrameDisplay, 'String', sprintf('(%d/%d)', params.firstFrame, params.sequenceLength));
+set(handles.txtLastFrameDisplay, 'String', sprintf('(%d/%d)', params.lastFrame, params.sequenceLength));
+% set(handles.scrollFirstFrame, 'Max', params.lastFrame);
+% set(handles.scrollFirstFrame, 'Value', params.firstFrame);
+% set(handles.scrollFirstFrame, 'Min', 1);
+% set(handles.scrollLastFrame, 'Max', params.sequenceLength);
+% set(handles.scrollLastFrame, 'Value', params.lastFrame);
+% set(handles.scrollLastFrame, 'Min', params.firstFrame);
+
+set(handles.scrollFirstFrame, 'Max', params.sequenceLength);
+set(handles.scrollFirstFrame, 'Value', params.firstFrame);
+set(handles.scrollFirstFrame, 'Min', 1);
+set(handles.scrollLastFrame, 'Max', params.sequenceLength);
+set(handles.scrollLastFrame, 'Value', params.lastFrame);
+set(handles.scrollLastFrame, 'Min', 1);
 
 guidata(gcf, handles);
  
@@ -192,6 +210,8 @@ userOptions.showKymographOverlapOverlay = false;
 userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
 
 
+
+
 for dind = handles.params.dir
     
     userOptions.kymDownOrUp = dind;
@@ -228,7 +248,7 @@ handles = guidata(gcf);
 [fname, pname, ~] = uigetfile('*.czi');
 
 set(handles.txtImagePath, 'String', [pname fname]);
-imagePathChanged({[pname fname]}, hObject);
+handles = imagePathChanged({[pname fname]}, hObject);
 
 handles.cutLine = imline(handles.axImage, [handles.params.cutStartX handles.params.cutEndX], ...
             [handles.params.cutStartY handles.params.cutEndY]);
@@ -237,6 +257,8 @@ cut_line_len = sqrt((handles.params.cutStartX - handles.params.cutEndX)^2 + ...
 set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
 
 addNewPositionCallback(handles.cutLine,@updateLinePos);
+
+% handles.params = params;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -269,7 +291,7 @@ addNewPositionCallback(handles.cutLine,updateLinePos);
 guidata(hObject, handles);
 
 % --- handles changes to image path independently of source of change. 
-function imagePathChanged(new_image_path, hObject)
+function handles = imagePathChanged(new_image_path, hObject)
 handles = guidata(gcf);
 
 % check that new image path is a character string, anc dialog hasn't been
@@ -289,9 +311,9 @@ if ischar(new_image_path{1})
     %         omeMeta = data{1,4};
     %         im = data{1}{1};
             % don't load whole series yet...
-            reader = bfGetReader(new_image_path{1});
-            omeMeta = reader.getMetadataStore();
-            im = bfGetPlane(reader, 1);
+            handles.reader = bfGetReader(new_image_path{1});
+            omeMeta = handles.reader.getMetadataStore();
+            im = bfGetPlane(handles.reader, 1);
             padim = zeros(size(im, 1)+200, size(im, 2)+200);
             padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
             im = padim;
@@ -306,8 +328,11 @@ if ischar(new_image_path{1})
             % figure out and populate default parameters
             handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
             handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-    %         guidata(hObject, handles);
-            updateUIParams(handles.params);
+            handles.params.sequenceLength = double(omeMeta.getPixelsSizeT(0).getValue());
+            handles.params.firstFrame = 1;
+            handles.params.lastFrame = handles.params.sequenceLength;
+%             guidata(hObject, handles);
+            handles.params = updateUIParams(handles.params);
 
 
         catch ME
@@ -633,7 +658,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    handles.params = updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -655,7 +680,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    handles.params = updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -677,7 +702,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    handles.params = updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -698,7 +723,7 @@ if isfield(handles, 'cutLine')
     handles.params.cutStartY = round(xy(1,2));
     handles.params.cutEndY = round(xy(2,2));
     guidata(hObject, handles);
-    updateUIParams(handles.params);
+    handles.params = updateUIParams(handles.params);
 end
 
 guidata(hObject, handles);
@@ -726,7 +751,7 @@ end
 
 function updateLinePos(hObject, eventdata)
 
-disp(hObject)
+% disp(hObject)
 
 handles = guidata(gcf);
 
@@ -761,4 +786,102 @@ function txtKymSpacingUm_CreateFcn(hObject, eventdata, handles)
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on slider movement.
+function scrollFirstFrame_Callback(hObject, eventdata, handles)
+% hObject    handle to scrollFirstFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+% Coerce values here to prevent seeing disconcerting behaviour associated
+% with changing slider min and max dynamically. 
+
+handles = guidata(gcf);
+
+new_first_frame = round(get(hObject, 'Value'));
+
+if new_first_frame > handles.params.lastFrame
+    new_first_frame = handles.params.lastFrame - 1;
+    set(hObject, 'Value', new_first_frame);
+end
+
+handles.params.firstFrame = new_first_frame;
+handles.params = updateUIParams(handles.params);
+
+omeMeta = handles.reader.getMetadataStore();
+im = bfGetPlane(handles.reader, new_first_frame * omeMeta.getPixelsSizeC(0).getValue() - 1);
+padim = zeros(size(im, 1)+200, size(im, 2)+200);
+padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+im = padim;
+clear padim; 
+
+imagesc(im);
+colormap gray;
+set(gca, 'XTick', []);
+set(gca, 'YTick', []);
+axis equal tight;
+
+set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (%d)', new_first_frame));
+% uistack(handles.cutLine, 'top');
+
+guidata(hObject, handles);
+
+
+
+% --- Executes during object creation, after setting all properties.
+function scrollFirstFrame_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scrollFirstFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function scrollLastFrame_Callback(hObject, eventdata, handles)
+% hObject    handle to scrollLastFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+% Coerce values here to prevent seeing disconcerting behaviour associated
+% with changing slider min and max dynamically. 
+
+handles = guidata(gcf);
+
+new_last_frame = round(get(hObject, 'Value'));
+
+if new_last_frame < handles.params.firstFrame
+    new_last_frame = handles.params.firstFrame + 1;
+    set(hObject, 'Value', new_last_frame);
+end
+
+handles.params.lastFrame = new_last_frame;
+handles.params = updateUIParams(handles.params);
+
+
+
+guidata(hObject, handles);
+
+
+
+% --- Executes during object creation, after setting all properties.
+function scrollLastFrame_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scrollLastFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
