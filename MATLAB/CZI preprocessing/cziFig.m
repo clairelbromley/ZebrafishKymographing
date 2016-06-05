@@ -232,12 +232,16 @@ imagePathChanged({[pname fname]}, hObject);
 
 handles.cutLine = imline(handles.axImage, [handles.params.cutStartX handles.params.cutEndX], ...
             [handles.params.cutStartY handles.params.cutEndY]);
+cut_line_len = sqrt((handles.params.cutStartX - handles.params.cutEndX)^2 + ...
+    (handles.params.cutStartY - handles.params.cutEndY)^2);
 set(handles.cutLine, 'ButtonDownFcn', {@cutLine_ButtonDownFcn, handles})
 
 addNewPositionCallback(handles.cutLine,@updateLinePos);
 
 % Update handles structure
 guidata(hObject, handles);
+
+set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len/handles.params.pixelSize));
 
 
 function txtImagePath_Callback(hObject, eventdata, handles)
@@ -270,8 +274,7 @@ handles = guidata(gcf);
 
 % check that new image path is a character string, anc dialog hasn't been
 % cancelled
-if ischar(new_image_path)
-
+if ischar(new_image_path{1})
     % make sure UI reflects underlying data
     set(handles.txtImagePath, 'String', new_image_path);
 
@@ -298,6 +301,7 @@ if ischar(new_image_path)
             colormap gray;
             set(gca, 'XTick', []);
             set(gca, 'YTick', []);
+            axis equal tight;
 
             % figure out and populate default parameters
             handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
@@ -730,6 +734,10 @@ set(handles.txtStartX, 'String', num2str(hObject(1)));
 set(handles.txtEndX, 'String', num2str(hObject(2)));
 set(handles.txtStartY, 'String', num2str(hObject(3)));
 set(handles.txtEndY, 'String', num2str(hObject(4)));
+
+cut_line_len = sqrt((hObject(1) - hObject(2))^2 + ...
+    (hObject(3) - hObject(4))^2);
+set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len/handles.params.pixelSize));
 
 
 
