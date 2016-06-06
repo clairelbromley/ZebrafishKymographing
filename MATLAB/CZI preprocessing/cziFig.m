@@ -110,7 +110,7 @@ set(handles.txtFrameTime, 'String', num2str(params.frameTime));
 % set(handles.txtEndX, 'String', num2str(params.cutEndX));
 % set(handles.txtStartY, 'String', num2str(params.cutStartY));
 % set(handles.txtEndY, 'String', num2str(params.cutEndY));
-set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
+% set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
 set(handles.txtFirstFrameDisplay, 'String', sprintf('(%d/%d)', params.firstFrame, params.sequenceLength));
 set(handles.txtLastFrameDisplay, 'String', sprintf('(%d/%d)', params.lastFrame, params.sequenceLength));
 % set(handles.scrollFirstFrame, 'Max', params.lastFrame);
@@ -178,7 +178,7 @@ handles.params = getParams();
 
 initialString = get(hObject, 'String');
 set(hObject, 'String', 'Working...');
-set(hObject, 'Enable', 'off');
+% set(hObject, 'Enable', 'off');
 drawnow;
 
 % check all fields are filled in sensibly...
@@ -192,6 +192,9 @@ newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
 data = cell2mat(data);
 data = reshape(data, newshape);
 stack = permute(data, [1 3 2]);
+
+% trim according to user selection...
+stack = stack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
 
 % pad 100 pixels on each side...
 newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
@@ -212,6 +215,9 @@ userOptions.medianFiltKernelSize = 9;
 userOptions.showKymographOverlapOverlay = false;
 userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
 
+
+userOptions.timeBeforeCut = 0;
+userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
 
 
 
@@ -261,6 +267,7 @@ elseif get(handles.radioBoth, 'Value');
 end
 params.firstFrame = get(handles.scrollFirstFrame, 'Value');
 params.lastFrame = get(handles.scrollLastFrame, 'Value');
+params.kymSpacingUm = str2num(get(handles.txtKymSpacingUm, 'String'));
 
 
 % --- Executes on button press in buttonBrowseImagePath.
@@ -795,7 +802,9 @@ function txtKymSpacingUm_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of txtKymSpacingUm as text
 %        str2double(get(hObject,'String')) returns contents of txtKymSpacingUm as a double
-
+handles = guidata(gcf);
+handles.params.kymSpacingUm = str2num(get(hObject, 'String'));
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
