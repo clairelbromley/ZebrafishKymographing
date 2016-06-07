@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 05-Jun-2016 13:19:57
+% Last Modified by GUIDE v2.5 07-Jun-2016 00:34:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -71,8 +71,9 @@ handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
 handles.params.kymSpacing = 1;
 handles.params.firstFrame = 1;
-handles.params.lastFrame = 10;
-handles.params.sequenceLength = 10;
+handles.params.lastFrame = 50;
+handles.params.sequenceLength = 50;
+handles.params.analysisTime = 20 * handles.params.frameTime;
 
 handles.params.dir = [0 1]; % up
 
@@ -113,6 +114,7 @@ set(handles.txtFrameTime, 'String', num2str(params.frameTime));
 % set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
 set(handles.txtFirstFrameDisplay, 'String', sprintf('(%d/%d)', params.firstFrame, params.sequenceLength));
 set(handles.txtLastFrameDisplay, 'String', sprintf('(%d/%d)', params.lastFrame, params.sequenceLength));
+set(handles.txtAnalysisTimeDisplay, 'String', sprintf('(%0.2f)', params.analysisTime))
 % set(handles.scrollFirstFrame, 'Max', params.lastFrame);
 % set(handles.scrollFirstFrame, 'Value', params.firstFrame);
 % set(handles.scrollFirstFrame, 'Min', 1);
@@ -126,6 +128,9 @@ set(handles.scrollFirstFrame, 'Min', 1);
 set(handles.scrollLastFrame, 'Max', params.sequenceLength);
 set(handles.scrollLastFrame, 'Value', params.lastFrame);
 set(handles.scrollLastFrame, 'Min', 1);
+set(handles.scrollAnalysisTime, 'Min', params.frameTime);
+set(handles.scrollAnalysisTime, 'Max', params.sequenceLength * params.frameTime);
+set(handles.scrollAnalysisTime, 'Value', params.analysisTime);
 
 guidata(gcf, handles);
  
@@ -178,7 +183,7 @@ handles.params = getParams();
 
 initialString = get(hObject, 'String');
 set(hObject, 'String', 'Working...');
-% set(hObject, 'Enable', 'off');
+set(hObject, 'Enable', 'off');
 drawnow;
 
 % check all fields are filled in sensibly...
@@ -218,7 +223,7 @@ userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
 
 userOptions.timeBeforeCut = 0;
 userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
-
+userOptions.quantAnalysisTime = handles.params.analysisTime;
 
 
 for dind = handles.params.dir
@@ -267,6 +272,7 @@ elseif get(handles.radioBoth, 'Value');
 end
 params.firstFrame = get(handles.scrollFirstFrame, 'Value');
 params.lastFrame = get(handles.scrollLastFrame, 'Value');
+params.analysisTime = get(handles.scrollAnalysisTime, 'Value');
 params.kymSpacingUm = str2num(get(handles.txtKymSpacingUm, 'String'));
 
 
@@ -295,7 +301,7 @@ addNewPositionCallback(handles.cutLine,@updateLinePos);
 % Update handles structure
 guidata(hObject, handles);
 
-set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len/handles.params.pixelSize));
+set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len* handles.params.pixelSize));
 
 
 function txtImagePath_Callback(hObject, eventdata, handles)
@@ -363,6 +369,7 @@ if ischar(new_image_path{1})
             handles.params.sequenceLength = double(omeMeta.getPixelsSizeT(0).getValue());
             handles.params.firstFrame = 1;
             handles.params.lastFrame = handles.params.sequenceLength;
+            handles.params.analysisTime = handles.params.frameTime * 20;
 %             guidata(hObject, handles);
             handles.params = updateUIParams(handles.params);
 
@@ -792,7 +799,7 @@ set(handles.txtEndY, 'String', num2str(hObject(4)));
 
 cut_line_len = sqrt((hObject(1) - hObject(2))^2 + ...
     (hObject(3) - hObject(4))^2);
-set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len/handles.params.pixelSize));
+set(handles.txtCurrentLineUm, 'String', sprintf('Current line length = %0.2f um', cut_line_len * handles.params.pixelSize));
 
 
 function txtKymSpacingUm_Callback(hObject, eventdata, handles)
@@ -841,6 +848,11 @@ if new_first_frame > handles.params.lastFrame
     set(hObject, 'Value', new_first_frame);
 end
 
+if (handles.params.lastFrame - new_first_frame) * handles.params.frameTime < handles.params.analysisTime
+    handles.params.analysisTime = (handles.params.lastFrame - new_first_frame) * handles.params.frameTime;
+    set(handles.scrollAnalysisTime, 'Value', handles.params.analysisTime);
+end
+
 handles.params.firstFrame = new_first_frame;
 handles.params = updateUIParams(handles.params);
 
@@ -857,7 +869,8 @@ set(curr_im_obj, 'CData', im);
 
 updateUIParams(handles.params)
 
-set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (%d)', new_first_frame));
+set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
+    new_first_frame, handles.params.frameTime * (handles.params.lastFrame - new_first_frame), handles.params.analysisTime));
 % uistack(handles.cutLine, 'top');
 
 guidata(hObject, handles);
@@ -897,6 +910,11 @@ if new_last_frame < handles.params.firstFrame
     set(hObject, 'Value', new_last_frame);
 end
 
+if (new_last_frame - handles.params.firstFrame) * handles.params.frameTime < handles.params.analysisTime
+    handles.params.analysisTime = (new_last_frame - handles.params.firstFrame) * handles.params.frameTime;
+    set(handles.scrollAnalysisTime, 'Value', handles.params.analysisTime);
+end
+
 handles.params.lastFrame = new_last_frame;
 handles.params = updateUIParams(handles.params);
 
@@ -913,8 +931,8 @@ set(curr_im_obj, 'CData', im);
 
 updateUIParams(handles.params)
 
-set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last frame (%d)', new_last_frame));
-
+set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
+    new_last_frame, handles.params.frameTime * (new_last_frame - handles.params.firstFrame), handles.params.analysisTime));
 
 guidata(hObject, handles);
 
@@ -923,6 +941,59 @@ guidata(hObject, handles);
 % --- Executes during object creation, after setting all properties.
 function scrollLastFrame_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to scrollLastFrame (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+
+
+% --- Executes on slider movement.
+function scrollAnalysisTime_Callback(hObject, eventdata, handles)
+% hObject    handle to scrollAnalysisTime (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+handles = guidata(gcf);
+
+new_anal_time = handles.params.frameTime * round(get(hObject, 'Value') / handles.params.frameTime);
+
+if new_anal_time > handles.params.frameTime * ...
+        (handles.params.lastFrame - handles.params.firstFrame)
+    new_anal_time = handles.params.frameTime * ...
+        (handles.params.lastFrame - handles.params.firstFrame);
+    set(hObject, 'Value', new_anal_time);
+end
+
+handles.params.analysisTime = new_anal_time;
+handles.params = updateUIParams(handles.params);
+
+omeMeta = handles.reader.getMetadataStore();
+im = bfGetPlane(handles.reader, (handles.params.firstFrame + (new_anal_time / handles.params.frameTime)) * omeMeta.getPixelsSizeC(0).getValue() - 1);
+padim = zeros(size(im, 1)+200, size(im, 2)+200);
+padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+im = padim;
+clear padim; 
+
+curr_im_obj = get(handles.axImage, 'Children');
+curr_im_obj = curr_im_obj(2);
+set(curr_im_obj, 'CData', im);
+
+updateUIParams(handles.params)
+
+set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last analysis frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
+    handles.params.firstFrame + (new_anal_time / handles.params.frameTime), handles.params.frameTime * (handles.params.lastFrame - handles.params.firstFrame), handles.params.analysisTime));
+
+guidata(hObject, handles);
+
+% --- Executes during object creation, after setting all properties.
+function scrollAnalysisTime_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scrollAnalysisTime (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
