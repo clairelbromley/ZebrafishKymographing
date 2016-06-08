@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 08-Jun-2016 21:41:46
+% Last Modified by GUIDE v2.5 08-Jun-2016 22:58:50
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,6 +78,7 @@ handles.params.analysisTime = 20 * handles.params.frameTime;
 handles.params.dir = [0 1]; % up
 
 handles.params.speedInUmPerMinute = false;
+handles.params.kernelSize = 9;
 
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
@@ -218,7 +219,7 @@ clear data;
 userOptions = getUserOptions(handles);
 
 %DEBUG w/SMALL MEDIAN FILTER
-userOptions.medianFiltKernelSize = 9;
+userOptions.medianFiltKernelSize = handles.params.kernelSize;
 userOptions.showKymographOverlapOverlay = false;
 userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
 userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
@@ -279,6 +280,7 @@ params.lastFrame = get(handles.scrollLastFrame, 'Value');
 params.analysisTime = get(handles.scrollAnalysisTime, 'Value');
 params.kymSpacingUm = str2num(get(handles.txtKymSpacingUm, 'String'));
 params.speedInUmPerMinute = strcmp(get(handles.menuUmPerMin, 'Checked'), 'on');
+params.kernelSize = handles.params.kernelSize;
 
 
 % --- Executes on button press in buttonBrowseImagePath.
@@ -1042,3 +1044,21 @@ if strcmp(get(hObject, 'Checked'), 'off')
 end
 
 guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuKernelSize_Callback(hObject, eventdata, handles)
+% hObject    handle to menuKernelSize (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+kstr = inputdlg({'Choose median filter kernel size'}, 'Median filter kernel size', 1, {num2str(handles.params.kernelSize)});
+if isempty(kstr)
+    handles.params.kernelSize = 9;
+else
+    handles.params.kernelSize = round(str2double(kstr{1}));
+end
+
+guidata(hObject, handles);
+
