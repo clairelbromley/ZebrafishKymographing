@@ -1,6 +1,8 @@
 classdef UserOptions
     
     properties
+         speedInUmPerMinute = false;         % if false, speeds in um/s
+        
          forcedSpeedRange = [-1.5 1.5];          % speed [min max]
          forcedPositionRange = [-5 20];      % position um [min max]
 

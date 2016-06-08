@@ -144,10 +144,21 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             axis equal
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
-            result.linspeed = linf.res.p1;
+            
+            if uO.speedInUmPerMinute
+                result.linspeed = linf.res.p1 * 60;
+            else
+                result.linspeed = linf.res.p1;
+            end
+            
             s = [result.linspeed; kp.pos_along_cut(kpos)];
             linspeeds = [linspeeds s];
-            title([sprintf('Membrane speed = %0.2f ', result.linspeed) '\mum s^{-1}'])
+            
+            if uO.speedInUmPerMinute
+                title([sprintf('Membrane speed = %0.2f ', result.linspeed) '\mum min^{-1}'])
+            else
+                title([sprintf('Membrane speed = %0.2f ', result.linspeed) '\mum s^{-1}'])
+            end
             
             set(h, 'UserData', linf);
             
@@ -169,9 +180,20 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
             result.expspeed = expf.res.B * expf.res.A;
-            s = [result.expspeed; kp.pos_along_cut(kpos)];
+            
+            if uO.speedInUmPerMinute
+                s = [result.expspeed * 60; kp.pos_along_cut(kpos)];
+            else
+                s = [result.expspeed; kp.pos_along_cut(kpos)];
+            end
+            
             expspeeds = [expspeeds s];
-            title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum s^{-1}'])
+            
+            if uO.speedInUmPerMinute
+                title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum min^{-1}'])
+            else
+                title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum s^{-1}'])
+            end
             
             set(h, 'UserData', expf);
             
@@ -210,7 +232,12 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             subplot(1,1,1);
             plot(linspeeds(2,:), linspeeds(1,:), '-x');
             xlabel('Kymograph position along cut, \mum');
-            ylabel('Membrane speed, \mum s^{-1}');
+            
+            if uO.speedInUmPerMinute
+                ylabel('Membrane speed, \mum min^{-1}');
+            else
+                ylabel('Membrane speed, \mum s^{-1}');
+            end
             title([title_txt direction]);
             
             out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction];
@@ -246,7 +273,12 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             subplot(1,1,1);
             plot(expspeeds(2,:), expspeeds(1,:), '-x');
             xlabel('Kymograph position along cut, \mum');
-            ylabel('Membrane speed, \mum s^{-1}');
+            
+            if uO.speedInUmPerMinute
+                ylabel('Membrane speed, \mum min^{-1}');
+            else
+                ylabel('Membrane speed, \mum s^{-1}');
+            end
             title([title_txt direction]);
             
             out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction ' exponential fit'];

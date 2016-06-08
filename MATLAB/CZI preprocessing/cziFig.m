@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 07-Jun-2016 00:34:43
+% Last Modified by GUIDE v2.5 08-Jun-2016 21:41:46
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -76,6 +76,8 @@ handles.params.sequenceLength = 50;
 handles.params.analysisTime = 20 * handles.params.frameTime;
 
 handles.params.dir = [0 1]; % up
+
+handles.params.speedInUmPerMinute = false;
 
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
@@ -219,6 +221,8 @@ userOptions = getUserOptions(handles);
 userOptions.medianFiltKernelSize = 9;
 userOptions.showKymographOverlapOverlay = false;
 userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
+userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
+
 
 
 userOptions.timeBeforeCut = 0;
@@ -274,6 +278,7 @@ params.firstFrame = get(handles.scrollFirstFrame, 'Value');
 params.lastFrame = get(handles.scrollLastFrame, 'Value');
 params.analysisTime = get(handles.scrollAnalysisTime, 'Value');
 params.kymSpacingUm = str2num(get(handles.txtKymSpacingUm, 'String'));
+params.speedInUmPerMinute = strcmp(get(handles.menuUmPerMin, 'Checked'), 'on');
 
 
 % --- Executes on button press in buttonBrowseImagePath.
@@ -661,15 +666,15 @@ end
 
 
 % --------------------------------------------------------------------
-function menuFile_Callback(hObject, eventdata, handles)
-% hObject    handle to menuFile (see GCBO)
+function menuOptions_Callback(hObject, eventdata, handles)
+% hObject    handle to menuOptions (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function menuSelectFolder_Callback(hObject, eventdata, handles)
-% hObject    handle to menuSelectFolder (see GCBO)
+function menuSelectUnits_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSelectUnits (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -1001,3 +1006,39 @@ function scrollAnalysisTime_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
+
+
+% --------------------------------------------------------------------
+function menuUmPerS_Callback(hObject, eventdata, handles)
+% hObject    handle to menuUmPerS (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+disp(get(hObject, 'Checked'));
+
+if strcmp(get(hObject, 'Checked'), 'off')
+    set(hObject, 'Checked', 'on');
+    handles.params.speedInUmPerMinute = false;
+    set(handles.menuUmPerMin, 'Checked', 'off')
+end
+
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuUmPerMin_Callback(hObject, eventdata, handles)
+% hObject    handle to menuUmPerMin (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+disp(get(hObject, 'Checked'));
+
+if strcmp(get(hObject, 'Checked'), 'off')
+    set(hObject, 'Checked', 'on');
+    handles.params.speedInUmPerMinute = false;
+    set(handles.menuUmPerS, 'Checked', 'off')
+end
+
+guidata(hObject, handles);
