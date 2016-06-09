@@ -94,7 +94,7 @@ if (uO.saveFirstFrameFigure)
     print(h, out_file, '-dpng', '-r300');
     savefig(h, [out_file '.fig']);
 
-    if ~isfield(uO, 'figHandle')
+    if ~(isfield(uO, 'figHandle') || any(strcmp(properties(uO), 'figHandle')))
         close(h);
     end
     

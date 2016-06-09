@@ -186,7 +186,7 @@ handles.params = getParams();
 
 initialString = get(hObject, 'String');
 set(hObject, 'String', 'Working...');
-set(hObject, 'Enable', 'off');
+% set(hObject, 'Enable', 'off');
 drawnow;
 
 % check all fields are filled in sensibly...
@@ -220,7 +220,7 @@ userOptions = getUserOptions(handles);
 
 %DEBUG w/SMALL MEDIAN FILTER
 userOptions.medianFiltKernelSize = handles.params.kernelSize;
-userOptions.showKymographOverlapOverlay = false;
+userOptions.showKymographOverlapOverlay = true;
 userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
 userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
 

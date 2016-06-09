@@ -14,7 +14,10 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
 
     tic
     disp(['Building kymographs for ' dir_txt ', cut ' num2str(md.cutNumber)]);
+    hps = [];
+    
     for ind = 1:size(stack, 3)
+        
         for kpos = 1:numel(kp.kym_startx)
 
                 subk = zeros(uO.kym_length, uO.kym_width);  
@@ -55,6 +58,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
 
                 if uO.showKymographOverlapOverlay
                     hp = patch(patchX, patchY, 'green', 'FaceAlpha', 0.5);
+                    hps = [hps; hp];
                 end
                 
                 if uO.avgOrMax == 1
@@ -74,9 +78,24 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         out_file = [uO.outputFolder filesep dir_txt filesep ...
             'Overlay showing kymograph coverage for cut ' num2str(md.cutNumber)...
             direction];
-        print(out_file, '-dpng', '-r300');
+        print(uO.figHandle, out_file, '-dpng', '-r300');
         savefig(uO.figHandle, [out_file '.fig']);
+        
+        for kpos = 1:numel(kp.kym_startx)
+            set(hps, 'FaceAlpha', 0);
+            set(hps(kpos), 'FaceAlpha', 0.5);
+            
+            out_file = [uO.outputFolder filesep dir_txt filesep ...
+            'Overlay showing kymograph coverage for cut ' num2str(md.cutNumber)...
+            ', Kymograph index along cut = ' num2str(kpos-2) ' ' direction];
+        
+            print(uO.figHandle, out_file, '-dpng', '-r300');
+            savefig(uO.figHandle, [out_file '.fig']);
+        end
+        
     end
+    
+    
     
     for kpos = 1:numel(kp.kym_startx)
         
