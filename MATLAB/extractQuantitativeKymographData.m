@@ -241,7 +241,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             title([title_txt direction]);
             
             out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction];
-            print(out_file, '-dpng', '-r300');
+            print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);            
 
             xlim([uO.forcedPositionRange]);

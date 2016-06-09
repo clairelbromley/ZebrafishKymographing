@@ -186,7 +186,7 @@ handles.params = getParams();
 
 initialString = get(hObject, 'String');
 set(hObject, 'String', 'Working...');
-% set(hObject, 'Enable', 'off');
+set(hObject, 'Enable', 'off');
 drawnow;
 
 % check all fields are filled in sensibly...
