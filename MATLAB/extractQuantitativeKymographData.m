@@ -30,7 +30,16 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         kym_segment = squeeze(kyms(first_frame-1:first_frame + segment_len_frames - 1,:,kpos))';
         %     correct_membrane = zeros(size(kym_segment,1), size(kym_segment,2), num_kyms);
         % - use canny edge filter to get binary image of membrane front movement
-        filt_kym = edge(kym_segment, 'canny');
+        
+        % FOR NOW, TRY DILATE/ERODE ALONG TIME AXIS BEFORE APPLYING CANNY
+        % EDGE FILTER
+        
+        se = strel('arbitrary', ones(1,20));
+        kym_segment = imdilate(kym_segment, se);
+        kym_segment = imerode(kym_segment, se);
+        
+        filt_kym = edge(kym_segment, 'canny');       
+        
         result.kym_segment = kym_segment;
 
         title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut: %0.2f um', md.acquisitionDate, ...
@@ -79,7 +88,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         if numel(I)>1
             while (found == false)
 
-                if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.8)
+                if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.33)
                     found = true;
                 else
                     i=i+1;
