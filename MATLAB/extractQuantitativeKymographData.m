@@ -35,10 +35,10 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         % EDGE FILTER
         
         se = strel('arbitrary', ones(1,20));
-        kym_segment = imdilate(kym_segment, se);
-        kym_segment = imerode(kym_segment, se);
+        dummy = imdilate(kym_segment, se);
+        dummy = imerode(dummy, se);
         
-        filt_kym = edge(kym_segment, 'canny');       
+        filt_kym = edge(dummy, 'canny');       
         
         result.kym_segment = kym_segment;
 
