@@ -51,7 +51,7 @@ function md = findDistanceToMidline(stack, md, uO)
         
         close(uifig);
         
-    else
+    elseif strcmp(uO.manualOrAutoApicalSurfaceFinder, 'auto')
 
         %% Extrapolate perpendicular bisector of the cut to edge of image
         num_kym = length(kp.kym_starty);
@@ -108,6 +108,8 @@ function md = findDistanceToMidline(stack, md, uO)
         
         md.distanceToApicalSurface = distance_cut_to_apical_surface * md.umperpixel;
 
+    else
+        md.distanceToApicalSurface = 0;
     end
     
 end

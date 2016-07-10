@@ -35,7 +35,7 @@ function output = kymographBase(varargin)
     
     userOptions.basalMembraneKym = false;
     userOptions.usePreviouslySavedBasalPos = false;
-    userOptions.manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
+    userOptions.manualOrAutoApicalSurfaceFinder = 'off';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual' or 'off'   Default = 'manual'
     userOptions.usePreviouslySavedApicalSurfacePos = false;
     userOptions.flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
     
@@ -45,7 +45,7 @@ function output = kymographBase(varargin)
     if nargin == 1
         if isa(varargin(1), 'UserOptions')
             userOptions = strut(varargin(1)); % hacky workaround for now
-        elseif isa(varargin(1), 'char')
+        elseif isa(varargin{1}, 'char')
             root = varargin{1};
         end
     elseif nargin == 2
