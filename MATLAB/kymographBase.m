@@ -21,10 +21,10 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\Doug\Desktop\cross test';
+    userOptions.outputFolder = '/Users/clairebromley/Desktop/TEST';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
-    userOptions.saveCutPositioningFigs = true;     % Toggle saving of helper images for checking cut positioning.                              Default = false
+    userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
     userOptions.removeCutFrames = true;             % Toggle removal of frames with scattered light.                                            Default = true
     userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window. 
     userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
@@ -40,6 +40,7 @@ function output = kymographBase(varargin)
     userOptions.flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
     
     userOptions.lumenOpening = false;               % Normal lumen opening images are prone to have kymographs going off the edge of the image so will need padding. Default false. 
+    userOptions.speedInUmPerMinute = false;         % For slow normal lumen opening, we may want to record speeds in um/min rather than um/s. Default to fasle. 
     
     userOptions.nonBeepSound = load('train');
 
