@@ -39,6 +39,8 @@ function output = kymographBase(varargin)
     userOptions.usePreviouslySavedApicalSurfacePos = false;
     userOptions.flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
     
+    userOptions.lumenOpening = false;               % Normal lumen opening images are prone to have kymographs going off the edge of the image so will need padding. Default false. 
+    
     userOptions.nonBeepSound = load('train');
 
     narginchk(1, 2);
