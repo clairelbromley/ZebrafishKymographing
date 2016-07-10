@@ -1233,7 +1233,7 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     
     incData.distanceCutToApicalSurfaceUm = handles.currentApicalSurfaceToCutDistance;
     
-    if isfield(handles.currentManualLineSpeed)
+    if isfield(handles, 'currentManualLineSpeed')
         incData.manualSpeed = handles.currentManualLineSpeed;
     else
         incData.manualSpeed = nan;
