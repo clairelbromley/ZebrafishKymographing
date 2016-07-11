@@ -57,7 +57,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                 end
 
                 if uO.showKymographOverlapOverlay
-                    hp = patch(patchX, patchY, 'green', 'FaceAlpha', 0.5);
+                    hp = patch(patchX, patchY, 'green', 'FaceAlpha', 0.5, 'EdgeAlpha', 0);
                     hps = [hps; hp];
                 end
                 

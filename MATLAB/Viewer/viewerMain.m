@@ -1199,6 +1199,12 @@ function menuInclude_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+%% Return warning/break if metadata hasn't been loaded yet...
+if ~isfield(handles, 'experimentMetadata')
+    msgbox('You need to load metadata before trying to include data for export!');
+    return;
+end
+
 %% Check state of checkbox
 if strcmp(get(hObject, 'checked'), 'on')
     set(hObject, 'checked', 'off')
