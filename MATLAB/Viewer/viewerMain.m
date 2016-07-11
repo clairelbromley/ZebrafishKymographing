@@ -263,9 +263,18 @@ catch ME
 end
         %% Get and plot first frames and relevant lines
 try
-        figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut upwards.fig']);...
-            cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', 5 s pre-cut downwards.fig'])];
+        figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', * s pre-cut upwards.fig']);...
+            cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber ', * s pre-cut downwards.fig'])];
 
+        dummyPaths = {};
+        for figFilePath = figFilePaths'
+            dirs = dir(figFilePath{1});
+            [basepath, ~, ~] = fileparts(figFilePath{1});
+            dummyPaths = [dummyPaths; [basepath filesep dirs.name]];
+        end
+        figFilePaths = dummyPaths;
+            
+        
         axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
         handles.kymLines = [];
 
