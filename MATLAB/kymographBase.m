@@ -171,21 +171,16 @@ function output = kymographBase(varargin)
                     testCutPositioningSlow(stack, curr_metadata, userOptions);
                     userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
                     testCutPositioningFast(stack, curr_metadata, userOptions);
-                    ME = MException('Done', ...
-                                    'This version of the software will only run up to the point of saving cut position videos if saveCutPositioningFigs is TRUE!');
-                    throw(ME);
+                else
+                   %% Pre-process images in stack
+                   [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+
+                   %% Plot and save kymographs
+                   kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+                   results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+    %                output.results = cat(2, output.results, results);
+    %                output.kymographs = cat(4, output.kymographs, kymographs);
                 end
-                
-                
-               %% Pre-process images in stack
-               [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
-               
-               %% Plot and save kymographs
-               kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
-               results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
-%                output.results = cat(2, output.results, results);
-%                output.kymographs = cat(4, output.kymographs, kymographs);
-               
            end
 
         end
