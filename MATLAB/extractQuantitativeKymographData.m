@@ -34,9 +34,13 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         % FOR NOW, TRY DILATE/ERODE ALONG TIME AXIS BEFORE APPLYING CANNY
         % EDGE FILTER
         
-        se = strel('arbitrary', ones(1,20));
-        dummy = imdilate(kym_segment, se);
-        dummy = imerode(dummy, se);
+        if uO.lumenOpening
+            se = strel('arbitrary', ones(1,20));
+            dummy = imdilate(kym_segment, se);
+            dummy = imerode(dummy, se);
+        else
+            dummy = kym_segment;    %clumsy but should do the job
+        end
         
         filt_kym = edge(dummy, 'canny');       
         
