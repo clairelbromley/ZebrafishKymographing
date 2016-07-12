@@ -572,6 +572,7 @@ try
     handles.kymData(ax,:,:) = im;
     xlabel(kym_ax, 'Time relative to cut, s')
     ylabel(kym_ax, 'Position relative to cut, \mum')
+    
 
     title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
         ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
@@ -601,7 +602,7 @@ try
     timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
     frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
     umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
-    
+        
     xoffset = (sum(sum(im(:,(timeBeforeCut/frameTime):((timeBeforeCut/frameTime) + 5)),1)==0) - 1.5)*frameTime;
     y=get(dataObjs{1}(1), 'YData') + umPerPixel;
     x=get(dataObjs{1}(1), 'XData');
@@ -653,6 +654,9 @@ try
     else
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
+    
+    axis(kym_ax, [-timeBeforeCut timeAfterCut 0 max(y)], 'tight');
+    
 catch ME
     disp(ME);
 end
