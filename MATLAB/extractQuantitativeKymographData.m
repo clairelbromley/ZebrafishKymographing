@@ -88,11 +88,17 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         % N.B. this may (will?) break down in case when we have more than the
         % first four seconds as the canny edge might be discontinuous. 
         found = false;
+        if uO.lumenOpening
+            completenessCondition = 0.33;
+        else
+            completenessCondition = 0.8;
+        end
+        
         i = 1;
         if numel(I)>1
             while (found == false)
 
-                if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*.33)
+                if (r(I(i)).BoundingBox(3) > size(filt_kym,2)*completenessCondition)
                     found = true;
                 else
                     i=i+1;
