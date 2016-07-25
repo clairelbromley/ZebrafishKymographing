@@ -19,7 +19,8 @@ function metadata = getMetadata(root_path, cut_number)
     metadata.acqMetadata = importAcqMetadata(acquMetadataPath, [3,9,14], [4,10,19]);
     
     %% Parse folder name to get embryo date and number
-    dummy = regexp(root_path, '\w*_\w*', 'match');
+    [~,dummy,~] = fileparts(root_path);             % only deal with _ in lowest level of path, leaving other parts of path free to contain whichever characters desired. 
+    dummy = regexp(dummy, '\w*_\w*', 'match');
     idString = dummy{1};
     id = regexp(idString, '_E', 'split');
     metadata.embryoNumber = id{2};
