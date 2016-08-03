@@ -373,10 +373,11 @@ function medianFilterText_Callback(hObject, eventdata, handles)
 % hObject    handle to medianFilterText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hints: get(hObject,'String') returns contents of medianFilterText as text
-%        str2double(get(hObject,'String')) returns contents of medianFilterText as a double
+handles.userOptions.medianFiltKernelSize = str2double(get(hObject, 'String'));
 
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function medianFilterText_CreateFcn(hObject, eventdata, handles)
