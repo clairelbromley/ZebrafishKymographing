@@ -22,7 +22,7 @@ function varargout = processingGUI_II(varargin)
 
 % Edit the above text to modify the response to help processingGUI_II
 
-% Last Modified by GUIDE v2.5 03-Aug-2016 06:35:55
+% Last Modified by GUIDE v2.5 03-Aug-2016 19:08:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,6 +57,29 @@ handles.output = hObject;
 
 handles.userOptions = UserOptions();
 
+% ensure that all UI options match UserOptions();
+set(handles.apicalSurfacFinderLoadCheck, 'Value', handles.userOptions.usePreviouslySavedApicalSurfacePos);
+set(handles.basalSurfaceFinderLoadCheck, 'Value', handles.userOptions.basalMembraneKym);
+
+set(handles.fixedSpacingRadio, 'Value', handles.userOptions.fixedNumberOrFixedSpacing);
+if handles.fixedNumberOrFixedSpacing
+    set(handles.kymPositioningText, 'String', num2str(handles.userOptions.kymSpacingUm));
+    set(handles.kymPositionLabel, 'String', 'Spacing (um):');
+else
+    set(handles.kymPositionLabel, 'String', '# of kymos:');
+    set(handles.kymPositioningText, 'String', num2str(handles.userOptions.number_kym));
+end
+set(handles.kymWidthText, 'String', num2str(handles.userOptions.kym_width));
+set(handles.kymLengthText, 'String', num2str(handles.userOptions.kym_length));
+set(handles.showOverlaysCheck, 'Value', handles.userOptions.showKymographOverlapOverlay);
+set(handles.shortCutCheck, 'Value', handles.userOptions.flip90DegForShortCuts);
+
+set(handles.timeBeforeCutText, 'String', num2str(handles.userOptions.timeBeforeCut));
+set(handles.timeAfterCutText, 'String', num2str(handles.userOptions.timeAfterCut));
+set(handles.quantitativeAnalysisTimeText, 'String', num2str(handles.userOptions.quantAnalysisTime));
+
+
+    
 % Update handles structure
 guidata(hObject, handles);
 
@@ -108,6 +131,8 @@ function inputPathText_Callback(hObject, eventdata, handles)
 %        str2double(get(hObject,'String')) returns contents of inputPathText as a double
 
 
+
+
 % --- Executes during object creation, after setting all properties.
 function inputPathText_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to inputPathText (see GCBO)
@@ -126,7 +151,11 @@ function outputFolderText_Callback(hObject, eventdata, handles)
 % hObject    handle to outputFolderText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
+handles.userOptions.outputFolder = get(hObject, 'String');
+
+guidata(hObject, handles);
 % Hints: get(hObject,'String') returns contents of outputFolderText as text
 %        str2double(get(hObject,'String')) returns contents of outputFolderText as a double
 
@@ -156,6 +185,18 @@ function outputPathBrowseButton_Callback(hObject, eventdata, handles)
 % hObject    handle to outputPathBrowseButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+folder_name = uigetdir(get(handles.outputFolderText, 'String'), 'Choose a folder to save output...');
+
+if ischar(folder_name)
+    
+    set(handles.outputFolderText, 'String', folder_name);
+    handles.userOptions.outputFolder = folder_name;
+    
+end
+
+guidata(hObject, handles);
 
 
 
@@ -445,9 +486,11 @@ function scalebarLengthText_Callback(hObject, eventdata, handles)
 % hObject    handle to scalebarLengthText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hints: get(hObject,'String') returns contents of scalebarLengthText as text
-%        str2double(get(hObject,'String')) returns contents of scalebarLengthText as a double
+handles.userOptions.scale_bar_length = str2double(get(hObject, 'String'));
+
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -479,7 +522,7 @@ function shortCutCheck_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(gcf);
 
-handles.userOptions.flip90DegForShortCuts = get(hObject, 'Value');
+
 
 guidata(hObject, handles);
 
@@ -489,18 +532,22 @@ function forceRangesCheck_Callback(hObject, eventdata, handles)
 % hObject    handle to forceRangesCheck (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hint: get(hObject,'Value') returns toggle state of forceRangesCheck
+handles.userOptions.flip90DegForShortCuts = get(hObject, 'Value');
 
+guidata(hObject, handles);
 
 
 function forceMinPosText_Callback(hObject, eventdata, handles)
 % hObject    handle to forceMinPosText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hints: get(hObject,'String') returns contents of forceMinPosText as text
-%        str2double(get(hObject,'String')) returns contents of forceMinPosText as a double
+handles.userOptions.forcedPositionRange = [str2double(get(hObject, 'String')) str2double(get(handles.forceMaxPositionText, 'String'))];
+
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -521,9 +568,11 @@ function forceMaxPosText_Callback(hObject, eventdata, handles)
 % hObject    handle to forceMaxPosText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hints: get(hObject,'String') returns contents of forceMaxPosText as text
-%        str2double(get(hObject,'String')) returns contents of forceMaxPosText as a double
+handles.userOptions.forcedPositionRange = [str2double(get(handles.forceMinPositionText, 'String')) str2double(get(hObject, 'String'))];
+
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -544,9 +593,11 @@ function forceMinSpeedText_Callback(hObject, eventdata, handles)
 % hObject    handle to forceMinSpeedText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hints: get(hObject,'String') returns contents of forceMinSpeedText as text
-%        str2double(get(hObject,'String')) returns contents of forceMinSpeedText as a double
+handles.userOptions.forcedSpeedRange = [str2double(get(hObject, 'String')) str2double(get(handles.forceMaxSpeedText, 'String'))];
+
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -567,9 +618,11 @@ function forceMaxSpeedText_Callback(hObject, eventdata, handles)
 % hObject    handle to forceMaxSpeedText (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
 
-% Hints: get(hObject,'String') returns contents of forceMaxSpeedText as text
-%        str2double(get(hObject,'String')) returns contents of forceMaxSpeedText as a double
+handles.userOptions.forcedSpeedRange = [str2double(get(handles.forceMinSpeedText, 'String')) str2double(get(hObject, 'String')) ];
+
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -644,5 +697,32 @@ elseif get(handles.fixedNumberRadio, 'Value')
     handles.userOptions.fixedNumberOrFixedSpacing = false;
     set(handles.kymPositioningText, 'String', num2str(handles.userOptions.number_kym));
 end
+        
+guidata(hObject, handles);
+
+
+% --- Executes on button press in basalSurfaceFinderLoadCheck.
+function basalSurfaceFinderLoadCheck_Callback(hObject, eventdata, handles)
+% hObject    handle to basalSurfaceFinderLoadCheck (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+handles.userOptions.usePreviouslySavedBasalPos = get(hObject, 'Value');
+
+guidata(hObject, handles);
+
+
+% --- Executes when selected object is changed in speedUnitPanel.
+function speedUnitPanel_SelectionChangeFcn(hObject, eventdata, handles)
+% hObject    handle to the selected object in speedUnitPanel 
+% eventdata  structure with the following fields (see UIBUTTONGROUP)
+%	EventName: string 'SelectionChanged' (read only)
+%	OldValue: handle of the previously selected object or empty if none was selected
+%	NewValue: handle of the currently selected object
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+handles.speedInUmPerMinute = get(handles.umPerMinuteRadio,'Value');
         
 guidata(hObject, handles);

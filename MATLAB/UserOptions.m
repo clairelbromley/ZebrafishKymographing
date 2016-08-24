@@ -35,10 +35,10 @@ classdef UserOptions
          lumenOpening = false;              % is data of physiological lumen opening?
          basalMembraneKym = false;          % is data looking at movement of basal membranes?
          usePreviouslySavedBasalPos = false;
-         manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual'   Default = 'manual'
+         manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual' or 'off'   Default = 'off'
          usePreviouslySavedApicalSurfacePos = false;
          flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
-
+        
          nonBeepSound = load('train');
 
 
