@@ -22,7 +22,7 @@ function varargout = manualScatterGUI(varargin)
 
 % Edit the above text to modify the response to help manualScatterGUI
 
-% Last Modified by GUIDE v2.5 25-Aug-2016 06:15:52
+% Last Modified by GUIDE v2.5 25-Aug-2016 17:22:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -99,7 +99,7 @@ title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 3));
 % Update handles structure
 guidata(hObject, handles);
 % UIWAIT makes manualScatterGUI wait for user response (see UIRESUME)
-uiwait(handles.figure1);
+uiwait(handles.manualScatterGUIFigure);
     
 
 % --- Outputs from this function are returned to the command line.
@@ -111,7 +111,7 @@ function varargout = manualScatterGUI_OutputFcn(hObject, eventdata, handles)
 
 % Get default command line output from handles structure
 varargout{1} = fliplr(handles.frameMask);
-delete(handles.figure1);
+delete(handles.manualScatterGUIFigure);
 
 
 
@@ -179,9 +179,9 @@ function genericAxisClick(hObject, eventdata, handles)
 % genericAxisClick();
 
 
-% --- Executes when user attempts to close figure1.
-function figure1_CloseRequestFcn(hObject, eventdata, handles)
-% hObject    handle to figure1 (see GCBO)
+% --- Executes when user attempts to close manualScatterGUIFigure.
+function manualScatterGUIFigure_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to manualScatterGUIFigure (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
