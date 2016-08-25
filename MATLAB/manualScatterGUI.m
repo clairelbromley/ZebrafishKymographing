@@ -22,7 +22,7 @@ function varargout = manualScatterGUI(varargin)
 
 % Edit the above text to modify the response to help manualScatterGUI
 
-% Last Modified by GUIDE v2.5 23-Aug-2016 16:39:49
+% Last Modified by GUIDE v2.5 25-Aug-2016 06:15:52
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,10 +56,12 @@ function manualScatterGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 
 % get inputs
-handles.stack = varargin{1};
-% handles.md = varargin{2};
-% handles.uo = varargin{3};
-handles.cut_frame_ind = varargin{2};
+handles.stack = repmat(checkerboard, 1, 1, 10);
+handles.cut_frame_ind = 4;
+if nargin == 2
+    handles.stack = varargin{1};
+    handles.cut_frame_ind = varargin{2};
+end
 
 % set outputs
 handles.frameMask = zeros(1,10);
@@ -96,10 +98,9 @@ title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 3));
 
 % Update handles structure
 guidata(hObject, handles);
-
 % UIWAIT makes manualScatterGUI wait for user response (see UIRESUME)
-% uiwait(handles.figure1);
-
+uiwait(handles.figure1);
+    
 
 % --- Outputs from this function are returned to the command line.
 function varargout = manualScatterGUI_OutputFcn(hObject, eventdata, handles) 
@@ -109,8 +110,9 @@ function varargout = manualScatterGUI_OutputFcn(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Get default command line output from handles structure
-varargout{1} = handles.output;
-varargout{2} = handles.frameMask;
+varargout{1} = fliplr(handles.frameMask);
+delete(handles.figure1);
+
 
 
 % --- Executes on button press in okButton.
@@ -151,18 +153,18 @@ function genericAxisClick(hObject, eventdata, handles)
         title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 4 + (selectedAxInd)));
         
     else
-        a = get(allAx(10 - selectedAxInd + 1));
-        if handles.frameMask(10 - selectedAxInd)
-            handles.frameMask(10 - selectedAxInd) = false;
+        a = get(allAx(11 - selectedAxInd));
+        if handles.frameMask(11 - selectedAxInd)
+            handles.frameMask(11 - selectedAxInd) = false;
             set(a.Title, 'Color', [0 0 0]);
         else
-            handles.frameMask(10 - selectedAxInd) = true;
+            handles.frameMask(11 - selectedAxInd) = true;
             set(a.Title, 'Color', [1 0 0]);
         end
     end
 %     set(axHandle, 'Color', [1 0 0]);
     
-%     disp(selectedAxInd);
+    disp(handles.frameMask);
     guidata(gcbo, handles);
 
 
@@ -175,3 +177,17 @@ function genericAxisClick(hObject, eventdata, handles)
 % 
 % % genericAxisClick(hObject);
 % genericAxisClick();
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if isequal(get(hObject, 'waitstatus'),'waiting')
+    uiresume(hObject);
+else
+    % Hint: delete(hObject) closes the figure
+    delete(hObject);
+end
