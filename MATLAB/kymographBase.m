@@ -205,7 +205,8 @@ function output = kymographBase(varargin)
 
         end
         
-        xlswrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
+        xxwrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
+%         xlswrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
         
         if nargin == 1
             imDone();
@@ -218,4 +219,26 @@ function output = kymographBase(varargin)
     end
     
     close all;
+end
+
+function xxwrite(varargin)
+    outName = varargin{1};
+    data = varargin{2};
+    if ~ispc
+        [pname, fname, ~] = fileparts(outName);
+        outName = [pname filesep fname '.xls'];
+        if nargin == 2
+            xlwrite(outName, data);
+        elseif nargin == 3
+            sht = varargin{3};
+            xlwrite(outName, data, sht);
+        end
+    else
+        if nargin ==2
+            xlswrite(outName, data);
+        elseif nargin == 3
+            sht = varargin{3};
+            xlswrite(outName, data, sht);
+        end
+    end
 end
