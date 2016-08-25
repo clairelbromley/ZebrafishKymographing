@@ -58,7 +58,7 @@ handles.output = hObject;
 % get inputs
 handles.stack = repmat(checkerboard, 1, 1, 10);
 handles.cut_frame_ind = 4;
-if nargin == 2
+if length(varargin) == 2
     handles.stack = varargin{1};
     handles.cut_frame_ind = varargin{2};
 end
@@ -135,7 +135,7 @@ function genericAxisClick(hObject, eventdata, handles)
     axHandle = allAx(kids == hObject); 
     
     % determine which axis was clicked
-    allAx = findall(gcf, 'type', 'axes');
+%     allAx = findall(gcf, 'type', 'axes');
     dispAx = allAx(1);
     allAx(1) = []; % get rid of large viewing axis
     axInd = 10:-1:1;

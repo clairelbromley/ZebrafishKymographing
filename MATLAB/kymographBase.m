@@ -21,11 +21,11 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = '/Users/clairebromley/Desktop/TEST';
+    userOptions.outputFolder = 'C:\Users\d.kelly\Desktop\output';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
-    userOptions.removeCutFrames = true;             % Toggle removal of frames with scattered light.                                            Default = true
+    userOptions.removeCutFrames = 'manual';             % Switch removal of scattered light frames between 'off', 'auto' and 'manual'.              Default = 'auto'
     userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window. 
     userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
     userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
@@ -80,6 +80,11 @@ function output = kymographBase(varargin)
         mkdir(userOptions.outputFolder);
     end
     
+    if strcmp(userOptions.removeCutFrames, 'manual')
+        % set up scatter removal comparison sheet
+        scatter_removal_comparison_data = {'Acquisition date' 'Embryo number' 'Cut number' 'First frame: auto'...
+                        'Last frame: auto' 'First frame: manual' 'Last frame: manual'};
+    end
     
     try
 
@@ -134,9 +139,24 @@ function output = kymographBase(varargin)
                    ind = ind+1;
                end
                
-               if userOptions.removeCutFrames
-                   msk = intensityScatterFinderV2(stack, curr_metadata.cutFrame + 2 - frames(1), block_frames);
+               msk = intensityScatterFinderV2(stack, curr_metadata.cutFrame + 2 - frames(1), block_frames);
+               if strcmp(userOptions.removeCutFrames, 'auto')
                    stack(:,:,msk) = 0;
+               elseif strcmp(userOptions.removeCutFrames, 'manual')
+                   manmsk = logical(zeros(size(stack, 3), 1)');
+                   manmsk((curr_metadata.cutFrame - frames(1) - 3):(curr_metadata.cutFrame - frames(1) + 6)) = logical(manualScatterGUI(stack, curr_metadata.cutFrame - frames(1)));
+                   stack(:,:,manmsk) = 0;
+                   blocked_frames_auto = find(msk);
+                   first_frame_auto = min(blocked_frames_auto);
+                   last_frame_auto = max(blocked_frames_auto);
+                   blocked_frames_manual = find(manmsk);
+                   first_frame_manual = min(blocked_frames_manual);
+                   last_frame_manual = max(blocked_frames_manual);
+                   
+                   % output to excel
+                   scatter_removal_comparison_data = [scatter_removal_comparison_data; {curr_metadata.acquisitionDate curr_metadata.embryoNumber curr_metadata.cutNumber first_frame_auto...
+                        last_frame_auto first_frame_manual last_frame_manual}];
+                   
                end
 
                 %% Find position of cut, and generate first output figure: 
@@ -184,6 +204,8 @@ function output = kymographBase(varargin)
            end
 
         end
+        
+        xlswrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
         
         if nargin == 1
             imDone();
