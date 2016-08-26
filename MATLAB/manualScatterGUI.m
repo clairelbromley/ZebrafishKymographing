@@ -52,6 +52,12 @@ function manualScatterGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to manualScatterGUI (see VARARGIN)
 
+dummy = [mfilename('fullpath') '.m'];
+currdir = fileparts(dummy);
+funcPath = [currdir filesep '..'];
+addpath(genpath(currdir));
+addpath(funcPath);
+
 % Choose default command line output for manualScatterGUI
 handles.output = hObject;
 
