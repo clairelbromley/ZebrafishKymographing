@@ -658,6 +658,8 @@ try
     axis(kym_ax, [-timeBeforeCut timeAfterCut 0 max(y)], 'tight');
     
     handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
+    handles.edgeSideTxt = text(0, (floor(RI.YWorldLimits(2)) - 1), ['Detected edge: ' handles.edgeSide], 'Parent', kym_ax, 'BackgroundColor', [0.8 0.8 0.8]);
+    
     
 catch ME
     disp(ME);
