@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 28-Mar-2016 16:35:46
+% Last Modified by GUIDE v2.5 29-Aug-2016 21:21:38
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1168,6 +1168,11 @@ end
     
 guidata(hObject, handles);
 
+function includedData = completeDataForExport()
+% Add data lines for kymographs not labelled by the user ('unassigned') and
+% also for kymographs for which no edge was found ('noedgefound')
+disp('Added missing edges');
+
 function indices = checkIfStored(handles, direction)
 % Check whether currently selected kymograph data has been stored for
 % export
@@ -1208,6 +1213,7 @@ else
     outVar = inVar;
 end
 
+
 % --------------------------------------------------------------------
 function menuInclude_Callback(hObject, eventdata, handles)
 % hObject    handle to menuInclude (see GCBO)
@@ -1226,6 +1232,11 @@ if strcmp(get(hObject, 'checked'), 'on')
 else
     set(hObject, 'checked', 'on')
 end
+
+%% clear other checkboxes
+temp_menuH = [handles.menuInclude handles.menuIncludeNoise handles.menuIncludeMisassinged];
+
+
 
 if gca == handles.axUpSelectedKym
     direction = 'up';
@@ -1261,6 +1272,8 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData.direction = direction;
     incData.numberBlockedFrames = handles.currentBlockedFrames;
     incData.edgeSide = handles.edgeSide;
+    
+    incData.userQCLabel = incLabel;
     
     incData.distanceCutToApicalSurfaceUm = handles.currentApicalSurfaceToCutDistance;
     
@@ -1433,6 +1446,28 @@ if strcmp(eventdata.Key, 'i')
     end
     callback = get(handles.menuInclude, 'Callback');
     callback(handles.menuInclude, []);
+end
+
+if strcmp(eventdata.Key, 'm')
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSelectedKym);
+    else
+        axes(handles.axDownSelectedKym);
+    end
+%     %% Toggle MISASSIGNED label
+%     callback = get(handles.menuInclude, 'Callback');
+%     callback(handles.menuInclude, []);
+end
+
+if strcmp(eventdata.Key, 'n')
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSelectedKym);
+    else
+        axes(handles.axDownSelectedKym);
+    end
+%     %% Toggle NOISE label
+%     callback = get(handles.menuInclude, 'Callback');
+%     callback(handles.menuInclude, []);
 end
 
 if strcmp(eventdata.Key, 'p')
@@ -1819,3 +1854,24 @@ end
 
 disp(edgeSide);
 
+
+
+% --------------------------------------------------------------------
+function menuExport_Callback(hObject, eventdata, handles)
+% hObject    handle to menuExport (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuIncludeNoise_Callback(hObject, eventdata, handles)
+% hObject    handle to menuIncludeNoise (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuIncludeMisassigned_Callback(hObject, eventdata, handles)
+% hObject    handle to menuIncludeMisassigned (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
