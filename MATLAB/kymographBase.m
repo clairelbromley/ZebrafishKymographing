@@ -3,6 +3,18 @@ function output = kymographBase(varargin)
 % argument and performs all steps for generation of quantitative kymograph
 % data. 
 
+    %% Set up relative paths in which to look for functions
+    
+    dummy = [mfilename('fullpath') '.m'];
+    currdir = fileparts(dummy);
+%     funcPath = [currdir filesep '..'];
+    addpath(genpath(currdir));
+%     addpath(funcPath);
+
+
+    javaaddpath([currdir filesep 'Viewer' filesep 'Archive' filesep 'jxl.jar']);
+    javaaddpath([currdir filesep 'Viewer' filesep 'Archive' filesep 'MXL.jar']);
+
     %% User variables for setting up kymographs
     userOptions.forcedSpeedRange = [-1.5 1.5];          % speed [min max]
     userOptions.forcedPositionRange = [-5 20];      % position um [min max]
@@ -21,7 +33,7 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = 'C:\Users\d.kelly\Desktop\output';
+    userOptions.outputFolder = '/Users/clairebromley/Desktop/test out';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
