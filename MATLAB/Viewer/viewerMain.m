@@ -1214,43 +1214,14 @@ else
 end
 
 
-% --------------------------------------------------------------------
-function menuInclude_Callback(hObject, eventdata, handles)
-% hObject    handle to menuInclude (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function incData = genericInclude(handles, qcLabel, direction)
 
-%% Return warning/break if metadata hasn't been loaded yet...
-if ~isfield(handles, 'experimentMetadata')
-    msgbox('You need to load metadata before trying to include data for export!');
-    return;
-end
-
-%% Check state of checkbox
-if strcmp(get(hObject, 'checked'), 'on')
-    set(hObject, 'checked', 'off')
-else
-    set(hObject, 'checked', 'on')
-end
-
-%% clear other checkboxes
-temp_menuH = [handles.menuInclude handles.menuIncludeNoise handles.menuIncludeMisassinged];
-
-
-
-if gca == handles.axUpSelectedKym
-    direction = 'up';
-    ax = 1;
-else
-    direction = 'down';
-    ax = 2;
-end
 
 %% Check if current date/embryo/cut/direction/position is stored yet
 indices = checkIfStored(handles, direction);
 
 %% If not, store in includedData structure along with metadata
-if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
+if sum(indices) == 0
     
     % Find the relevant experiment metadata fields...
     expMeta = struct2cell(handles.experimentMetadata);
@@ -1273,7 +1244,7 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
     incData.numberBlockedFrames = handles.currentBlockedFrames;
     incData.edgeSide = handles.edgeSide;
     
-    incData.userQCLabel = incLabel;
+    incData.userQCLabel = qcLabel;
     
     incData.distanceCutToApicalSurfaceUm = handles.currentApicalSurfaceToCutDistance;
     
@@ -1283,22 +1254,57 @@ if sum(indices) == 0 && strcmp(get(hObject, 'checked'), 'on')
         incData.manualSpeed = nan;
     end
     
-    handles.includedData = [handles.includedData; incData];
-    
-    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
         
 end
 
-%% Deal with case when kymograph has been selected but user has changed mind...
-if sum(indices > 0) && strcmp(get(hObject, 'checked'), 'off')
-   %% remove data from handles.includedData based on indices vector 
-   set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
-   if length(handles.includedData) > 1
-        handles.includedData(indices) = [];
-   else
-       handles.includedData = [];
-   end
+function incData = addMissingDataForExport(incData, handles)
+%% loop through experiment metadata, getting ids for all cuts/kymograph positions, 
+% then figuring out whether these exist in the incData structure. If not. add (insert?)
+% lines in the structure corresponding to these fields, marking either as
+% non-existent edges (if no point on speed v position plot exists) or as
+% unQCd data (if user simply hasn't classified the data yet). 
+
+% --------------------------------------------------------------------
+function menuInclude_Callback(hObject, eventdata, handles)
+% hObject    handle to menuInclude (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+%% Return warning/break if metadata hasn't been loaded yet...
+% if ~isfield(handles, 'experimentMetadata')
+%     msgbox('You need to load metadata before trying to include data for export!');
+%     return;
+% end
+
+%% clear other checkboxes
+menuHs = get(get(hObject, 'Parent'), 'Children');
+for menuH = menuHs
+    set(menuH, 'Checked', 'off');
 end
+set(hObject, 'Checked', 'on');
+
+if gca == handles.axUpSelectedKym
+    direction = 'up';
+    ax = 1;
+else
+    direction = 'down';
+    ax = 2;
+end
+
+
+incData = genericInclude(handles, get(hObject, 'Label'), direction);
+handles.includedData = [handles.includedData; incData];
+
+
+% Make this bit verbose for greater accessbility later...
+if strcmp(get(hObject, 'Label'), 'Misassigned edge')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+elseif strcmp(get(hObject, 'Label'), 'Noise')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+elseif strcmp(get(hObject, 'Label'), 'Good')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+end
+
 
 guidata(hObject, handles);
     
@@ -1868,6 +1874,9 @@ function menuIncludeNoise_Callback(hObject, eventdata, handles)
 % hObject    handle to menuIncludeNoise (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% handles = guidata(gcbo);
+disp('hello');
 
 
 % --------------------------------------------------------------------
