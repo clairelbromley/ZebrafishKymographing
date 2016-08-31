@@ -648,9 +648,16 @@ try
         set(handles.fitLine(ax), 'Visible', 'off');
         set(handles.fitText(ax), 'Visible', 'off');
     end
-
-    if sum(checkIfStored(handles, direction)) > 0 
-        set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+    
+    indices = checkIfStored(handles, direction);
+    if sum(indices) > 0
+        if strcmp(handles.includedData.userQCLabel, 'Good')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+        elseif strcmp(handles.includedData.userQCLabel, 'Misassigned edge')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+        elseif strcmp(handles.includedData.userQCLabel, 'Noise')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+        end
     else
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
@@ -1014,12 +1021,20 @@ else
     set(handles.menuInclude, 'Enable', 'off');
 end
 
+menuHs = get(handles.menuExport, 'Children');
 if ischar(get(handles.kymTitle{ax}, 'BackgroundColor'))
     if strcmp(get(handles.kymTitle{ax}, 'BackgroundColor'), 'none')
         set(handles.menuInclude, 'Checked', 'off');
+        set(menuHs, 'Checked', 'off');
     end
 else
-    set(handles.menuInclude, 'Checked', 'on');
+    if get(handles.kymTitle{ax}, 'BackgroundColor') == [0 1 0]
+        set(handles.menuInclude, 'Checked', 'on');
+    elseif get(handles.kymTitle{ax}, 'BackgroundColor') == [1 0 0]
+        set(handles.menuIncludeNoise, 'Checked', 'on');
+    elseif get(handles.kymTitle{ax}, 'BackgroundColor') == [0 1 1]
+        set(handles.menuIncludeMisassigned, 'Checked', 'on');
+    end
 end
 
 guidata(hObject, handles);
@@ -1214,7 +1229,7 @@ else
 end
 
 
-function incData = genericInclude(handles, qcLabel, direction)
+function handles = genericInclude(handles, qcLabel, direction)
 
 
 %% Check if current date/embryo/cut/direction/position is stored yet
@@ -1254,7 +1269,11 @@ if sum(indices) == 0
         incData.manualSpeed = nan;
     end
     
-        
+    handles.includedData = [handles.includedData; incData];
+   
+else
+    handles.includedData(indices).userQCLabel = qcLabel;
+    
 end
 
 function incData = addMissingDataForExport(incData, handles)
@@ -1292,9 +1311,7 @@ else
 end
 
 
-incData = genericInclude(handles, get(hObject, 'Label'), direction);
-handles.includedData = [handles.includedData; incData];
-
+handles = genericInclude(handles, get(hObject, 'Label'), direction);
 
 % Make this bit verbose for greater accessbility later...
 if strcmp(get(hObject, 'Label'), 'Misassigned edge')
