@@ -765,6 +765,22 @@ set(handles.listData, 'Enable', 'off');
 headerLine = fields(handles.includedData)';
 data = struct2cell(handles.includedData)';
 
+parseForXLExport(handles, headerLine, data, outputName, includeStats);    % Complete output
+
+colFilt = strcmp(headerLine, 'userQCLabel');
+col = data(:, colFilt);
+rowFilt = strcmp(col, 'Good');
+goodData = data(rowFilt, :);
+[pa, fn, ext] = fileparts(outputName);
+goodOutputName = [pa filesep fn '_user QCd' ext];
+
+parseForXLExport(handles, headerLine, goodData, goodOutputName, includeStats);    % 'Good' kym only output
+   
+busyDlg(busyOutput);
+set(handles.listData, 'Enable', 'on');
+    
+function parseForXLExport(handles, headerLine, data, outputName, includeStats)
+
 if ~isfield(handles.includedData, 'distanceCutToApicalSurfaceUm')
 
 	varn = 'metadata.distanceToApicalSurface';
@@ -931,11 +947,8 @@ if includeStats
     xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
     
 end
-   
-busyDlg(busyOutput);
-set(handles.listData, 'Enable', 'on');
-    
-    
+
+
 function xxwrite(varargin)
 outName = varargin{1};
 data = varargin{2};
@@ -1014,11 +1027,17 @@ end
 if isfield(handles, 'experimentMetadata')
     if ~isempty(handles.experimentMetadata)
         set(handles.menuInclude, 'Enable', 'on');
+        set(handles.menuIncludeNoise', 'Enable', 'on');
+        set(handles.menuIncludeMisassigned, 'Enable', 'on');
     else
         set(handles.menuInclude, 'Enable', 'off');
+        set(handles.menuIncludeNoise', 'Enable', 'off');
+        set(handles.menuIncludeMisassigned, 'Enable', 'off');
     end
 else
     set(handles.menuInclude, 'Enable', 'off');
+    set(handles.menuIncludeNoise', 'Enable', 'off');
+    set(handles.menuIncludeMisassigned, 'Enable', 'off');
 end
 
 menuHs = get(handles.menuExport, 'Children');
