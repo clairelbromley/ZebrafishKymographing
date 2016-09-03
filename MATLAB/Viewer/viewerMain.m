@@ -89,6 +89,8 @@ set(handles.menuExpFit,'Enable','off');
 
 handles.kymAxisThickness = 1;
 
+handles.includedData = [];
+
 guidata(hObject, handles);
 
 % UIWAIT makes viewerMain wait for user response (see UIRESUME)
@@ -171,6 +173,12 @@ if ~isequal(base_folder, 0)
     set(handles.listData, 'String', dataList);
 
     guidata(hObject, handles);
+    
+    %% Fire metadata load event
+    if ~isempty(dataList)
+        callback = get(handles.menuLoadMetadata, 'Callback');
+        callback(handles.listData, []);
+    end
 
     %% Fire selection event for first item in list
     if ~isempty(dataList)
@@ -343,11 +351,63 @@ try
 %                 msgbox(['No figure to load at ' fpath]);
 %             end
         end
-    
 catch ME
     disp(ME)
     uiwait(msgbox(['No figure to load at ' fpath]));   
     axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
+    imagesc(zeros(5),'Parent',axHandles(ind));
+
+end
+    
+        % IF DATA NOT ALREADY PRESENT, populate includedData with all
+        % kymograph positions and label with 'not QCd' or 'no edge'
+        % Loop through positions detailed in handles.positionsAlongLine
+        % check for each whether kymograph edge exists and whether it
+        % exists in includedData
+        % Add to included data if necessary
+        
+        % TODO: make metadata load compulsory?
+        
+try       
+        directions = {'up' 'down'};
+%         if ~isempty(handles.includedData)
+            for direction = directions
+                baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+                folder = [baseFolder2 ' ' direction{1} 'wards'];
+                filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+                fractional_pos_along_cut = getNumericMetadataFromText(filepath, 'metadata.kym_region.fraction_along_cut');
+                distance_from_edge = getNumericMetadataFromText(filepath, 'metadata.kym_region.distance_from_edge');
+               
+                for pos = handles.positionsAlongLine
+                    handles.currentPosition = pos;
+                    handles.currentSpeed = nan;
+                    handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
+                        == round(1000*handles.currentPosition)/1000);
+                    handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
+                        == round(1000*handles.currentPosition)/1000);
+                    handles.edgeSide = '';
+                    handles.currentBlockedFrames = nan;
+                    
+%                    if sum(checkIfStored(handles, direction{1}, pos) == 0)
+                       % was edge found, i.e. is relevant x position in the
+                       % speed v position plot?
+                       if ((sum(round(1000*handles.poss{strcmp(directions, direction{1})})/1000 == round(1000*pos)/1000) > 0))  % nonsense
+                           qcLabel = 'not QCd';
+                           handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                       else
+                           qcLabel = 'no edge';
+                           handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                       end
+%                    end
+                end
+                
+            end
+%         end
+        
+catch ME
+    disp(ME)
+    disp(ME.stack)
+    uiwait(msgbox(['Error parsing metadata to include data structure!']));   
     imagesc(zeros(5),'Parent',axHandles(ind));
 
 end
@@ -649,14 +709,16 @@ try
         set(handles.fitText(ax), 'Visible', 'off');
     end
     
-    indices = checkIfStored(handles, direction);
+    indices = checkIfStored(handles, direction, handles.currentPosition);
     if sum(indices) > 0
-        if strcmp(handles.includedData.userQCLabel, 'Good')
+        if strcmp(handles.includedData(indices).userQCLabel, 'Good')
             set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
-        elseif strcmp(handles.includedData.userQCLabel, 'Misassigned edge')
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Misassigned edge')
             set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
-        elseif strcmp(handles.includedData.userQCLabel, 'Noise')
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Noise')
             set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+        else
+            set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
         end
     else
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
@@ -704,6 +766,21 @@ function saveToPPT_Callback(hObject, eventdata, handles)
 % hObject    handle to saveToPPT (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+function incData = addMissingDataForExport(incData, handles)
+%% loop through experiment metadata, getting ids for all cuts/kymograph positions, 
+% then figuring out whether these exist in the incData structure. If not. add (insert?)
+% lines in the structure corresponding to these fields, marking either as
+% non-existent edges (if no point on speed v position plot exists) or as
+% unQCd data (if user simply hasn't classified the data yet). 
+
+% This should be made considerably faster by farming out assessment of
+% whether edges have been found to point of data loading (i.e. on click in
+% the leftmost list) and pre-populating the includedData structure at that
+% point with 'not QCd' in userQCLabel field, assuming data for this cut is
+% not already in the structure. 
+incData = incData;
 
 
 % --------------------------------------------------------------------
@@ -755,6 +832,19 @@ switch reply
     otherwise
         return;
 end
+% 
+% %% DIALOG TO CHECK WHETHER NON-QCd DATA/DATA WITHOUT EDGES FOUND SHOULD BE INCLUDED
+% reply = questdlg('Include spreadsheet lines for kymographs that haven''t been QDd yet or for which no edge was found? Note that this can slow things down considerably...', ...
+%     'Include ALL kymographs?', 'Include ALL kymographs', 'Only include QCd kymographs');
+% 
+% switch reply
+%     case 'Include ALL kymographs'
+%         handles.includeAllInExport = true;
+%     case 'Only include QCd kymographs'
+%         handles.includeAllInExport = false;
+%     otherwise
+%         return;
+% end
 
 %% EXPORT (TO CSV?)
 disp('Export...')
@@ -764,12 +854,12 @@ set(handles.listData, 'Enable', 'off');
 
 headerLine = fields(handles.includedData)';
 data = struct2cell(handles.includedData)';
+% data = addMissingDataForExport(data, handles);
 
 parseForXLExport(handles, headerLine, data, outputName, includeStats);    % Complete output
 
 colFilt = strcmp(headerLine, 'userQCLabel');
-col = data(:, colFilt);
-rowFilt = strcmp(col, 'Good');
+rowFilt = strcmp(data(:, colFilt), 'Good');
 goodData = data(rowFilt, :);
 [pa, fn, ext] = fileparts(outputName);
 goodOutputName = [pa filesep fn '_user QCd' ext];
@@ -842,20 +932,28 @@ if includeStats
     warning('off', wid);
     
     mudata = data(ia, :);
-    mudata(:, strcmp(headerLine, 'speed')) = num2cell(mu);
-    xxwrite(outputName, [headerLine; mudata], 'Mean speeds, ums^-1');
+    if ~isempty(mudata)
+        mudata(:, strcmp(headerLine, 'speed')) = num2cell(mu);
+        xxwrite(outputName, [headerLine; mudata], 'Mean speeds, ums^-1');
+    end
     
     sddata = data(ia, :);
-    sddata(:, strcmp(headerLine, 'speed')) = num2cell(sd);
-    xxwrite(outputName, [headerLine; sddata], 'SD on speeds, ums^-1');
+    if ~isempty(sddata)
+        sddata(:, strcmp(headerLine, 'speed')) = num2cell(sd);
+        xxwrite(outputName, [headerLine; sddata], 'SD on speeds, ums^-1');
+    end
     
     mxdata = data(ia, :);
-    mxdata(:, strcmp(headerLine, 'speed')) = num2cell(mx);
-    xxwrite(outputName, [headerLine; mxdata], 'Max speeds, ums^-1');
+    if ~isempty(mxdata)
+        mxdata(:, strcmp(headerLine, 'speed')) = num2cell(mx);
+        xxwrite(outputName, [headerLine; mxdata], 'Max speeds, ums^-1');
+    end
     
     meddata = data(ia, :);
-    meddata(:, strcmp(headerLine, 'speed')) = num2cell(med);
-    xxwrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
+    if ~isempty(meddata)
+        meddata(:, strcmp(headerLine, 'speed')) = num2cell(med);
+        xxwrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
+    end
     
     %% get list of embryo/cut/date
     ids = data(:, strcmp(headerLine, 'ID'));
@@ -885,20 +983,28 @@ if includeStats
     end
        
     filtmudata = data(ia, :);
-    filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-    xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
+    if ~isempty(filtmudata)
+        filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+        xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
+    end
     
     filtsddata = data(ia, :);
-    filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-    xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
-    
+    if ~isempty(filtsddata)
+        filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+        xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
+    end
+        
     filtmxdata = data(ia, :);
-    filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-    xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
-    
+    if ~isempty(filtmxdata)
+        filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+        xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
+    end
+        
     filtmeddata = data(ia, :);
-    filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-    xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
+    if ~isempty(filtmeddata)
+        filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+        xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
+    end
     
     
     %% Now do Jon-style ("inside cut only") filtering, but separating up and down kymographs for
@@ -931,20 +1037,28 @@ if includeStats
     end
        
     filtmudata = data(ia, :);
-    filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-    xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
+    if ~isempty(filtmudata)
+        filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+        xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
+    end
     
     filtsddata = data(ia, :);
-    filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-    xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
+    if ~isempty(filtsddata)
+        filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+        xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
+    end
     
     filtmxdata = data(ia, :);
-    filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-    xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
+    if ~isempty(filtmxdata)
+        filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+        xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
+    end
     
     filtmeddata = data(ia, :);
-    filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-    xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
+    if ~isempty(filtmeddata)
+        filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+        xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
+    end
     
 end
 
@@ -1202,12 +1316,7 @@ end
     
 guidata(hObject, handles);
 
-function includedData = completeDataForExport()
-% Add data lines for kymographs not labelled by the user ('unassigned') and
-% also for kymographs for which no edge was found ('noedgefound')
-disp('Added missing edges');
-
-function indices = checkIfStored(handles, direction)
+function indices = checkIfStored(handles, direction, position)
 % Check whether currently selected kymograph data has been stored for
 % export
 indices = 0;
@@ -1229,11 +1338,11 @@ if isfield(handles, 'includedData');
         if max(size(dates)) == 1
             indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
-                round(1000*positions)/1000 == round(1000*handles.currentPosition)/1000;
+                round(1000*positions)/1000 == round(1000*position)/1000;
         else
             indices = strcmp(dates, handles.date) & strcmp(embryoNs, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{:}, direction) & ...
-                round(1000*positions)/1000 == round(1000*handles.currentPosition)/1000;
+                round(1000*positions)/1000 == round(1000*position)/1000;
         end
             
     end
@@ -1248,11 +1357,19 @@ else
 end
 
 
-function handles = genericInclude(handles, qcLabel, direction)
+function handles = genericInclude(handles, qcLabel, direction, position)
 
 
-%% Check if current date/embryo/cut/direction/position is stored yet
-indices = checkIfStored(handles, direction);
+% if nargin == 0
+%     position = handles.currentPosition;
+%     fractionalPosition = handles.currentFractionalPosition;
+% elseif nargin == 2
+%     position = varargin{1}(varargin{3};
+%     fractionalPosition = varargin{2}(varargin{3});
+% end
+
+% %% Check if current date/embryo/cut/direction/position is stored yet
+indices = checkIfStored(handles, direction, position);
 
 %% If not, store in includedData structure along with metadata
 if sum(indices) == 0
@@ -1295,24 +1412,17 @@ else
     
 end
 
-function incData = addMissingDataForExport(incData, handles)
-%% loop through experiment metadata, getting ids for all cuts/kymograph positions, 
-% then figuring out whether these exist in the incData structure. If not. add (insert?)
-% lines in the structure corresponding to these fields, marking either as
-% non-existent edges (if no point on speed v position plot exists) or as
-% unQCd data (if user simply hasn't classified the data yet). 
-
 % --------------------------------------------------------------------
 function menuInclude_Callback(hObject, eventdata, handles)
 % hObject    handle to menuInclude (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-%% Return warning/break if metadata hasn't been loaded yet...
-% if ~isfield(handles, 'experimentMetadata')
-%     msgbox('You need to load metadata before trying to include data for export!');
-%     return;
-% end
+% Return warning/break if metadata hasn't been loaded yet...
+if ~isfield(handles, 'experimentMetadata')
+    msgbox('You need to load metadata before trying to include data for export!');
+    return;
+end
 
 %% clear other checkboxes
 menuHs = get(get(hObject, 'Parent'), 'Children');
@@ -1330,7 +1440,7 @@ else
 end
 
 
-handles = genericInclude(handles, get(hObject, 'Label'), direction);
+handles = genericInclude(handles, get(hObject, 'Label'), direction, handles.currentPosition);
 
 % Make this bit verbose for greater accessbility later...
 if strcmp(get(hObject, 'Label'), 'Misassigned edge')
