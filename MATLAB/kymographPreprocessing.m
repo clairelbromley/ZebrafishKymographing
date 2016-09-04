@@ -95,12 +95,13 @@ if (redoPreprocess) || ~uO.loadPreprocessedImages || (exist(output_path, 'file')
             % single pixel noise, then use this binary mask to get rid of single
             % pixel noise in the thresholded data
             % -------------------------------------------------------------------%%
-
-            binary_im = (image > 0);
-            se = strel('disk', 1);
-            binary_im = imerode(binary_im, se);
-            binary_im = imdilate(binary_im, se);
-            image(binary_im == 0) = 0;
+            if uO.erosionDilation
+                binary_im = (image > 0);
+                se = strel('disk', 1);
+                binary_im = imerode(binary_im, se);
+                binary_im = imdilate(binary_im, se);
+                image(binary_im == 0) = 0;
+            end
 
             stack(:,:,ind) = image;
         end

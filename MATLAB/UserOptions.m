@@ -28,6 +28,7 @@ classdef UserOptions
          figHandle = figure;                 % Allow figures to be rendered in a single window. 
          savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
          avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
+         erosionDilation = true;   % Toggle erosion/dilation denoising (1 pixel) on or off.                                  Default = true;
          medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
          preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
          showKymographOverlapOverlay = true;
