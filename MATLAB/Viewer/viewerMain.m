@@ -1641,6 +1641,16 @@ if strcmp(eventdata.Key, 'p')
     callback(handles.menuViewMovie, []);
 end
 
+if strcmp(eventdata.Key, 'uparrow')
+    handles.currentDir = 'up';
+    axes(handles.axUpSpeedVPosition);
+end
+
+if strcmp(eventdata.Key, 'downarrow')
+    handles.currentDir = 'down';
+    axes(handles.axDownSpeedVPosition);
+end
+
 if strcmp(eventdata.Key, 'rightarrow')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSpeedVPosition);
