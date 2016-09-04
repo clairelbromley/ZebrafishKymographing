@@ -359,14 +359,22 @@ catch ME
 
 end
     
+% Load distance from apical surface for current cut
+fname = [handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep ...
+    'trimmed_cutinfo_cut_' cutNumber '.txt' ];
+varn = 'metadata.distanceToApicalSurface';
+try
+    handles.currentApicalSurfaceToCutDistance = getNumericMetadataFromText(fname, varn);
+catch
+    handles.currentApicalSurfaceToCutDistance = NaN;
+end
+
         % IF DATA NOT ALREADY PRESENT, populate includedData with all
         % kymograph positions and label with 'not QCd' or 'no edge'
         % Loop through positions detailed in handles.positionsAlongLine
         % check for each whether kymograph edge exists and whether it
         % exists in includedData
         % Add to included data if necessary
-        
-        % TODO: make metadata load compulsory?
         
 try       
         directions = {'up' 'down'};
@@ -407,23 +415,12 @@ try
 catch ME
     disp(ME)
     disp(ME.stack)
-    uiwait(msgbox(['Error parsing metadata to include data structure!']));   
+    disp(ME.stack.name);
+    disp(ME.stack.line);
+    uiwait(msgbox('Error parsing metadata to include data structure!'));   
     imagesc(zeros(5),'Parent',axHandles(ind));
 
 end
-            
-
-      
-% Load distance from apical surface for current cut
-fname = [handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep ...
-    'trimmed_cutinfo_cut_' cutNumber '.txt' ];
-varn = 'metadata.distanceToApicalSurface';
-try
-    handles.currentApicalSurfaceToCutDistance = getNumericMetadataFromText(fname, varn);
-catch
-    handles.currentApicalSurfaceToCutDistance = NaN;
-end
-
 
 %% end busy
 busyDlg(busyOutput);
@@ -789,6 +786,9 @@ function exportWizard_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+busyOutput = busyDlg();
+set(handles.listData, 'Enable', 'off');
+
 %% CHECK IF THERE IS DATA TO SAVE?
 if isfield(handles, 'includedData')
    if isempty(handles.includedData)
@@ -849,8 +849,8 @@ end
 %% EXPORT (TO CSV?)
 disp('Export...')
 
-busyOutput = busyDlg();
-set(handles.listData, 'Enable', 'off');
+% busyOutput = busyDlg();
+% set(handles.listData, 'Enable', 'off');
 
 headerLine = fields(handles.includedData)';
 data = struct2cell(handles.includedData)';
@@ -1409,6 +1409,13 @@ if sum(indices) == 0
    
 else
     handles.includedData(indices).userQCLabel = qcLabel;
+    if isfield(handles, 'currentManualLineSpeed')
+        handles.includedData(indices).manualSpeed = handles.currentManualLineSpeed;
+    else
+        handles.includedData(indices).manualSpeed = nan;
+    end
+    handles.includedData(indices).numberBlockedFrames = handles.currentBlockedFrames;
+    handles.includedData(indices).edgeSide = handles.edgeSide;
     
 end
 
@@ -1439,7 +1446,6 @@ else
     ax = 2;
 end
 
-
 handles = genericInclude(handles, get(hObject, 'Label'), direction, handles.currentPosition);
 
 % Make this bit verbose for greater accessbility later...
@@ -1450,7 +1456,6 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
 end
-
 
 guidata(hObject, handles);
     
@@ -1590,14 +1595,17 @@ if strcmp(eventdata.Key, 'e')
     callback(handles.menuOverlayEdge, []);
 end
 
-if strcmp(eventdata.Key, 'i')
+if strcmp(eventdata.Key, 'g')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
     else
-        axes(handles.axDownSelectedKym);
+        axes(handles.axDownSelectedKym);h
     end
+%     handles = genericInclude(handles, 'Good', handles.currentDir, handles.currentPosition);
+    hObject = handles.menuInclude;
     callback = get(handles.menuInclude, 'Callback');
     callback(handles.menuInclude, []);
+
 end
 
 if strcmp(eventdata.Key, 'm')
@@ -1606,9 +1614,10 @@ if strcmp(eventdata.Key, 'm')
     else
         axes(handles.axDownSelectedKym);
     end
-%     %% Toggle MISASSIGNED label
-%     callback = get(handles.menuInclude, 'Callback');
-%     callback(handles.menuInclude, []);
+    %% Toggle MISASSIGNED label
+%     handles = genericInclude(handles, 'Misassigned edge', handles.currentDir, handles.currentPosition);
+    callback = get(handles.menuIncludeMisassigned, 'Callback');
+    callback(handles.menuIncludeMisassigned, []);
 end
 
 if strcmp(eventdata.Key, 'n')
@@ -1617,9 +1626,9 @@ if strcmp(eventdata.Key, 'n')
     else
         axes(handles.axDownSelectedKym);
     end
-%     %% Toggle NOISE label
-%     callback = get(handles.menuInclude, 'Callback');
-%     callback(handles.menuInclude, []);
+    %% Toggle NOISE label
+    callback = get(handles.menuIncludeNoise, 'Callback');
+    callback(handles.menuIncludeNoise, []);
 end
 
 if strcmp(eventdata.Key, 'p')
@@ -1684,7 +1693,7 @@ if strcmp(eventdata.Key, 'leftarrow')
     
 end
 
-% guidata(hObject, handles);
+guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
@@ -2004,7 +2013,7 @@ else
     edgeSide = 'lower';
 end
 
-disp(edgeSide);
+% disp(edgeSide);
 
 
 
@@ -2021,12 +2030,76 @@ function menuIncludeNoise_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% handles = guidata(gcbo);
-disp('hello');
+% Return warning/break if metadata hasn't been loaded yet...
+if ~isfield(handles, 'experimentMetadata')
+    msgbox('You need to load metadata before trying to include data for export!');
+    return;
+end
 
+%% clear other checkboxes
+menuHs = get(get(hObject, 'Parent'), 'Children');
+for menuH = menuHs
+    set(menuH, 'Checked', 'off');
+end
+set(hObject, 'Checked', 'on');
+
+if gca == handles.axUpSelectedKym
+    direction = 'up';
+    ax = 1;
+else
+    direction = 'down';
+    ax = 2;
+end
+
+handles = genericInclude(handles, get(hObject, 'Label'), direction, handles.currentPosition);
+
+% Make this bit verbose for greater accessbility later...
+if strcmp(get(hObject, 'Label'), 'Misassigned edge')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+elseif strcmp(get(hObject, 'Label'), 'Noise')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+elseif strcmp(get(hObject, 'Label'), 'Good')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+end
+
+guidata(hObject, handles);
 
 % --------------------------------------------------------------------
 function menuIncludeMisassigned_Callback(hObject, eventdata, handles)
 % hObject    handle to menuIncludeMisassigned (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Return warning/break if metadata hasn't been loaded yet...
+if ~isfield(handles, 'experimentMetadata')
+    msgbox('You need to load metadata before trying to include data for export!');
+    return;
+end
+
+%% clear other checkboxes
+menuHs = get(get(hObject, 'Parent'), 'Children');
+for menuH = menuHs
+    set(menuH, 'Checked', 'off');
+end
+set(hObject, 'Checked', 'on');
+
+if gca == handles.axUpSelectedKym
+    direction = 'up';
+    ax = 1;
+else
+    direction = 'down';
+    ax = 2;
+end
+
+handles = genericInclude(handles, get(hObject, 'Label'), direction, handles.currentPosition);
+
+% Make this bit verbose for greater accessbility later...
+if strcmp(get(hObject, 'Label'), 'Misassigned edge')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+elseif strcmp(get(hObject, 'Label'), 'Noise')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+elseif strcmp(get(hObject, 'Label'), 'Good')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+end
+
+guidata(hObject, handles);
