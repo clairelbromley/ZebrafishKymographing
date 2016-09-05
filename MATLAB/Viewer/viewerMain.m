@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 29-Aug-2016 21:21:38
+% Last Modified by GUIDE v2.5 05-Sep-2016 06:29:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -960,107 +960,110 @@ if includeStats
     
     %% get list of embryo/cut/date
     ids = data(:, strcmp(headerLine, 'ID'));
-    for ind = 1:length(ids)
-        r  = regexp(ids{ind}, '-', 'split');
-        ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
-    end
-    
-    [~, ia, ic] = unique(ids2, 'stable');
-    %% for each kymograph, isolate the  relevant data rows and calculate stats
-    for ind = 1:max(ic)
-        filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-        
-        filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-        
-        try
-            filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-        catch
-            filtmx(ind) = NaN;
+    if length(ids) > 0
+        for ind = 1:length(ids)
+            r  = regexp(ids{ind}, '-', 'split');
+            ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
         end
-        
-        filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-    end
-       
-    filtmudata = data(ia, :);
-    if ~isempty(filtmudata)
-        filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-        xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
-    end
-    
-    filtsddata = data(ia, :);
-    if ~isempty(filtsddata)
-        filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-        xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
-    end
-        
-    filtmxdata = data(ia, :);
-    if ~isempty(filtmxdata)
-        filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-        xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
-    end
-        
-    filtmeddata = data(ia, :);
-    if ~isempty(filtmeddata)
-        filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-        xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
-    end
-    
-    
-    %% Now do Jon-style ("inside cut only") filtering, but separating up and down kymographs for
-    % meaningful comparison of apical and basal surface movement in order
-    % to assess whether cells are moving or changing size:
-    
-    filtmu = [];
-    filtsd = [];
-    filtmx = [];
-    filtmed = [];
-    
-    [~, ia, ic] = unique(ids, 'stable');
-    %% for each kymograph, isolate the  relevant data rows and calculate stats
-    for ind = 1:max(ic)
-        filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-        
-        filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-        
-        try
-            filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+
+        [~, ia, ic] = unique(ids2, 'stable');
+        %% for each kymograph, isolate the  relevant data rows and calculate stats
+        for ind = 1:max(ic)
+            filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
                 & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-        catch
-            filtmx(ind) = NaN;
+
+            filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+
+            try
+                filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                    & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            catch
+                filtmx(ind) = NaN;
+            end
+
+            filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
         end
-        
-        filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-            & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
-    end
-       
-    filtmudata = data(ia, :);
-    if ~isempty(filtmudata)
-        filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-        xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
-    end
-    
-    filtsddata = data(ia, :);
-    if ~isempty(filtsddata)
-        filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-        xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
-    end
-    
-    filtmxdata = data(ia, :);
-    if ~isempty(filtmxdata)
-        filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-        xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
-    end
-    
-    filtmeddata = data(ia, :);
-    if ~isempty(filtmeddata)
-        filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-        xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
+
+        filtmudata = data(ia, :);
+        if ~isempty(filtmudata)
+            filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+            xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
+        end
+
+        filtsddata = data(ia, :);
+        if ~isempty(filtsddata)
+            filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+            xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
+        end
+
+        filtmxdata = data(ia, :);
+        if ~isempty(filtmxdata)
+            filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+            xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
+        end
+
+        filtmeddata = data(ia, :);
+        if ~isempty(filtmeddata)
+            filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+            xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
+        end
+
+
+        %% Now do Jon-style ("inside cut only") filtering, but separating up and down kymographs for
+        % meaningful comparison of apical and basal surface movement in order
+        % to assess whether cells are moving or changing size:
+
+        filtmu = [];
+        filtsd = [];
+        filtmx = [];
+        filtmed = [];
+
+        [~, ia, ic] = unique(ids, 'stable');
+        %% for each kymograph, isolate the  relevant data rows and calculate stats
+        for ind = 1:max(ic)
+            filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+
+            filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+
+            try
+                filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                    & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            catch
+                filtmx(ind) = NaN;
+            end
+
+            filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+        end
+
+        filtmudata = data(ia, :);
+        if ~isempty(filtmudata)
+            filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+            xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
+        end
+
+        filtsddata = data(ia, :);
+        if ~isempty(filtsddata)
+            filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+            xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
+        end
+
+        filtmxdata = data(ia, :);
+        if ~isempty(filtmxdata)
+            filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+            xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
+        end
+
+        filtmeddata = data(ia, :);
+        if ~isempty(filtmeddata)
+            filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+            xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
+        end
+
     end
     
 end
@@ -1423,7 +1426,7 @@ else
 end
 
 % --------------------------------------------------------------------
-function menuInclude_Callback(hObject, eventdata, handles)
+function handles = menuInclude_Callback(hObject, eventdata, handles)
 % hObject    handle to menuInclude (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1602,12 +1605,12 @@ if strcmp(eventdata.Key, 'g')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
     else
-        axes(handles.axDownSelectedKym);h
+        axes(handles.axDownSelectedKym);
     end
 %     handles = genericInclude(handles, 'Good', handles.currentDir, handles.currentPosition);
     hObject = handles.menuInclude;
     callback = get(handles.menuInclude, 'Callback');
-    callback(handles.menuInclude, []);
+    handles = callback(handles.menuInclude, []);
 
 end
 
@@ -1620,7 +1623,7 @@ if strcmp(eventdata.Key, 'm')
     %% Toggle MISASSIGNED label
 %     handles = genericInclude(handles, 'Misassigned edge', handles.currentDir, handles.currentPosition);
     callback = get(handles.menuIncludeMisassigned, 'Callback');
-    callback(handles.menuIncludeMisassigned, []);
+    handles = callback(handles.menuIncludeMisassigned, []);
 end
 
 if strcmp(eventdata.Key, 'n')
@@ -1631,7 +1634,7 @@ if strcmp(eventdata.Key, 'n')
     end
     %% Toggle NOISE label
     callback = get(handles.menuIncludeNoise, 'Callback');
-    callback(handles.menuIncludeNoise, []);
+    handles = callback(handles.menuIncludeNoise, []);
 end
 
 if strcmp(eventdata.Key, 'p')
@@ -2035,7 +2038,7 @@ function menuExport_Callback(hObject, eventdata, handles)
 
 
 % --------------------------------------------------------------------
-function menuIncludeNoise_Callback(hObject, eventdata, handles)
+function handles = menuIncludeNoise_Callback(hObject, eventdata, handles)
 % hObject    handle to menuIncludeNoise (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2075,7 +2078,7 @@ end
 guidata(hObject, handles);
 
 % --------------------------------------------------------------------
-function menuIncludeMisassigned_Callback(hObject, eventdata, handles)
+function handles = menuIncludeMisassigned_Callback(hObject, eventdata, handles)
 % hObject    handle to menuIncludeMisassigned (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -2113,3 +2116,10 @@ elseif strcmp(get(hObject, 'Label'), 'Good')
 end
 
 guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuHelp_Callback(hObject, eventdata, handles)
+% hObject    handle to menuHelp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
