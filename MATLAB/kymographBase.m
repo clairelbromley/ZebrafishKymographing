@@ -31,9 +31,12 @@ function output = kymographBase(varargin)
     userOptions.kym_width = 5;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
     userOptions.kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
     
+    userOptions.scatterComparisonOnly = false;      % Perform comparison of manual v automatic scatter removal without rest of processing.      Default = false;
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
+
     userOptions.outputFolder = '/Users/clairebromley/Desktop/test out';
+
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -171,49 +174,52 @@ function output = kymographBase(varargin)
                         last_frame_auto first_frame_manual last_frame_manual}];
                    
                end
+               
+               if ~userOptions.scatterComparisonOnly
 
-                %% Find position of cut, and generate first output figure: 
-                %   the first frame of the stack with cut line and kymograph
-                %   lines overlaid, along with a scale bar. 
-                
-                %% deal with basal membrane kymographing
-                if userOptions.basalMembraneKym
-                    % get kym positions from files
-                    curr_metadata = getKymographPositionMetadata(userOptions, curr_metadata, curr_path);
-                else
-                    curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-                end
-%                 curr_metadata = manualBasalMembraneKymographPositioning(squeeze(stack(:,:,1)), userOptions, curr_metadata);
+                    %% Find position of cut, and generate first output figure: 
+                    %   the first frame of the stack with cut line and kymograph
+                    %   lines overlaid, along with a scale bar. 
 
-                % FOR NOW (01/12/2015) do this three times with start, end and
-                % just after cut images
-                userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
-                curr_metadata.kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
-                
-                if ~userOptions.basalMembraneKym
-%                     curr_metadata = findDistanceToMidline(stack, curr_metadata, userOptions);
-                    curr_metadata.distanceToApicalSurface = getApicalSurfacePositionMetadata(userOptions, curr_metadata, curr_path);
-                end
-                
-                if (userOptions.saveCutPositioningFigs)
-                    userOptions.firstFigureTitleAppend = ', immediately post-cut';
-                    firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
-                    userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
-                    firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
-                    userOptions.firstFigureTitleAppend = sprintf(', multipage');
-                    testCutPositioningSlow(stack, curr_metadata, userOptions);
-                    userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
-                    testCutPositioningFast(stack, curr_metadata, userOptions);
-                else
-                   %% Pre-process images in stack
-                   [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+                    %% deal with basal membrane kymographing
+                    if userOptions.basalMembraneKym
+                        % get kym positions from files
+                        curr_metadata = getKymographPositionMetadata(userOptions, curr_metadata, curr_path);
+                    else
+                        curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
+                    end
+    %                 curr_metadata = manualBasalMembraneKymographPositioning(squeeze(stack(:,:,1)), userOptions, curr_metadata);
 
-                   %% Plot and save kymographs
-                   kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
-                   results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
-    %                output.results = cat(2, output.results, results);
-    %                output.kymographs = cat(4, output.kymographs, kymographs);
-                end
+                    % FOR NOW (01/12/2015) do this three times with start, end and
+                    % just after cut images
+                    userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', A);
+                    curr_metadata.kym_region = firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+
+                    if ~userOptions.basalMembraneKym
+    %                     curr_metadata = findDistanceToMidline(stack, curr_metadata, userOptions);
+                        curr_metadata.distanceToApicalSurface = getApicalSurfacePositionMetadata(userOptions, curr_metadata, curr_path);
+                    end
+
+                    if (userOptions.saveCutPositioningFigs)
+                        userOptions.firstFigureTitleAppend = ', immediately post-cut';
+                        firstFigure(squeeze(stack(:,:,find(frames == curr_metadata.cutFrame)+4)), curr_metadata, userOptions);
+                        userOptions.firstFigureTitleAppend = sprintf(', %d s post-cut', B);
+                        firstFigure(squeeze(stack(:,:,end)), curr_metadata, userOptions);
+                        userOptions.firstFigureTitleAppend = sprintf(', multipage');
+                        testCutPositioningSlow(stack, curr_metadata, userOptions);
+                        userOptions.firstFigureTitleAppend = sprintf(', multipage fast');
+                        testCutPositioningFast(stack, curr_metadata, userOptions);
+                    else
+                       %% Pre-process images in stack
+                       [stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+
+                       %% Plot and save kymographs
+                       kymographs = plotAndSaveKymographsSlow(stack, curr_metadata, userOptions);
+                       results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+        %                output.results = cat(2, output.results, results);
+        %                output.kymographs = cat(4, output.kymographs, kymographs);
+                    end
+               end
            end
 
         end

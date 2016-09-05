@@ -71,8 +71,8 @@ allAx = findall(gcf, 'type', 'axes');
 dispAx = allAx(1);
 allAx(1) = []; % get rid of large viewing axis from list of axes
 
-% handles.stack = handles.stack(:,:,(handles.md.cutFrame - 3):handles.md.cutFrame + 6);
-handles.stack = handles.stack(:,:,(handles.cut_frame_ind - 3):handles.cut_frame_ind + 6);
+% handles.stack = handles.stack(:,:,(handles.cut_frame_ind - 3):handles.cut_frame_ind + 6);
+handles.stack = handles.stack(:,:,(handles.cut_frame_ind - 1):handles.cut_frame_ind + 8);
 cmin = min(handles.stack(:));
 cmax = max(handles.stack(:));
 clims =[cmin cmax];
@@ -85,7 +85,7 @@ for i=length(allAx):-1:1
     set(allAx(i), 'XTick', []);
     set(allAx(i), 'YTick', []);
     set(allAx(i), 'CLim', clims);
-    title(allAx(i), sprintf('Frame %d', handles.cut_frame_ind - 4 + (11-i)));
+    title(allAx(i), sprintf('Frame %d', handles.cut_frame_ind - 2 + (11-i)));
     colormap gray;
     axis equal tight;
 end
@@ -94,7 +94,7 @@ imagesc(squeeze(handles.stack(:,:,1)), 'Parent', dispAx);
 set(dispAx, 'XTick', []);
 set(dispAx, 'YTick', []);
 axis equal tight;
-title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 3));
+title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 1));
 
 % Update handles structure
 guidata(hObject, handles);
@@ -150,7 +150,7 @@ function genericAxisClick(hObject, eventdata, handles)
         set(dispAx, 'XTick', []);
         set(dispAx, 'YTick', []);
         axis equal tight;
-        title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 4 + (selectedAxInd)));
+        title(dispAx, sprintf('Frame %d', handles.cut_frame_ind - 2 + (selectedAxInd)));
         
     else
         a = get(allAx(11 - selectedAxInd));
