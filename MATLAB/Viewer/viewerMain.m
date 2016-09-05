@@ -442,9 +442,11 @@ cla(handles.axDownSelectedKym, 'reset');
 % can base the coloring of the title and the checked state in the UI menu. 
 set(handles.menuInclude, 'checked', 'off');
 % 
-figs = get(0,'children');
+figs = findobj('Type', 'figure');
 figs(figs == handles.figure1) = []; % delete your current figure from the list
 close(figs)
+
+
 
 guidata(hObject, handles);
 
@@ -543,9 +545,10 @@ x = abs(handles.poss{ax} - xpos);
 
 closest = find(x == min(x));
 
-move_selected_point(closest);
+handles = move_selected_point(closest);
+guidata(hObject, handles);
 
-function move_selected_point(closest)
+function handles = move_selected_point(closest)
 
 handles = guidata(gcf);
 set(handles.listData, 'Enable', 'on');
@@ -733,7 +736,7 @@ end
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
-guidata(gcbo, handles);
+% guidata(gcbo, handles);
 % guidata(hObject, handles);
 
 
@@ -1672,7 +1675,7 @@ if strcmp(eventdata.Key, 'rightarrow')
     end
 
     if (closest + delta) > 0 && (closest + delta) <= length(handles.poss{ax})
-        move_selected_point(closest + delta);
+        handles = move_selected_point(closest + delta);
     end
     
 end
@@ -1698,7 +1701,7 @@ if strcmp(eventdata.Key, 'leftarrow')
     end
 
     if (closest + delta) > 0 && (closest + delta) <= length(handles.poss{ax})
-        move_selected_point(closest + delta);
+        handles = move_selected_point(closest + delta);
     end
     
 end
@@ -2022,9 +2025,6 @@ if upperEdge > lowerEdge
 else
     edgeSide = 'lower';
 end
-
-% disp(edgeSide);
-
 
 
 % --------------------------------------------------------------------
