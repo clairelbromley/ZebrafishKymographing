@@ -41,7 +41,7 @@ userOptions.outputFolder = 'C:\Users\Doug\Desktop\error test out';
 userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
 userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
 userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
-userOptions.removeCutFrames = 'auto';             % Switch removal of scattered light frames between 'off', 'auto' and 'manual'.              Default = 'auto'
+userOptions.removeCutFrames = 'auto';             % Switch removal of scattered light frames between 'off', 'auto', 'manual' and 'previous manual'.              Default = 'auto'
 userOptions.figHandle = figure;                 % Allow figures to be rendered in a single window.
 userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
 userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
@@ -101,6 +101,16 @@ if strcmp(userOptions.removeCutFrames, 'manual')
     % set up scatter removal comparison sheet
     scatter_removal_comparison_data = {'Acquisition date' 'Embryo number' 'Cut number' 'First frame: auto'...
         'Last frame: auto' 'First frame: manual' 'Last frame: manual'};
+elseif strcmp(userOptions.removeCutFrames, 'previous manual')
+    % prompt for previous scatter removal sheet and remove frames based
+    % on that data. if only some of current data is in sheet, need to
+    % ensure that no scatter removal performed. 
+    prevFile = uigetfile([userOptions.outputFolder filesep '*.xls'], 'Choose file containing previous manually identified scatter frames...');
+    if prevFile == 0
+       uiwait(msgbox('No file containing previous manually identified scatter frames provided; defaulting to automatic scatter frame finder...');
+       userOptions.removeCutFrames = 'auto';
+    end
+    prevManScatterData = xlsread(prevFile, 'Sheet1', '', 'basic');
 end
 
 try
@@ -181,7 +191,15 @@ try
                     % output to excel
                     scatter_removal_comparison_data = [scatter_removal_comparison_data; {curr_metadata.acquisitionDate curr_metadata.embryoNumber curr_metadata.cutNumber first_frame_auto...
                         last_frame_auto first_frame_manual last_frame_manual}];
-                    
+                elseif strcmp(userOptions.removeCutFrames, 'previous manual')
+                   temp = prevManScatterData((prevManScatterData(:,1) == curr_metadata.acquisitionDate) & ...
+                       (prevManScatterData(:,2) == curr_metadata.embryoNumber) & ...
+                       (prevManScatterData(:,3) == curr_metadata.cutNumber), :);
+                   if ~isempty(temp)
+                       firstFrame = temp(6);
+                       lastFrame = temp(7);
+                       stack(:,:,firstFrame:lastFrame) = 0;
+                   end    
                 end
                 
                 if ~userOptions.scatterComparisonOnly

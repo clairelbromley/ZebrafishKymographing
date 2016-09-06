@@ -24,7 +24,7 @@ classdef UserOptions
          saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
          firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
          saveCutPositioningFigs = true;     % Toggle saving of helper images for checking cut positioning.                              Default = false
-         removeCutFrames = 'auto';             % Switch removal of scattered light frames between 'off', 'auto' and 'manual'.              Default = 'auto'
+         userOptions.removeCutFrames = 'auto';             % Switch removal of scattered light frames between 'off', 'auto', 'manual' and 'previous manual'.              Default = 'auto'
          figHandle = figure;                 % Allow figures to be rendered in a single window. 
          savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
          avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
