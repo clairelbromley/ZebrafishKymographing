@@ -33,7 +33,7 @@ function output = kymographBase(varargin)
     
     userOptions.loadPreprocessedImages = false;
     userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
-    userOptions.outputFolder = '/Users/clairebromley/Desktop/test out';
+    userOptions.outputFolder = 'C:\Users\d.kelly\Downloads\error test out';
     userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
     userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
     userOptions.saveCutPositioningFigs = false;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -110,6 +110,8 @@ function output = kymographBase(varargin)
            num_cuts = length(dir([curr_path filesep '*.txt']))/2;
 
            for cut_ind = 0:num_cuts-1
+               
+               try
 
                %% Get metadata for current cut
                curr_metadata = getMetadata(curr_path, cut_ind);
@@ -138,16 +140,17 @@ function output = kymographBase(varargin)
                
                for frame_ind = frames(1):frames(end)  
                    
-                       try
-                           if userOptions.basalMembraneKym
-                                stack(51:562,51:562,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
-                           else
-                                stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
-                           end
-                        catch ME
-                            errString = ['Error: ' ME.identifier ': ' ME.message];
-                            errorLog(userOptions.outputFolder, errString);
+%                        try
+                       if userOptions.basalMembraneKym
+                            stack(51:562,51:562,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                       else
+                            stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
                        end
+%                         catch ME
+%                             errString = ['Error: ' ME.identifier ': ' ME.message];
+%                             errString(errString == filesep) = '|';
+%                             errorLog(userOptions.outputFolder, errString);
+%                        end
                        
                    ind = ind+1;
                end
@@ -214,12 +217,21 @@ function output = kymographBase(varargin)
     %                output.results = cat(2, output.results, results);
     %                output.kymographs = cat(4, output.kymographs, kymographs);
                 end
+                
+               catch ME
+                   errString = ['Error: ' ME.identifier ': ' ME.message];
+                   errString(errString == filesep) = '|';
+                   errorLog(userOptions.outputFolder, errString);
+                   continue;
+               end
            end
-
+              
         end
         
-        xxwrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
+        if strcmp(userOptions.removeCutFrames, 'manual')
+            xxwrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
 %         xlswrite([userOptions.outputFolder filesep 'scatter removal comparison.xls'], scatter_removal_comparison_data);
+        end
         
         if nargin == 1
             imDone();
