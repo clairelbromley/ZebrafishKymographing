@@ -35,8 +35,8 @@ userOptions.scatterComparisonOnly = false;      % Perform comparison of manual v
 userOptions.loadPreprocessedImages = false;
 userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
 
-%     userOptions.outputFolder = '/Users/clairebromley/Desktop/test out';
-userOptions.outputFolder = 'C:\Users\Doug\Desktop\error test out';
+userOptions.outputFolder = '/Users/clairebromley/Desktop/test out';
+% userOptions.outputFolder = 'C:\Users\d.kelly\Downloads\error test out';
 
 userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
 userOptions.firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
@@ -46,7 +46,7 @@ userOptions.figHandle = figure;                 % Allow figures to be rendered i
 userOptions.savePreprocessed = true;            % Save stack of images following preprocessing with cut position information.               Default = true
 userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
 userOptions.erosionDilation = true;             % Toggle erosion/dilation denoising (1 pixel) on or off.                                    Default = true;
-userOptions.medianFiltKernelSize = 9;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
+userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
 userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
 userOptions.showKymographOverlapOverlay = true;
 
@@ -105,12 +105,12 @@ elseif strcmp(userOptions.removeCutFrames, 'previous manual')
     % prompt for previous scatter removal sheet and remove frames based
     % on that data. if only some of current data is in sheet, need to
     % ensure that no scatter removal performed. 
-    prevFile = uigetfile([userOptions.outputFolder filesep '*.xls'], 'Choose file containing previous manually identified scatter frames...');
+    [prevFile, prevFilePath, ~] = uigetfile([userOptions.outputFolder filesep '*.xls'], 'Choose file containing previous manually identified scatter frames...');
     if prevFile == 0
-       uiwait(msgbox('No file containing previous manually identified scatter frames provided; defaulting to automatic scatter frame finder...');
+       uiwait(msgbox('No file containing previous manually identified scatter frames provided; defaulting to automatic scatter frame finder...'));
        userOptions.removeCutFrames = 'auto';
     end
-    prevManScatterData = xlsread(prevFile, 'Sheet1', '', 'basic');
+    prevManScatterData = xlsread([prevFilePath filesep prevFile], 'Sheet1', '', 'basic');
 end
 
 try
@@ -192,8 +192,8 @@ try
                     scatter_removal_comparison_data = [scatter_removal_comparison_data; {curr_metadata.acquisitionDate curr_metadata.embryoNumber curr_metadata.cutNumber first_frame_auto...
                         last_frame_auto first_frame_manual last_frame_manual}];
                 elseif strcmp(userOptions.removeCutFrames, 'previous manual')
-                   temp = prevManScatterData((prevManScatterData(:,1) == curr_metadata.acquisitionDate) & ...
-                       (prevManScatterData(:,2) == curr_metadata.embryoNumber) & ...
+                   temp = prevManScatterData((prevManScatterData(:,1) == str2double(curr_metadata.acquisitionDate)) & ...
+                       (prevManScatterData(:,2) == str2double(curr_metadata.embryoNumber)) & ...
                        (prevManScatterData(:,3) == curr_metadata.cutNumber), :);
                    if ~isempty(temp)
                        firstFrame = temp(6);
