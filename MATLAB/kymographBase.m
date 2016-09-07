@@ -179,7 +179,7 @@ try
                     stack(:,:,msk) = 0;
                 elseif strcmp(userOptions.removeCutFrames, 'manual')
                     manmsk = logical(zeros(size(stack, 3), 1)');
-                    manmsk((curr_metadata.cutFrame - frames(1) - 3):(curr_metadata.cutFrame - frames(1) + 6)) = logical(manualScatterGUI(stack, curr_metadata.cutFrame - frames(1)));
+                    manmsk((curr_metadata.cutFrame - frames(1) - 1):(curr_metadata.cutFrame - frames(1) + 8)) = logical(manualScatterGUI(stack, curr_metadata.cutFrame - frames(1)));
                     stack(:,:,manmsk) = 0;
                     blocked_frames_auto = find(msk);
                     first_frame_auto = min(blocked_frames_auto);
