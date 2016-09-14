@@ -9,9 +9,10 @@ function experimentMetadata = getExperimentMetadata(filepath)
         dt = sheets{shind};
         disp(dt)
                
-        [~, ~, raw] = xlsread(filepath, dt);
+        [~, ~, raw] = xlsread(filepath, dt,'A1:AZ250');
         
         flds = raw(headerLines,2:end);
+        flds(cellfun(@(V) any(isnan(V(:))), flds)) = [];
         raw = raw(headerLines+1:end,:);
         disp(raw);
         lbl = raw(:,1);
