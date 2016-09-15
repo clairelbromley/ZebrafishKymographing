@@ -195,7 +195,8 @@ drawnow;
 fcell = get(handles.txtImagePath, 'String');
 data = bfopen(fcell{1});
 omeMeta = data{1,4};
-data = data{1}(1:2:end,1);
+% data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
+data = data{1}(:,1);
 newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
 data = cell2mat(data);
 data = reshape(data, newshape);
@@ -253,6 +254,7 @@ function userOptions = getUserOptions(handles)
 
     userOptions = UserOptions();
     userOptions.outputFolder = get(handles.txtSaveRoot, 'String');
+    userOptions.lumenOpening = true;        % allow edges of duration >0.33 quant analysis time to be identified as real. 
 
 function params = getParams()
 
@@ -864,7 +866,7 @@ handles.params.firstFrame = new_first_frame;
 handles.params = updateUIParams(handles.params);
 
 omeMeta = handles.reader.getMetadataStore();
-im = bfGetPlane(handles.reader, new_first_frame * omeMeta.getPixelsSizeC(0).getValue() - 1);
+im = bfGetPlane(handles.reader, new_first_frame * omeMeta.getPixelsSizeC(0).getValue());
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
@@ -926,7 +928,7 @@ handles.params.lastFrame = new_last_frame;
 handles.params = updateUIParams(handles.params);
 
 omeMeta = handles.reader.getMetadataStore();
-im = bfGetPlane(handles.reader, new_last_frame * omeMeta.getPixelsSizeC(0).getValue() - 1);
+im = bfGetPlane(handles.reader, new_last_frame * omeMeta.getPixelsSizeC(0).getValue());
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
