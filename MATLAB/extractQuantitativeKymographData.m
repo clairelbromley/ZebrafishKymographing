@@ -65,8 +65,10 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         end
 
         subplot(1,3,1);
-        imagesc(kym_segment);
-        axis equal tight;
+        imagesc(md.acqMetadata.cycleTime * (1:size(kym_segment, 2)), md.umperpixel * (1:size(kym_segment, 1)), kym_segment);
+        set(gca, 'XTick', [], 'YTick', []);
+%         axis equal tight;
+        axis tight;
     %     subplot(1,4,2);
     %     imagesc(filt_kym); 
     %     axis equal tight; 
@@ -142,8 +144,10 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             result.d = d;
             result.correct_membrane = correct_membrane;
             subplot(1,3,2);
-            imagesc(correct_membrane);
-            axis equal tight;
+            imagesc(md.acqMetadata.cycleTime * (1:size(kym_segment, 2)), md.umperpixel * (1:size(kym_segment, 1)), correct_membrane);
+            set(gca, 'XTick', [], 'YTick', []);
+%             axis equal tight;
+            axis tight;
 
     % - fit curve to this data (first order is a straight line, goodness of fit
     % tells us how linear motion actually is, discuss with supervisors what
@@ -160,7 +164,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             hold on
             plot(t, linf.res.p1*t + linf.res.p2, 'r');
             hold off
-            axis equal
+%             axis equal
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
             
@@ -195,7 +199,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             hold on
             plot(t, expf.res.A * (1 - exp(- expf.res.B * t)) + expf.res.C, 'r');
             hold off
-            axis equal
+%             axis equal
             xlabel('Time after cut, s');
             ylabel('Membrane position relative to cut, \mum');
             result.expspeed = expf.res.B * expf.res.A;
