@@ -267,7 +267,7 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             ylim([uO.forcedSpeedRange]);
             
             out_file = [uO.outputFolder filesep dir_txt filesep title_txt direction ' fixed axes'];
-            print(out_file, '-dpng', '-r300');
+            print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
 
             if ~isfield(uO, 'figHandle')
