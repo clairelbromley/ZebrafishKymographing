@@ -727,7 +727,12 @@ try
     axis(kym_ax, [-timeBeforeCut timeAfterCut 0 max(y)], 'tight');
     
     handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
-    handles.edgeSideTxt = text(0, (floor(RI.YWorldLimits(2)) - 1), ['Detected edge: ' handles.edgeSide], 'Parent', kym_ax, 'BackgroundColor', [0.8 0.8 0.8]);
+    if strcmp(handles.edgeSide(1), 'u')
+        bgcol = [1 0 0];
+    else
+        bgcol = [0 1 0.2];
+    end
+    handles.edgeSideTxt = text(9, 1, handles.edgeSide(1), 'Parent', kym_ax, 'BackgroundColor', bgcol);
     
     
 catch ME
