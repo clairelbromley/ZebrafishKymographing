@@ -56,7 +56,7 @@ elseif nargin == 1
 
     %% end busy
     jObj.stop;
-    jObj.setBusyText('All done!');
+    jObj.setBusyText('All done! :)');
 
     drawnow;
     jObj.getComponent.setVisible(false)
