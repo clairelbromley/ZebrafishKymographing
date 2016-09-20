@@ -1619,7 +1619,7 @@ if strcmp(eventdata.Key, 'g')
 
 end
 
-if strcmp(eventdata.Key, 'm')
+if strcmp(eventdata.Key, 'u')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
     else
