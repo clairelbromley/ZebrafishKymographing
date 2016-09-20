@@ -537,7 +537,9 @@ function buttonBrowseSaveRoot_Callback(hObject, eventdata, handles)
 handles = guidata(gcf);
 
 filename = get(handles.txtImagePath, 'String');
-filename = filename{1};
+if iscell(filename)
+    filename = filename{1};
+end
 [default_folder ,~,~] = fileparts(filename) 
 pname = uigetdir(default_folder);
 
