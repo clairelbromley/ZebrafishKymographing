@@ -396,7 +396,7 @@ try
                     handles.edgeSide = '';
                     handles.currentBlockedFrames = nan;
                     
-%                    if sum(checkIfStored(handles, direction{1}, pos) == 0)
+                   if (sum(checkIfStored(handles, direction{1}, pos)) == 0)
                        % was edge found, i.e. is relevant x position in the
                        % speed v position plot?
                        if ((sum(round(1000*handles.poss{strcmp(directions, direction{1})})/1000 == round(1000*pos)/1000) > 0))  % nonsense
@@ -406,7 +406,7 @@ try
                            qcLabel = 'no edge';
                            handles = genericInclude(handles, qcLabel, direction{1}, pos);
                        end
-%                    end
+                   end
                 end
                 
             end
