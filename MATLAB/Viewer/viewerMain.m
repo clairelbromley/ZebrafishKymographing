@@ -871,7 +871,8 @@ rowFilt = strcmp(data(:, colFilt), 'Good');
 goodData = data(rowFilt, :);
 [pa, fn, ext] = fileparts(outputName);
 goodOutputName = [pa filesep fn '_user QCd' ext];
-
+% did Doug still want linees 876-878 to be included - as these did not
+% appear to be on the pasted function
 parseForXLExport(handles, headerLine, goodData, goodOutputName, includeStats);    % 'Good' kym only output
    
 busyDlg(busyOutput);
@@ -931,6 +932,14 @@ if includeStats
         sd(ind) = std([data{ic == ind, strcmp(headerLine, 'speed')}]);
         mx(ind) = max([data{ic == ind, strcmp(headerLine, 'speed')}]);
         med(ind) = median([data{ic == ind, strcmp(headerLine, 'speed')}]);
+        
+        numQCLabels(ind,1) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Good'));
+        numQCLabels(ind,2) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Noise'));
+        numQCLabels(ind,3) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Misassigned edge'));
+        numQCLabels(ind,4) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'no edge'));
+        numQCLabels(ind,5) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'not QCd'));
+        summ_headerLine = {'EmbryoID' 'Date' 'Embryo number' 'Cut number' 'direction' 'Good' 'Noise' 'Misassigned Edge' 'No Edge' 'Not QCd'};
+%         summ_headerLine = {'EmbryoID' 'Good' 'Noise' 'Misassigned Edge' 'No Edge' 'Not QCd'};
 %         filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
 %             & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
     end
@@ -938,6 +947,13 @@ if includeStats
     %% turn off "add sheet" warnings...
     wid = 'MATLAB:xlswrite:AddSheet';
     warning('off', wid);
+    
+    if ~isempty(numQCLabels)
+       numQCLabels = num2cell(numQCLabels);
+       xxwrite(outputName, [summ_headerLine; [uniqueKymIDs data(ia, strcmp(headerLine, 'date'))... 
+           data(ia, strcmp(headerLine, 'embryoNumber')) data(ia, strcmp(headerLine, 'cutNumber'))...
+           data(ia, strcmp(headerLine, 'direction')) numQCLabels]], 'QC summary');
+    end
     
     mudata = data(ia, :);
     if ~isempty(mudata)
@@ -962,6 +978,8 @@ if includeStats
         meddata(:, strcmp(headerLine, 'speed')) = num2cell(med);
         xxwrite(outputName, [headerLine; meddata], 'Median speeds, ums^-1');
     end
+    
+    
     
     %% get list of embryo/cut/date
     ids = data(:, strcmp(headerLine, 'ID'));
@@ -1072,6 +1090,7 @@ if includeStats
     end
     
 end
+
 
 
 function xxwrite(varargin)
