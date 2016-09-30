@@ -235,6 +235,14 @@ handles.embryoNumber = embryoNumber;
 axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
 titleAppendices = {['upwards' expTxt]; ['downwards' expTxt]};
 
+baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+folder = [baseFolder2 ' downwards'];
+mdfpath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);    
+fractional_pos_along_cut = getNumericMetadataFromText(mdfpath, 'metadata.kym_region.fraction_along_cut');
+distance_from_edge = getNumericMetadataFromText(mdfpath, 'metadata.kym_region.distance_from_edge');
+handles.plotHandles = num2cell(axHandles);
+
 % buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
 %     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
 
@@ -264,10 +272,26 @@ try
         
     end
 catch ME
+    
     disp(ME)
-    uiwait(msgbox(['No figure to load at ' fpath]));   
+%     uiwait(msgbox(['No figure to load at ' fpath]));   
     axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
-    handles.plotHandles{ind} = plot([1,2,3,4,5], zeros(1,5),'Parent',axHandles(ind));
+%     handles.plotHandles{ind} = plot(handles.positionsAlongLine, zeros(1,length(handles.positionsAlongLine)),'Parent',axHandles(ind), 'Marker', 'x', 'Color', [0.8 0.8 0.8], ...
+%         'MarkerEdgeColor', [0.8 0.8 0.8]);
+    ds = {'up' 'down'};
+    for i = 1:length(handles.positionsAlongLine)
+        handles.currentPosition = handles.positionsAlongLine(i);
+        handles.poss = [];
+        handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
+                        == round(1000*handles.currentPosition)/1000);
+        handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
+            == round(1000*handles.currentPosition)/1000);
+        handles.currentSpeed = 0;
+        handles.currentBlockedFrames = nan;
+        handles.edgeSide = '';
+        handles.currentApicalSurfaceToCutDistance = nan;
+        genericInclude(handles, 'no edge', ds{ind}, handles.positionsAlongLine(i));
+    end
 end
         %% Get and plot first frames and relevant lines
 try
@@ -399,12 +423,17 @@ try
                    if (sum(checkIfStored(handles, direction{1}, pos)) == 0)
                        % was edge found, i.e. is relevant x position in the
                        % speed v position plot?
-                       if ((sum(round(1000*handles.poss{strcmp(directions, direction{1})})/1000 == round(1000*pos)/1000) > 0))  % nonsense
-                           qcLabel = 'not QCd';
-                           handles = genericInclude(handles, qcLabel, direction{1}, pos);
-                       else
+                       if isempty(handles.poss)
                            qcLabel = 'no edge';
                            handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                       else
+                           if ((sum(round(1000*handles.poss{strcmp(directions, direction{1})})/1000 == round(1000*pos)/1000) > 0))  % nonsense
+                               qcLabel = 'not QCd';
+                               handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                           else
+                               qcLabel = 'no edge';
+                               handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                           end
                        end
                    end
                 end
@@ -415,8 +444,8 @@ try
 catch ME
     disp(ME)
     disp(ME.stack)
-    disp(ME.stack.name);
-    disp(ME.stack.line);
+    disp(ME.stack(1).name);
+    disp(ME.stack(1).line);
     uiwait(msgbox('Error parsing metadata to include data structure!'));   
     imagesc(zeros(5),'Parent',axHandles(ind));
 
@@ -925,6 +954,7 @@ xxwrite(outputName, [headerLine; data]);
 if includeStats
     %% get list of kymograph IDs
     [uniqueKymIDs,ia,ic]  = unique(data(:, strcmp(headerLine, 'ID')),'stable');
+    numQCLabels = [];
     
     %% for each kymograph, isolate the  relevant data rows and calculate stats
     for ind = 1:max(ic)
