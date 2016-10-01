@@ -869,19 +869,6 @@ switch reply
     otherwise
         return;
 end
-% 
-% %% DIALOG TO CHECK WHETHER NON-QCd DATA/DATA WITHOUT EDGES FOUND SHOULD BE INCLUDED
-% reply = questdlg('Include spreadsheet lines for kymographs that haven''t been QDd yet or for which no edge was found? Note that this can slow things down considerably...', ...
-%     'Include ALL kymographs?', 'Include ALL kymographs', 'Only include QCd kymographs');
-% 
-% switch reply
-%     case 'Include ALL kymographs'
-%         handles.includeAllInExport = true;
-%     case 'Only include QCd kymographs'
-%         handles.includeAllInExport = false;
-%     otherwise
-%         return;
-% end
 
 %% EXPORT (TO CSV?)
 disp('Export...')
@@ -958,10 +945,16 @@ if includeStats
     
     %% for each kymograph, isolate the  relevant data rows and calculate stats
     for ind = 1:max(ic)
-        mu(ind) = mean([data{ic == ind, strcmp(headerLine, 'speed')}]);
-        sd(ind) = std([data{ic == ind, strcmp(headerLine, 'speed')}]);
-        mx(ind) = max([data{ic == ind, strcmp(headerLine, 'speed')}]);
-        med(ind) = median([data{ic == ind, strcmp(headerLine, 'speed')}]);
+        temp = [data{ic == ind, strcmp(headerLine, 'speed')}];
+        temp(isnan(temp)) = [];
+        mu(ind) = mean(temp);
+        sd(ind) = std(temp);
+        if ~isempty(temp)
+            mx(ind) = max(temp);
+        else
+            mx(ind) = NaN;
+        end
+        med(ind) = median(temp);
         
         numQCLabels(ind,1) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Good'));
         numQCLabels(ind,2) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Noise'));
@@ -969,9 +962,7 @@ if includeStats
         numQCLabels(ind,4) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'no edge'));
         numQCLabels(ind,5) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'not QCd'));
         summ_headerLine = {'EmbryoID' 'Date' 'Embryo number' 'Cut number' 'direction' 'Good' 'Noise' 'Misassigned Edge' 'No Edge' 'Not QCd'};
-%         summ_headerLine = {'EmbryoID' 'Good' 'Noise' 'Misassigned Edge' 'No Edge' 'Not QCd'};
-%         filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-%             & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+
     end
     
     %% turn off "add sheet" warnings...
@@ -1022,21 +1013,19 @@ if includeStats
         [~, ia, ic] = unique(ids2, 'stable');
         %% for each kymograph, isolate the  relevant data rows and calculate stats
         for ind = 1:max(ic)
-            filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}];
+            filtmu(ind) = mean(temp);
 
-            filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            filtsd(ind) = std(temp);
 
             try
-                filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                    & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+                filtmx(ind) = max(temp);
             catch
                 filtmx(ind) = NaN;
             end
 
-            filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            filtmed(ind) = median(temp);
         end
 
         filtmudata = data(ia, :);
@@ -1076,21 +1065,20 @@ if includeStats
         [~, ia, ic] = unique(ids, 'stable');
         %% for each kymograph, isolate the  relevant data rows and calculate stats
         for ind = 1:max(ic)
-            filtmu(ind) = mean([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}];
+            
+            filtmu(ind) = mean(temp);
 
-            filtsd(ind) = std([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            filtsd(ind) = std(temp);
 
             try
-                filtmx(ind) = max([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                    & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+                filtmx(ind) = max(temp);
             catch
                 filtmx(ind) = NaN;
             end
 
-            filtmed(ind) = median([data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}]);
+            filtmed(ind) = median(temp);
         end
 
         filtmudata = data(ia, :);
@@ -1469,6 +1457,7 @@ if sum(indices) == 0
    
 else
     handles.includedData(indices).userQCLabel = qcLabel;
+    handles.includedData(indices).speed = handles.currentSpeed;
     if isfield(handles, 'currentManualLineSpeed')
         handles.includedData(indices).manualSpeed = handles.currentManualLineSpeed;
     else
