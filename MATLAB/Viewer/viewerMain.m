@@ -196,6 +196,10 @@ function listData_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+
+cla(handles.axUpSpeedVPosition, 'reset');
+cla(handles.axDownSpeedVPosition, 'reset');
+
 if isfield(handles, 'manualLine')
     if ~isempty(handles.manualLine)
         delete(handles.manualLine);
@@ -246,8 +250,8 @@ handles.plotHandles = num2cell(axHandles);
 % buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
 %     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
 
-try
-    for ind = 1:length(axHandles)
+for ind = 1:length(axHandles)
+    try
 
         figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
             cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
@@ -270,27 +274,28 @@ try
         ylabel(axHandles(ind), ylab);
         title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
         
-    end
-catch ME
     
-    disp(ME)
-%     uiwait(msgbox(['No figure to load at ' fpath]));   
-    axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
-%     handles.plotHandles{ind} = plot(handles.positionsAlongLine, zeros(1,length(handles.positionsAlongLine)),'Parent',axHandles(ind), 'Marker', 'x', 'Color', [0.8 0.8 0.8], ...
-%         'MarkerEdgeColor', [0.8 0.8 0.8]);
-    ds = {'up' 'down'};
-    for i = 1:length(handles.positionsAlongLine)
-        handles.currentPosition = handles.positionsAlongLine(i);
-        handles.poss{ind} = [];
-        handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
-                        == round(1000*handles.currentPosition)/1000);
-        handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
-            == round(1000*handles.currentPosition)/1000);
-        handles.currentSpeed = 0;
-        handles.currentBlockedFrames = nan;
-        handles.edgeSide = '';
-        handles.currentApicalSurfaceToCutDistance = nan;
-        genericInclude(handles, 'no edge', ds{ind}, handles.positionsAlongLine(i));
+    catch ME
+
+        disp(ME)
+    %     uiwait(msgbox(['No figure to load at ' fpath]));   
+        axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
+    %     handles.plotHandles{ind} = plot(handles.positionsAlongLine, zeros(1,length(handles.positionsAlongLine)),'Parent',axHandles(ind), 'Marker', 'x', 'Color', [0.8 0.8 0.8], ...
+    %         'MarkerEdgeColor', [0.8 0.8 0.8]);
+        ds = {'up' 'down'};
+        for i = 1:length(handles.positionsAlongLine)
+            handles.currentPosition = handles.positionsAlongLine(i);
+            handles.poss{ind} = [];
+            handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
+                            == round(1000*handles.currentPosition)/1000);
+            handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
+                == round(1000*handles.currentPosition)/1000);
+            handles.currentSpeed = 0;
+            handles.currentBlockedFrames = nan;
+            handles.edgeSide = '';
+            handles.currentApicalSurfaceToCutDistance = nan;
+            genericInclude(handles, 'no edge', ds{ind}, handles.positionsAlongLine(i));
+        end
     end
 end
         %% Get and plot first frames and relevant lines
