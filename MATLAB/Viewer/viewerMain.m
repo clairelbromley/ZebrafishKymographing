@@ -281,7 +281,7 @@ catch ME
     ds = {'up' 'down'};
     for i = 1:length(handles.positionsAlongLine)
         handles.currentPosition = handles.positionsAlongLine(i);
-        handles.poss = [];
+        handles.poss{ind} = [];
         handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
                         == round(1000*handles.currentPosition)/1000);
         handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
