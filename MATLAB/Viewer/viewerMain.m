@@ -432,9 +432,14 @@ try
                            qcLabel = 'no edge';
                            handles = genericInclude(handles, qcLabel, direction{1}, pos);
                        else
-                           if ((sum(round(1000*handles.positionsAlongLine)/1000 == round(1000*pos)/1000) > 0))  % nonsense
-                               qcLabel = 'not QCd';
-                               handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                           if iscell(handles.poss)
+                               if ((sum(round(1000*handles.poss{strcmp(directions, direction{1})})/1000 == round(1000*pos)/1000) > 0))  % nonsense
+                                   qcLabel = 'not QCd';
+                                   handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                               else
+                                   qcLabel = 'no edge';
+                                   handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                               end
                            else
                                qcLabel = 'no edge';
                                handles = genericInclude(handles, qcLabel, direction{1}, pos);
