@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 05-Sep-2016 06:29:47
+% Last Modified by GUIDE v2.5 02-Oct-2016 17:32:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -62,9 +62,11 @@ guidata(hObject, handles);
 
 dummy = [mfilename('fullpath') '.m'];
 currdir = fileparts(dummy);
+resPath = [currdir filesep 'Resources'];
 funcPath = [currdir filesep '..'];
 addpath(genpath(currdir));
 addpath(funcPath);
+addpath(resPath);
 
 javaaddpath([currdir filesep 'Archive' filesep 'jxl.jar']);
 javaaddpath([currdir filesep 'Archive' filesep 'MXL.jar']);
@@ -90,6 +92,8 @@ set(handles.menuExpFit,'Enable','off');
 handles.kymAxisThickness = 1;
 
 handles.includedData = [];
+
+handles.laserIcon = imread('laser-icon-12.png');
 
 guidata(hObject, handles);
 
@@ -171,6 +175,7 @@ if ~isequal(base_folder, 0)
     end
     
     set(handles.listData, 'String', dataList);
+    handles.damagedSideList = cell(numel(get(handles.listData, 'String')),1);
 
     guidata(hObject, handles);
     
@@ -179,7 +184,7 @@ if ~isequal(base_folder, 0)
         callback = get(handles.menuLoadMetadata, 'Callback');
         callback(handles.listData, []);
     end
-
+    
     %% Fire selection event for first item in list
     if ~isempty(dataList)
         set(handles.listData, 'Value', 1);
@@ -199,6 +204,10 @@ function listData_Callback(hObject, eventdata, handles)
 
 cla(handles.axUpSpeedVPosition, 'reset');
 cla(handles.axDownSpeedVPosition, 'reset');
+
+showDamageIcon(handles.damagedSideList{get(handles.listData, 'Value')}, handles);  
+% if strcmp(, 'up'
+
 
 if isfield(handles, 'manualLine')
     if ~isempty(handles.manualLine)
@@ -1762,6 +1771,14 @@ if strcmp(eventdata.Key, 'leftarrow')
     
 end
 
+if strcmp(eventdata.Key, 'd')
+    
+    showDamageIcon(handles.currentDir, handles);  
+    handles.currentDamageSide = handles.currentDir;
+    handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    
+end
+
 guidata(hObject, handles);
 
 
@@ -2176,3 +2193,25 @@ function menuHelp_Callback(hObject, eventdata, handles)
 % hObject    handle to menuHelp (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+function showDamageIcon(direction, handles)
+
+if strcmp(direction, 'up')
+    imagesc(handles.laserIcon, 'Parent', handles.axUpDamage);
+    axis(handles.axUpDamage, 'image');
+    set(handles.axUpDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
+    cla(handles.axDownDamage, 'reset');
+    set(handles.axDownDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
+    disp(get(handles.axDownDamage, 'XColor'));
+elseif strcmp(direction, 'down')
+    imagesc(handles.laserIcon, 'Parent', handles.axDownDamage);
+    axis image;
+    set(handles.axDownDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
+    cla(handles.axUpDamage, 'reset');
+    set(handles.axUpDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
+else
+    cla(handles.axUpDamage, 'reset');
+    set(handles.axUpDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
+    cla(handles.axDownDamage, 'reset');
+    set(handles.axDownDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
+end
