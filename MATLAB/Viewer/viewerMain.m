@@ -206,6 +206,7 @@ cla(handles.axUpSpeedVPosition, 'reset');
 cla(handles.axDownSpeedVPosition, 'reset');
 
 showDamageIcon(handles.damagedSideList{get(handles.listData, 'Value')}, handles);  
+handles.currentDamageSide = handles.damagedSideList{get(handles.listData, 'Value')};
 % if strcmp(, 'up'
 
 
@@ -842,9 +843,6 @@ function exportWizard_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-busyOutput = busyDlg();
-set(handles.listData, 'Enable', 'off');
-
 %% CHECK IF THERE IS DATA TO SAVE?
 if isfield(handles, 'includedData')
    if isempty(handles.includedData)
@@ -875,6 +873,9 @@ if isequal(fname, 0)
 else
     outputName = [pname filesep fname];
 end
+
+busyOutput = busyDlg();
+set(handles.listData, 'Enable', 'off');
         
 %% DIALOG TO CHECK WHICH STATS (MAX, MEAN, MEDIAN ETC.) SHOULD BE INCLUDED
 reply = questdlg('Save raw data only, or generate max, median, mean for each kymograph?', ...
@@ -1472,6 +1473,8 @@ if sum(indices) == 0
         incData.manualSpeed = nan;
     end
     
+    incData.thisSideDamaged = strcmp(handles.currentDamageSide, direction);
+    
     handles.includedData = [handles.includedData; incData];
    
 else
@@ -1484,6 +1487,7 @@ else
     end
     handles.includedData(indices).numberBlockedFrames = handles.currentBlockedFrames;
     handles.includedData(indices).edgeSide = handles.edgeSide;
+    handles.includedData(indices).thisSideDamaged = strcmp(handles.currentDamageSide, direction);
     
 end
 
