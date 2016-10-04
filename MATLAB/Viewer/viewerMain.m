@@ -1055,25 +1055,25 @@ if includeStats
         end
 
         filtmudata = data(ia, :);
-        if ~isempty(filtmudata)
+        if ~isempty(filtmudata) && ~isempty(filtmu)
             filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
             xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
         end
 
         filtsddata = data(ia, :);
-        if ~isempty(filtsddata)
+        if ~isempty(filtsddata) && ~isempty(filtsd)
             filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
             xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
         end
 
         filtmxdata = data(ia, :);
-        if ~isempty(filtmxdata)
+        if ~isempty(filtmxdata) && ~isempty(filtmx)
             filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
             xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
         end
 
         filtmeddata = data(ia, :);
-        if ~isempty(filtmeddata)
+        if ~isempty(filtmeddata) && ~isempty(filtmed)
             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
             xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
         end
@@ -1112,25 +1112,25 @@ if includeStats
         end
 
         filtmudata = data(ia, :);
-        if ~isempty(filtmudata)
+        if ~isempty(filtmudata) && ~isempty(filtmu)
             filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
             xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
         end
 
         filtsddata = data(ia, :);
-        if ~isempty(filtsddata)
+        if ~isempty(filtsddata) && ~isempty(filtsd)
             filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
             xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
         end
 
         filtmxdata = data(ia, :);
-        if ~isempty(filtmxdata)
+        if ~isempty(filtmxdata) && ~isempty(filtmx)
             filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
             xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
         end
 
         filtmeddata = data(ia, :);
-        if ~isempty(filtmeddata)
+        if ~isempty(filtmeddata) && ~isempty(filtmed)
             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
             xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
         end
@@ -1172,25 +1172,25 @@ if includeStats
         end
 
         filtmudata = data(ia, :);
-        if ~isempty(filtmudata)
+        if ~isempty(filtmudata) && ~isempty(filtmu)
             filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
             xxwrite(outputName, [headerLine; filtmudata], 'InsideCutDamageFiltMean');
         end
 
         filtsddata = data(ia, :);
-        if ~isempty(filtsddata)
+        if ~isempty(filtsddata) && ~isempty(filtsd)
             filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
             xxwrite(outputName, [headerLine; filtsddata], 'InsideCutDamageFiltSD');
         end
 
         filtmxdata = data(ia, :);
-        if ~isempty(filtmxdata)
+        if ~isempty(filtmxdata) && ~isempty(filtmx)
             filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
             xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutDamageFiltMax');
         end
 
         filtmeddata = data(ia, :);
-        if ~isempty(filtmeddata)
+        if ~isempty(filtmeddata) && ~isempty(filtmed)
             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
             xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutDamageFiltMedian');
         end
@@ -1543,7 +1543,14 @@ if sum(indices) == 0
         incData.manualSpeed = nan;
     end
     
-    incData.thisSideDamaged = strcmp(handles.currentDamageSide, direction);
+    
+    if strcmp(handles.currentDamageSide, direction)
+        incData.thisSideDamaged = 'yes';
+    elseif isempty(handles.currentDamageSide)
+        incData.thisSideDamaged = '';
+    else
+        incData.thisSideDamaged = 'no';
+    end
     
     handles.includedData = [handles.includedData; incData];
    
