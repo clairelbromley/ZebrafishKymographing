@@ -1030,22 +1030,28 @@ if includeStats
             ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
         end
 
+        % perform Jon's suggested filter: speeds corresponding to
+        % kymographs inside bounds of cut only. 
         [~, ia, ic] = unique(ids2, 'stable');
         %% for each kymograph, isolate the  relevant data rows and calculate stats
         for ind = 1:max(ic)
             temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
                 & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}];
-            filtmu(ind) = mean(temp);
+            temp(isnan(temp)) = [];
+            
+            if ~isempty(temp)
+                filtmu(ind) = mean(temp);
 
-            filtsd(ind) = std(temp);
+                filtsd(ind) = std(temp);
 
-            try
-                filtmx(ind) = max(temp);
-            catch
-                filtmx(ind) = NaN;
+                try
+                    filtmx(ind) = max(temp);
+                catch
+                    filtmx(ind) = NaN;
+                end
+
+                filtmed(ind) = median(temp);
             end
-
-            filtmed(ind) = median(temp);
         end
 
         filtmudata = data(ia, :);
@@ -1087,18 +1093,22 @@ if includeStats
         for ind = 1:max(ic)
             temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
                 & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)), strcmp(headerLine, 'speed')}];
+            temp(isnan(temp)) = [];
             
-            filtmu(ind) = mean(temp);
+            if ~isempty(temp)
+                filtmu(ind) = mean(temp);
 
-            filtsd(ind) = std(temp);
+                filtsd(ind) = std(temp);
 
-            try
-                filtmx(ind) = max(temp);
-            catch
-                filtmx(ind) = NaN;
+                try
+                    filtmx(ind) = max(temp);
+                catch
+                    filtmx(ind) = NaN;
+                end
+
+                filtmed(ind) = median(temp);
             end
-
-            filtmed(ind) = median(temp);
+            
         end
 
         filtmudata = data(ia, :);
@@ -1123,6 +1133,66 @@ if includeStats
         if ~isempty(filtmeddata)
             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
             xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
+        end
+        
+        %% Now do Jon-style ("inside cut only") filtering, but separating damaged and undamaged side kymographs
+
+        filtmu = [];
+        filtsd = [];
+        filtmx = [];
+        filtmed = [];
+
+        [~, ia, ic] = unique(ids, 'stable');
+        %% for each kymograph, isolate the  relevant data rows and calculate stats
+        yn = {'yes' 'no'};
+        for ind2 = 1:length(yn)
+            for ind = 1:max(ic)
+                temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+                    & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)) ...
+                    & (strcmp(data(:,strcmp(headerLine, 'thisSideDamaged')), yn{ind2})), ...
+                    strcmp(headerLine, 'speed')}];
+                temp(isnan(temp)) = [];
+                
+                if ~isempty(temp)
+
+                    filtmu(ind + (ind2 - 1) * max(ic)) = mean(temp);
+
+                    filtsd(ind + (ind2 - 1) * max(ic)) = std(temp);
+
+                    try
+                        filtmx(ind + (ind2 - 1) * max(ic)) = max(temp);
+                    catch
+                        filtmx(ind + (ind2 - 1) * max(ic)) = NaN;
+                    end
+
+                    filtmed(ind + (ind2 - 1) * max(ic)) = median(temp);
+                    
+                end
+            end
+        end
+
+        filtmudata = data(ia, :);
+        if ~isempty(filtmudata)
+            filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+            xxwrite(outputName, [headerLine; filtmudata], 'InsideCutDamageFiltMean');
+        end
+
+        filtsddata = data(ia, :);
+        if ~isempty(filtsddata)
+            filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+            xxwrite(outputName, [headerLine; filtsddata], 'InsideCutDamageFiltSD');
+        end
+
+        filtmxdata = data(ia, :);
+        if ~isempty(filtmxdata)
+            filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+            xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutDamageFiltMax');
+        end
+
+        filtmeddata = data(ia, :);
+        if ~isempty(filtmeddata)
+            filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+            xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutDamageFiltMedian');
         end
 
     end
