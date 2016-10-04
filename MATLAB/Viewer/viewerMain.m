@@ -1487,7 +1487,15 @@ else
     end
     handles.includedData(indices).numberBlockedFrames = handles.currentBlockedFrames;
     handles.includedData(indices).edgeSide = handles.edgeSide;
-    handles.includedData(indices).thisSideDamaged = strcmp(handles.currentDamageSide, direction);
+    
+    if strcmp(handles.currentDamageSide, direction)
+        handles.includedData(indices).thisSideDamaged = 'yes';
+    elseif isempty(handles.currentDamageSide)
+        handles.includedData(indices).thisSideDamaged = '';
+    else
+        handles.includedData(indices).thisSideDamaged = 'no';
+    end
+        
     
 end
 
