@@ -1135,65 +1135,65 @@ if includeStats
             xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
         end
         
-        %% Now do Jon-style ("inside cut only") filtering, but separating damaged and undamaged side kymographs
-
-        filtmu = [];
-        filtsd = [];
-        filtmx = [];
-        filtmed = [];
-
-        [~, ia, ic] = unique(ids, 'stable');
-        %% for each kymograph, isolate the  relevant data rows and calculate stats
-        yn = {'yes' 'no'};
-        for ind2 = 1:length(yn)
-            for ind = 1:max(ic)
-                temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
-                    & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)) ...
-                    & (strcmp(data(:,strcmp(headerLine, 'thisSideDamaged')), yn{ind2})), ...
-                    strcmp(headerLine, 'speed')}];
-                temp(isnan(temp)) = [];
-                
-                if ~isempty(temp)
-
-                    filtmu(ind + (ind2 - 1) * max(ic)) = mean(temp);
-
-                    filtsd(ind + (ind2 - 1) * max(ic)) = std(temp);
-
-                    try
-                        filtmx(ind + (ind2 - 1) * max(ic)) = max(temp);
-                    catch
-                        filtmx(ind + (ind2 - 1) * max(ic)) = NaN;
-                    end
-
-                    filtmed(ind + (ind2 - 1) * max(ic)) = median(temp);
-                    
-                end
-            end
-        end
-
-        filtmudata = data(ia, :);
-        if ~isempty(filtmudata) && ~isempty(filtmu)
-            filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-            xxwrite(outputName, [headerLine; filtmudata], 'InsideCutDamageFiltMean');
-        end
-
-        filtsddata = data(ia, :);
-        if ~isempty(filtsddata) && ~isempty(filtsd)
-            filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-            xxwrite(outputName, [headerLine; filtsddata], 'InsideCutDamageFiltSD');
-        end
-
-        filtmxdata = data(ia, :);
-        if ~isempty(filtmxdata) && ~isempty(filtmx)
-            filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-            xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutDamageFiltMax');
-        end
-
-        filtmeddata = data(ia, :);
-        if ~isempty(filtmeddata) && ~isempty(filtmed)
-            filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-            xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutDamageFiltMedian');
-        end
+%         %% Now do Jon-style ("inside cut only") filtering, but separating damaged and undamaged side kymographs
+% 
+%         filtmu = [];
+%         filtsd = [];
+%         filtmx = [];
+%         filtmed = [];
+% 
+%         [~, ia, ic] = unique(ids, 'stable');
+%         %% for each kymograph, isolate the  relevant data rows and calculate stats
+%         yn = {'yes' 'no'};
+%         for ind2 = 1:length(yn)
+%             for ind = 1:max(ic)
+%                 temp = [data{((ic == ind) & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) > 0) ...
+%                     & (cell2mat(data(:, strcmp(headerLine, 'fractionalPosition'))) < 1)) ...
+%                     & (strcmp(data(:,strcmp(headerLine, 'thisSideDamaged')), yn{ind2})), ...
+%                     strcmp(headerLine, 'speed')}];
+%                 temp(isnan(temp)) = [];
+%                 
+%                 if ~isempty(temp)
+% 
+%                     filtmu(ind + (ind2 - 1) * max(ic)) = mean(temp);
+% 
+%                     filtsd(ind + (ind2 - 1) * max(ic)) = std(temp);
+% 
+%                     try
+%                         filtmx(ind + (ind2 - 1) * max(ic)) = max(temp);
+%                     catch
+%                         filtmx(ind + (ind2 - 1) * max(ic)) = NaN;
+%                     end
+% 
+%                     filtmed(ind + (ind2 - 1) * max(ic)) = median(temp);
+%                     
+%                 end
+%             end
+%         end
+% 
+%         filtmudata = data(ia, :);
+%         if ~isempty(filtmudata) && ~isempty(filtmu)
+%             filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
+%             xxwrite(outputName, [headerLine; filtmudata], 'InsideCutDamageFiltMean');
+%         end
+% 
+%         filtsddata = data(ia, :);
+%         if ~isempty(filtsddata) && ~isempty(filtsd)
+%             filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
+%             xxwrite(outputName, [headerLine; filtsddata], 'InsideCutDamageFiltSD');
+%         end
+% 
+%         filtmxdata = data(ia, :);
+%         if ~isempty(filtmxdata) && ~isempty(filtmx)
+%             filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
+%             xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutDamageFiltMax');
+%         end
+% 
+%         filtmeddata = data(ia, :);
+%         if ~isempty(filtmeddata) && ~isempty(filtmed)
+%             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
+%             xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutDamageFiltMedian');
+%         end
 
     end
     
@@ -1865,6 +1865,24 @@ if strcmp(eventdata.Key, 'd')
     showDamageIcon(handles.currentDir, handles);  
     handles.currentDamageSide = handles.currentDir;
     handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    
+    % set appropriate lines in included data, this side damaged to 'yes'
+    filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
+        & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, handles.currentDir);
+    filt2 = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
+        & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ~strcmp({handles.includedData.direction}, handles.currentDir);
+    
+    temp = {handles.includedData.thisSideDamaged};
+    y = cell(1);
+    n = cell(1);
+    y{1} = 'yes';
+    n{1} = 'no';
+    temp(filt) = y;
+    temp(filt2) = n;
+    
+    for ind = 1:length(temp)
+        handles.includedData(ind).thisSideDamaged = temp{ind};
+    end
     
 end
 
