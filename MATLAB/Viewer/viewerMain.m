@@ -1923,6 +1923,29 @@ if strcmp(reply, 'Yes')
 
         handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
     end
+    
+    ids = {handles.includedData.ID};
+    for ind = 1:length(ids)
+        r  = regexp(ids{ind}, '-', 'split');
+        ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
+    end
+    
+    [~, ia, ic] = unique(ids2, 'stable');
+    
+    for ind = 1:max(ic)
+        if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
+            handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
+        elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '')
+            handles.damagedSideList{ind} = [];
+        else
+            ud = {'up' 'down'};
+            handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
+        end
+    end
+    
+    % update to show damage side icon for current view
+    showDamageIcon(handles.damagedSideList(get(handles.listData, 'Value')), handles)   
+    
 end
 
 busyDlg(busyOutput);
