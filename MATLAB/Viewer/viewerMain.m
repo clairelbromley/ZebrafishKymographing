@@ -1051,6 +1051,11 @@ if includeStats
                 end
 
                 filtmed(ind) = median(temp);
+            else
+                filtmu(ind) = NaN;
+                filtsd(ind) = NaN;
+                filtmx(ind) = NaN;
+                filtmed(ind) = NaN;
             end
         end
 
@@ -1107,6 +1112,11 @@ if includeStats
                 end
 
                 filtmed(ind) = median(temp);
+            else
+                filtmu(ind) = NaN;
+                filtsd(ind) = NaN;
+                filtmx(ind) = NaN;
+                filtmed(ind) = NaN;
             end
             
         end
