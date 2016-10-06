@@ -1935,7 +1935,7 @@ if strcmp(reply, 'Yes')
     for ind = 1:max(ic)
         if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
             handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
-        elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '')
+        elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '') || isnan(handles.includedData(ia(ind)).thisSideDamaged)
             handles.damagedSideList{ind} = [];
         else
             ud = {'up' 'down'};
