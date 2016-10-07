@@ -709,11 +709,11 @@ try
     metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
     timeBeforeCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeBeforeCut');
     timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
-    frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
-    umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
+    handles.frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
+    handles.umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
         
-    xoffset = (sum(sum(im(:,(timeBeforeCut/frameTime):((timeBeforeCut/frameTime) + 5)),1)==0) - 1.5)*frameTime;
-    y=get(dataObjs{1}(1), 'YData') + umPerPixel;
+    xoffset = (sum(sum(im(:,(timeBeforeCut/handles.frameTime):((timeBeforeCut/handles.frameTime) + 5)),1)==0) - 1.5)*handles.frameTime;
+    y=get(dataObjs{1}(1), 'YData') + handles.umPerPixel;
     x=get(dataObjs{1}(1), 'XData');
     x = x + xoffset;
     x = [x(1) x(end)];
@@ -729,7 +729,7 @@ try
     
     
     membrane = get(dataObjs{2}, 'CData');
-    prePad = zeros(size(membrane, 1), ((timeBeforeCut/frameTime) - 4) + find(sum(im(:,((timeBeforeCut/frameTime) - 3):((timeBeforeCut/frameTime) + 7)),1)==0, 1, 'last') - 1);
+    prePad = zeros(size(membrane, 1), ((timeBeforeCut/handles.frameTime) - 4) + find(sum(im(:,((timeBeforeCut/handles.frameTime) - 3):((timeBeforeCut/handles.frameTime) + 7)),1)==0, 1, 'last') - 1);
 %     prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
     postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
     handles.paddedMembrane{ax} = [prePad membrane postPad];
