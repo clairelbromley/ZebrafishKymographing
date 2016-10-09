@@ -6,30 +6,105 @@ function [manualEdge, manualSpeed] = manualSpeedFreehand(handles, im)
 % but never mind. 
 handles.manualSpeedFig = figure;
 set(handles.manualSpeedFig, 'Position', get(0,'Screensize')); % Maximize figure.
-imagesc(im);
+
+cut_frame = round(handles.timeBeforeCut/handles.frameTime) + 1;
+x = find(sum(squeeze(im(cut_frame:cut_frame+5,:)),1)==0);
+first_frame = max(x) + 1;
+if isempty(x)
+    first_frame = 2;
+end
+segment_len_frames = round(handles.quantAnalysisTime / handles.frameTime);
+kym_segment = squeeze(im(:,first_frame:first_frame + segment_len_frames));
+
+% title_txt = get(get(handles.axUpSelectedKym, 'Title'), 'String');
+title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut %0.2f um, MANUAL LINEAR', handles.date, ...
+            handles.embryoNumber, handles.cutNumber, handles.currentKymInd);
+baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+
+if gca == handles.axUpSpeedVPosition
+    ax = 1;
+    appendText = ' upwards';
+    kym_ax = handles.axUpSelectedKym;
+    direction = 'up';
+    handles.currentDir = 'up';
+else
+    ax = 2;
+    appendText = ' downwards';
+    kym_ax = handles.axDownSelectedKym;
+    direction = 'down';
+    handles.currentDir = 'down';
+end
+
+folder = [baseFolder2 appendText];
+
+imagesc(kym_segment);
 colormap gray;
+axis equal tight;
 
 % get freehand selection:
 M = imfreehand(gca, 'Closed', 0);
-F = false(size(M.createMask));
+correct_membrane = false(size(M.createMask));
 P0 = M.getPosition;
+% get rid of points falling outwith axes...
+out = (P0(:,1) < 1) | (P0(:,1) > segment_len_frames + 1);
+P0(out,:) = [];
 
 % combine these three lines?
-P = unique(round(P0), 'rows');
-[~,ia,~] = unique(P, 'rows');
-P1 = P(ia,:);
+[~,ia,ic] = unique(round(P0(:,1)));
+P1 = round([P0(ia,1) P0(ia,2)]);
+Y = round(spline(P1(:,1), P1(:,2), (min(P1(:,1)):max(P1(:,1)))));
+X = min(P1(:,1)):max(P1(:,1));
+% P = unique(round(P0), 'rows');
+% [~,ia,~] = unique(P, 'rows');
+% P1 = P(ia,:);
 
-S = sub2ind(size(im),P1(:,2),P1(:,1));
-F(S) = true;
-
+S = sub2ind(size(im),Y,X);
+correct_membrane(S) = true;
+close(handles.manualSpeedFig);
 
 % fit speed curves using the indices in P1, scaled appropriately for size
 % and time AND add on offset - though this won't affect speed, it will
 % affect the output edge which will be overlaid in the viewer and saved for
 % subsequent retrieval. 
-X = P(:,1) * handles.frameTime;
-Y = P(:,2) * handles.umPerPixel;
+h = figure('Name', title_txt,'NumberTitle','off');
 
-manualSpeed = 1;
+X = X' * handles.frameTime;
+Y = Y' * handles.umPerPixel;
+
+[linf.res, linf.gof] = fit(X, Y, 'poly1');
+manualSpeed = linf.res.p1;
 manualEdge = [X Y];
+
+subplot(1,3,1);
+imagesc(handles.frameTime * (1:size(kym_segment, 2)), handles.umPerPixel * (1:size(kym_segment, 1)), kym_segment);
+set(gca, 'XTick', [], 'YTick', []);
+axis tight;
+colormap gray;
+
+subplot(1,3,2);
+imagesc(handles.frameTime * (1:size(kym_segment, 2)), handles.umPerPixel * (1:size(kym_segment, 1)), correct_membrane);
+set(gca, 'XTick', [], 'YTick', []);
+axis tight;
+
+subplot(1,3,3);
+scatter(X,Y);
+set(gca, 'YDir', 'reverse');
+ylim([0 size(kym_segment,1) * handles.umPerPixel])
+hold on
+plot(X, linf.res.p1*X + linf.res.p2, 'r');
+hold off
+xlabel('Time after cut, s');
+ylabel('Membrane position relative to cut, \mum');
+hold on
+plot(X, linf.res.p1*X + linf.res.p2, 'r');
+hold off
+xlabel('Time after cut, s');
+ylabel('Membrane position relative to cut, \mum');
+title([sprintf('Membrane speed = %0.2f ', manualSpeed) '\mum min^{-1}']);
+
+out_file = [folder filesep title_txt];
+print(h, [out_file '.png'], '-dpng', '-r300');
+savefig(h, [out_file '.fig']);   
+
+close(h);
 
