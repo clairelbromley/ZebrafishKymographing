@@ -707,12 +707,13 @@ try
 
     % TODO: get data on frames/second and pre- and post-cut time from metadata
     metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
-    timeBeforeCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeBeforeCut');
+    handles.timeBeforeCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeBeforeCut');
     timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
     handles.frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
     handles.umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
+    handles.quantAnalysisTime = getNumericMetadataFromText(metadataFName, 'userOptions.quantAnalysisTime');
         
-    xoffset = (sum(sum(im(:,(timeBeforeCut/handles.frameTime):((timeBeforeCut/handles.frameTime) + 5)),1)==0) - 1.5)*handles.frameTime;
+    xoffset = (sum(sum(im(:,(handles.timeBeforeCut/handles.frameTime):((handles.timeBeforeCut/handles.frameTime) + 5)),1)==0) - 1.5)*handles.frameTime;
     y=get(dataObjs{1}(1), 'YData') + handles.umPerPixel;
     x=get(dataObjs{1}(1), 'XData');
     x = x + xoffset;
@@ -729,7 +730,7 @@ try
     
     
     membrane = get(dataObjs{2}, 'CData');
-    prePad = zeros(size(membrane, 1), ((timeBeforeCut/handles.frameTime) - 4) + find(sum(im(:,((timeBeforeCut/handles.frameTime) - 3):((timeBeforeCut/handles.frameTime) + 7)),1)==0, 1, 'last') - 1);
+    prePad = zeros(size(membrane, 1), ((handles.timeBeforeCut/handles.frameTime) - 4) + find(sum(im(:,((handles.timeBeforeCut/handles.frameTime) - 3):((handles.timeBeforeCut/handles.frameTime) + 7)),1)==0, 1, 'last') - 1);
 %     prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
     postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
     handles.paddedMembrane{ax} = [prePad membrane postPad];
@@ -773,7 +774,7 @@ try
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
     
-    axis(kym_ax, [-timeBeforeCut timeAfterCut 0 max(y)], 'tight');
+    axis(kym_ax, [-handles.timeBeforeCut timeAfterCut 0 max(y)], 'tight');
     
     handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
     if strcmp(handles.edgeSide(1), 'u')
@@ -1751,6 +1752,10 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Key);
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
+
+if strcmp(eventdata.Key, 'f')
+    
+end
 
 if strcmp(eventdata.Key, 'e')
     if strcmp(handles.currentDir, 'up')
