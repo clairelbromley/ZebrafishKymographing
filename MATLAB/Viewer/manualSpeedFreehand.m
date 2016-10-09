@@ -19,6 +19,9 @@ kym_segment = squeeze(im(:,first_frame:first_frame + segment_len_frames));
 % title_txt = get(get(handles.axUpSelectedKym, 'Title'), 'String');
 title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph position along cut %0.2f um, MANUAL LINEAR', handles.date, ...
             handles.embryoNumber, handles.cutNumber, handles.currentKymInd);
+file_txt = [handles.date ', Embryo ' handles.embryoNumber ...
+            ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(handles.currentKymInd)...
+           ' - quantitative kymograph - MANUAL'];
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
 
 if gca == handles.axUpSpeedVPosition
@@ -102,7 +105,7 @@ xlabel('Time after cut, s');
 ylabel('Membrane position relative to cut, \mum');
 title([sprintf('Membrane speed = %0.2f ', manualSpeed) '\mum min^{-1}']);
 
-out_file = [folder filesep title_txt];
+out_file = [folder filesep file_txt];
 print(h, [out_file '.png'], '-dpng', '-r300');
 savefig(h, [out_file '.fig']);   
 

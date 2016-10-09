@@ -698,9 +698,85 @@ try
     temp = regionprops(logical(sum(im,1) == 0));
     handles.currentBlockedFrames = max([temp.Area]);
 
-    fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
-        ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
-       ' - quantitative kymograph.fig'];
+    [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, 'auto');
+
+    handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+    handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
+        'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+
+    fitLineState = get(handles.menuOverlayFitLine, 'Checked')   ;
+    membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
+    if(~strcmp(fitLineState, 'on'))
+        set(handles.fitLine(ax), 'Visible', 'off');
+        set(handles.fitText(ax), 'Visible', 'off');
+    end
+    
+    indices = checkIfStored(handles, direction, handles.currentPosition);
+    if sum(indices) > 0
+        if strcmp(handles.includedData(indices).userQCLabel, 'Good')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Misassigned edge')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Noise')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+        else
+            set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+        end
+    else
+        set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+    end
+    
+    axis(kym_ax, [-handles.timeBeforeCut handles.timeAfterCut 0 max(y)], 'tight');
+
+    handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
+    if strcmp(handles.edgeSide(1), 'u')
+        bgcol = [1 0 0];
+    else
+        bgcol = [0 1 0.2];
+    end
+    handles.edgeSideTxt = text(9, 1, handles.edgeSide(1), 'Parent', kym_ax, 'BackgroundColor', bgcol);
+    
+    
+catch ME
+    disp(ME);
+end
+busyDlg(busyOutput);
+set(handles.listData, 'Enable', 'on');
+
+
+function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_auto)
+
+    if strcmp(handles.currentDir, 'up')
+        ax = 1;
+        appendText = ' upwards';
+        kym_ax = handles.axUpSelectedKym;
+        direction = 'up';
+        handles.currentDir = 'up';
+    else
+        ax = 2;
+        appendText = ' downwards';
+        kym_ax = handles.axDownSelectedKym;
+        direction = 'down';
+        handles.currentDir = 'down';
+    end
+
+    RI = imref2d(size(im));
+    RI.XWorldLimits = [min(x) max(x)];
+    RI.YWorldLimits = [min(y) max(y)];
+    bg = zeros(size(im));
+    cmap = gray;
+    cmap(1,:) = [0 1 1];
+    colBg = ind2rgb(bg, cmap);
+    
+    if strcmp(manual_auto, 'auto')
+        fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+            ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(handles.currentKymInd)...
+           ' - quantitative kymograph.fig'];
+    else
+        fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+            ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(handles.currentKymInd)...
+           ' - quantitative kymograph - MANUAL.fig'];
+    end
     h = openfig(fpath, 'new', 'invisible');
     fAx = get(h, 'Children');
     dataObjs = get(fAx, 'Children');
@@ -724,75 +800,20 @@ try
 
     % handles.kymIm(ax) = imH;
 
-    fitLineState = get(handles.menuOverlayFitLine, 'Checked');
-    membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
-
-    
-    
     membrane = get(dataObjs{2}, 'CData');
     prePad = zeros(size(membrane, 1), ((handles.timeBeforeCut/handles.frameTime) - 4) + find(sum(im(:,((handles.timeBeforeCut/handles.frameTime) - 3):((handles.timeBeforeCut/handles.frameTime) + 7)),1)==0, 1, 'last') - 1);
-%     prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
     postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
     handles.paddedMembrane{ax} = [prePad membrane postPad];
 
-    % if(~strcmp(membraneOverlayState, 'on'))
+
         imshow(colBg, RI, 'Parent', kym_ax);
         handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
 
         % For now, default overlay to on
-    % if(~strcmp(membraneOverlayState, 'on'))    
         set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
         set(handles.menuOverlayEdge, 'Checked', 'on');
-    % else
-    %     set(handles.kymIm(ax), 'AlphaData', 1);
-    % end
         hold(kym_ax, 'off');
         set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
-    % end
-
-    handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-    handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
-        'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
-
-    if(~strcmp(fitLineState, 'on'))
-        set(handles.fitLine(ax), 'Visible', 'off');
-        set(handles.fitText(ax), 'Visible', 'off');
-    end
-    
-    indices = checkIfStored(handles, direction, handles.currentPosition);
-    if sum(indices) > 0
-        if strcmp(handles.includedData(indices).userQCLabel, 'Good')
-            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
-        elseif strcmp(handles.includedData(indices).userQCLabel, 'Misassigned edge')
-            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
-        elseif strcmp(handles.includedData(indices).userQCLabel, 'Noise')
-            set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
-        else
-            set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
-        end
-    else
-        set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
-    end
-    
-    axis(kym_ax, [-handles.timeBeforeCut timeAfterCut 0 max(y)], 'tight');
-    
-    handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
-    if strcmp(handles.edgeSide(1), 'u')
-        bgcol = [1 0 0];
-    else
-        bgcol = [0 1 0.2];
-    end
-    handles.edgeSideTxt = text(9, 1, handles.edgeSide(1), 'Parent', kym_ax, 'BackgroundColor', bgcol);
-    
-    
-catch ME
-    disp(ME);
-end
-busyDlg(busyOutput);
-set(handles.listData, 'Enable', 'on');
-
-% guidata(gcbo, handles);
-% guidata(hObject, handles);
 
 
 % --------------------------------------------------------------------
@@ -1754,7 +1775,22 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Modifier);
 
 if strcmp(eventdata.Key, 'f')
-    
+    if isfield(handles, 'kymIm')
+        if isobject(handles.kymIm)
+            if strcmp(handles.currentDir, 'up')
+                axes(handles.axUpSelectedKym);
+                axind = 1;
+            else
+                axes(handles.axDownSelectedKym);
+                axind = 2;
+            end
+            
+            [manualEdge, manualSpeed] = manualSpeedFreehand(handles, get(handles.kymIm(axind), 'CData'));
+            %  - update viewer to show new edge and new speed
+            %  - add extra qclabel to highlight manual speeds, inc. title
+            % color
+        end
+    end
 end
 
 if strcmp(eventdata.Key, 'e')
