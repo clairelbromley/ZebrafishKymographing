@@ -1931,9 +1931,15 @@ end
 
 if strcmp(eventdata.Key, 'd')
     
-    showDamageIcon(handles.currentDir, handles);  
-    handles.currentDamageSide = handles.currentDir;
-    handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    if strcmp(eventdata.Modifier, 'shift')
+        showDamageIcon('none', handles);  
+        handles.currentDamageSide = '';
+        handles.damagedSideList{get(handles.listData, 'Value')} = '';
+    else
+        showDamageIcon(handles.currentDir, handles);  
+        handles.currentDamageSide = handles.currentDir;
+        handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    end
     
     % set appropriate lines in included data, this side damaged to 'yes'
     filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
@@ -1948,6 +1954,9 @@ if strcmp(eventdata.Key, 'd')
     n{1} = 'no';
     temp(filt) = y;
     temp(filt2) = n;
+    if strcmp(eventdata.Modifier, 'shift')
+        temp(filt | filt2) = '';
+    end
     
     for ind = 1:length(temp)
         handles.includedData(ind).thisSideDamaged = temp{ind};
