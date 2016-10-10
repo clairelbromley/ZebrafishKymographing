@@ -1,4 +1,4 @@
-function [manualEdge, manualSpeed] = manualSpeedFreehand(handles, im)
+function [figurePath, manualSpeed] = manualSpeedFreehand(handles, im)
 
 % ADD OK BUTTON - definitely as can then just use the freehand drawing to
 % show where the user chosen membrane front is rather than having to
@@ -8,7 +8,7 @@ handles.manualSpeedFig = figure;
 set(handles.manualSpeedFig, 'Position', get(0,'Screensize')); % Maximize figure.
 
 cut_frame = round(handles.timeBeforeCut/handles.frameTime) + 1;
-x = find(sum(squeeze(im(cut_frame:cut_frame+5,:)),1)==0);
+x = find(sum(squeeze(im(:,cut_frame:cut_frame+5)),1)==0);
 first_frame = max(x) + 1;
 if isempty(x)
     first_frame = 2;
@@ -103,11 +103,13 @@ plot(X, linf.res.p1*X + linf.res.p2, 'r');
 hold off
 xlabel('Time after cut, s');
 ylabel('Membrane position relative to cut, \mum');
-title([sprintf('Membrane speed = %0.2f ', manualSpeed) '\mum min^{-1}']);
+title([sprintf('Membrane speed = %0.2f ', manualSpeed) '\mum s^{-1}']);
 
 out_file = [folder filesep file_txt];
 print(h, [out_file '.png'], '-dpng', '-r300');
 savefig(h, [out_file '.fig']);   
+
+figurePath = out_file;
 
 close(h);
 

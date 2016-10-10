@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 02-Oct-2016 17:32:35
+% Last Modified by GUIDE v2.5 10-Oct-2016 06:18:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -744,6 +744,7 @@ busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
 
+
 function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_auto)
 
     if strcmp(handles.currentDir, 'up')
@@ -759,7 +760,8 @@ function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_a
         direction = 'down';
         handles.currentDir = 'down';
     end
-
+    
+    hold(kym_ax, 'on');
     RI = imref2d(size(im));
     RI.XWorldLimits = [min(x) max(x)];
     RI.YWorldLimits = [min(y) max(y)];
@@ -814,6 +816,10 @@ function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_a
         set(handles.menuOverlayEdge, 'Checked', 'on');
         hold(kym_ax, 'off');
         set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+        
+        title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
+        ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.currentPosition) ' \mum'];
+        handles.kymTitle{ax} = title(kym_ax, title_txt);
 
 
 % --------------------------------------------------------------------
@@ -1644,6 +1650,8 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
     set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
 guidata(hObject, handles);
@@ -1775,21 +1783,31 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Modifier);
 
 if strcmp(eventdata.Key, 'f')
-    if isfield(handles, 'kymIm')
-        if isobject(handles.kymIm)
-            if strcmp(handles.currentDir, 'up')
-                axes(handles.axUpSelectedKym);
-                axind = 1;
-            else
-                axes(handles.axDownSelectedKym);
-                axind = 2;
-            end
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSelectedKym);
+        axind = 1;
+    else
+        axes(handles.axDownSelectedKym);
+        axind = 2;
+    end
             
-            [manualEdge, manualSpeed] = manualSpeedFreehand(handles, get(handles.kymIm(axind), 'CData'));
+    if isfield(handles, 'kymIm')
+%         if ~isempty(get(handles.kymIm(axind), 'CData'))
+            
+            [figurePath, handles.currentManualLineSpeed] = manualSpeedFreehand(handles, get(handles.kymIm(axind), 'CData'));
             %  - update viewer to show new edge and new speed
+            [folder,~,~] = fileparts(figurePath);
+            [handles, ~, ~] = getQuantitativeKym(handles, folder, get(handles.kymIm(axind), 'XData'),...
+                get(handles.kymIm(axind), 'YData'), get(handles.kymIm(axind), 'CData'), 'manual');
+            guidata(hObject, handles);
+            
             %  - add extra qclabel to highlight manual speeds, inc. title
             % color
-        end
+            hObject = handles.menuIncludeManual;
+            callback = get(handles.menuIncludeManual, 'Callback');
+            callback(hObject, eventdata);
+            
+%         end
     end
 end
 
@@ -2324,6 +2342,8 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
     set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
 guidata(hObject, handles);
@@ -2364,6 +2384,8 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
     set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
 guidata(hObject, handles);
@@ -2396,3 +2418,49 @@ else
     cla(handles.axDownDamage, 'reset');
     set(handles.axDownDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
 end
+
+
+% --------------------------------------------------------------------
+function menuIncludeManual_Callback(hObject, eventdata, handles)
+% hObject    handle to menuIncludeManual (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% hObject    handle to menuIncludeMisassigned (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Return warning/break if metadata hasn't been loaded yet...
+if ~isfield(handles, 'experimentMetadata')
+    msgbox('You need to load metadata before trying to include data for export!');
+    return;
+end
+
+%% clear other checkboxes
+menuHs = get(get(hObject, 'Parent'), 'Children');
+for menuH = menuHs
+    set(menuH, 'Checked', 'off');
+end
+set(hObject, 'Checked', 'on');
+
+if strcmp(handles.currentDir, 'up')
+    direction = 'up';
+    ax = 1;
+else
+    direction = 'down';
+    ax = 2;
+end
+
+handles = genericInclude(handles, get(hObject, 'Label'), direction, handles.currentPosition);
+
+% Make this bit verbose for greater accessbility later...
+if strcmp(get(hObject, 'Label'), 'Misassigned edge')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+elseif strcmp(get(hObject, 'Label'), 'Noise')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+elseif strcmp(get(hObject, 'Label'), 'Good')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
+end
+
+guidata(hObject, handles);
