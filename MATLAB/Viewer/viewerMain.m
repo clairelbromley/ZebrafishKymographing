@@ -621,8 +621,6 @@ end
 
 folder = [baseFolder2 appendText];
 
-
-
 h = findobj('Parent', gca);
 
 for ind = 1:length(h)
@@ -698,7 +696,29 @@ try
     temp = regionprops(logical(sum(im,1) == 0));
     handles.currentBlockedFrames = max([temp.Area]);
 
-    [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, 'auto');
+    indices = checkIfStored(handles, direction, handles.currentPosition);
+    if sum(indices) > 0
+        if strcmp(handles.includedData(indices).userQCLabel, 'Good')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Misassigned edge')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Noise')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
+        else
+            set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+        end
+    else
+        set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
+    end
+    
+    if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+        [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'manual');
+    else
+        [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'auto');
+    end
+        
 
     handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
     handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
@@ -709,21 +729,6 @@ try
     if(~strcmp(fitLineState, 'on'))
         set(handles.fitLine(ax), 'Visible', 'off');
         set(handles.fitText(ax), 'Visible', 'off');
-    end
-    
-    indices = checkIfStored(handles, direction, handles.currentPosition);
-    if sum(indices) > 0
-        if strcmp(handles.includedData(indices).userQCLabel, 'Good')
-            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
-        elseif strcmp(handles.includedData(indices).userQCLabel, 'Misassigned edge')
-            set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
-        elseif strcmp(handles.includedData(indices).userQCLabel, 'Noise')
-            set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
-        else
-            set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
-        end
-    else
-        set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
     
     axis(kym_ax, [-handles.timeBeforeCut handles.timeAfterCut 0 max(y)], 'tight');
@@ -1870,11 +1875,13 @@ end
 if strcmp(eventdata.Key, 'uparrow')
     handles.currentDir = 'up';
     axes(handles.axUpSpeedVPosition);
+    guidata(hObject, handles);
 end
 
 if strcmp(eventdata.Key, 'downarrow')
     handles.currentDir = 'down';
     axes(handles.axDownSpeedVPosition);
+    guidata(hObject, handles);
 end
 
 if strcmp(eventdata.Key, 'rightarrow')
@@ -1900,6 +1907,8 @@ if strcmp(eventdata.Key, 'rightarrow')
     if (closest + delta) > 0 && (closest + delta) <= length(handles.poss{ax})
         handles = move_selected_point(closest + delta);
     end
+    
+    guidata(hObject, handles);
     
 end
 
@@ -1927,6 +1936,7 @@ if strcmp(eventdata.Key, 'leftarrow')
         handles = move_selected_point(closest + delta);
     end
     
+    guidata(hObject, handles);
 end
 
 if strcmp(eventdata.Key, 'd')
@@ -1964,7 +1974,7 @@ if strcmp(eventdata.Key, 'd')
     
 end
 
-guidata(hObject, handles);
+
 
 
 % --------------------------------------------------------------------

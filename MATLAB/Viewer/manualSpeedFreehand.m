@@ -9,7 +9,7 @@ set(handles.manualSpeedFig, 'Position', get(0,'Screensize')); % Maximize figure.
 
 cut_frame = round(handles.timeBeforeCut/handles.frameTime) + 1;
 x = find(sum(squeeze(im(:,cut_frame:cut_frame+5)),1)==0);
-first_frame = max(x) + 1;
+first_frame = max(x) + cut_frame;
 if isempty(x)
     first_frame = 2;
 end
@@ -24,18 +24,16 @@ file_txt = [handles.date ', Embryo ' handles.embryoNumber ...
            ' - quantitative kymograph - MANUAL'];
 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
 
-if gca == handles.axUpSpeedVPosition
+if strcmp(handles.currentDir, 'up')
     ax = 1;
     appendText = ' upwards';
     kym_ax = handles.axUpSelectedKym;
     direction = 'up';
-    handles.currentDir = 'up';
 else
     ax = 2;
     appendText = ' downwards';
     kym_ax = handles.axDownSelectedKym;
     direction = 'down';
-    handles.currentDir = 'down';
 end
 
 folder = [baseFolder2 appendText];
