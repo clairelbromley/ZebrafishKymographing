@@ -277,6 +277,9 @@ for ind = 1:length(axHandles)
         handles.speeds{ind} = get(dataObjs, 'YData');
         handles.poss{ind} = get(dataObjs, 'XData');
 
+        % TODO: use SCATTER with HOLD to generate large cicles in front of
+        % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
+        % control labelling. 
         handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
         xlab = 'Kymograph position along cut, \mum';
         ylab = 'Membrane speed, \mum s^{-1}';
