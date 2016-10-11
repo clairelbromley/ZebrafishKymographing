@@ -280,7 +280,10 @@ for ind = 1:length(axHandles)
         % TODO: use SCATTER with HOLD to generate large cicles in front of
         % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
         % control labelling. 
+        hold(axHandles(ind), 'on');
+        handles.qcScatter{ind} = scatter(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 200, [1 1 1], 'MarkerFaceColor', [1 1 1]);
         handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+        hold(axHandles(ind), 'off');
         xlab = 'Kymograph position along cut, \mum';
         ylab = 'Membrane speed, \mum s^{-1}';
         xlabel(axHandles(ind), xlab);
@@ -624,7 +627,7 @@ end
 
 folder = [baseFolder2 appendText];
 
-h = findobj('Parent', gca);
+h = findobj('Parent', gca, '-not', 'Type', 'hggroup');
 
 for ind = 1:length(h)
     if (get(h(ind), 'Color') == [1 0 0])
@@ -794,7 +797,7 @@ function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_a
     % TODO: get data on frames/second and pre- and post-cut time from metadata
     metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
     handles.timeBeforeCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeBeforeCut');
-    timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
+    handles.timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
     handles.frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
     handles.umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
     handles.quantAnalysisTime = getNumericMetadataFromText(metadataFName, 'userOptions.quantAnalysisTime');
