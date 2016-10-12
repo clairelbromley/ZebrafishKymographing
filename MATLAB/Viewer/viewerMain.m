@@ -266,6 +266,12 @@ for ind = 1:length(axHandles)
         figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
             cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
 
+        if axHandles(ind) == handles.axUpSpeedVPosition
+            direction = 'up';
+        else
+            direction = 'down';
+        end
+            
 
         axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
     
@@ -280,6 +286,18 @@ for ind = 1:length(axHandles)
         % TODO: use SCATTER with HOLD to generate large cicles in front of
         % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
         % control labelling. 
+        filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
+            ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction);
+        tempQC = {handles.includedData.userQCLabel};
+        tempQC = tempQC(filt);
+        tempQC(strcmp(tempQC, 'no edge')) = [];
+        qcColor = cell(size(tempQC));
+        qcColor(strcmp(tempQC, 'Good')) = {[0 1 0]};
+        qcColor(strcmp(tempQC, 'not QCd')) = {[1 1 1]};
+        qcColor(strcmp(tempQC, 'Manual')) = {[0 0 1]};
+        qcColor(strcmp(tempQC, 'Noise')) = {[1 0 0]};
+        qcColor(strcmp(tempQC, 'Misassigned')) = {[0 1 1]};
+        
         hold(axHandles(ind), 'on');
         handles.qcScatter{ind} = scatter(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 200, [1 1 1], 'MarkerFaceColor', [1 1 1]);
         handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
