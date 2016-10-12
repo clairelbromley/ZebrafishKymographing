@@ -283,32 +283,6 @@ for ind = 1:length(axHandles)
         handles.speeds{ind} = get(dataObjs, 'YData');
         handles.poss{ind} = get(dataObjs, 'XData');
 
-        % TODO: use SCATTER with HOLD to generate large cicles in front of
-        % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
-        % control labelling. 
-        filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
-            ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction);
-        tempQC = {handles.includedData.userQCLabel};
-        tempQC = tempQC(filt);
-        tempQC(strcmp(tempQC, 'no edge')) = [];
-        qcColor = cell(size(tempQC));
-        qcColor(strcmp(tempQC, 'Good')) = {[0 1 0]};
-        qcColor(strcmp(tempQC, 'not QCd')) = {[1 1 1]};
-        qcColor(strcmp(tempQC, 'Manual')) = {[0 0 1]};
-        qcColor(strcmp(tempQC, 'Noise')) = {[1 0 0]};
-        qcColor(strcmp(tempQC, 'Misassigned')) = {[0 1 1]};
-        
-        hold(axHandles(ind), 'on');
-        handles.qcScatter{ind} = scatter(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 200, [1 1 1], 'MarkerFaceColor', [1 1 1]);
-        handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
-        hold(axHandles(ind), 'off');
-        xlab = 'Kymograph position along cut, \mum';
-        ylab = 'Membrane speed, \mum s^{-1}';
-        xlabel(axHandles(ind), xlab);
-        ylabel(axHandles(ind), ylab);
-        title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
-        
-    
     catch ME
 
         disp(ME)
@@ -481,6 +455,37 @@ try
                        end
                    end
                 end
+            
+                % TODO: use SCATTER with HOLD to generate large cicles in front of
+                % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
+                % control labelling. 
+                filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
+                    ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction);
+                tempQC = {handles.includedData.userQCLabel};
+                tempQC = tempQC(filt);
+                tempQC(strcmp(tempQC, 'no edge')) = [];
+                qcColor = 0.1 * ones(length(tempQC), 3);
+                % this bit is cumbersome - must be a better way of dealing
+                % with case when all elements in logical indexing array are
+                % false?
+                lindarr = strcmp(tempQC, 'Good');
+                if sum(lindarr) > 0
+                    qcColor(lindarr, :) = [0 1 0];
+                end
+                qcColor(strcmp(tempQC, 'not QCd'), :) = [1 1 1];
+                qcColor(strcmp(tempQC, 'Manual'), :) = [0 0 1];
+                qcColor(strcmp(tempQC, 'Noise'), :) = [1 0 0];
+                qcColor(strcmp(tempQC, 'Misassigned'), :) = [0 1 1];
+
+                hold(axHandles(ind), 'on');
+                handles.qcScatter{ind} = myScatter(handles.poss{ind}, handles.speeds{ind}, 200, qcColor, 'MarkerFaceColor', [1 1 1]);
+                handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+                hold(axHandles(ind), 'off');
+                xlab = 'Kymograph position along cut, \mum';
+                ylab = 'Membrane speed, \mum s^{-1}';
+                xlabel(axHandles(ind), xlab);
+                ylabel(axHandles(ind), ylab);
+                title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
                 
             end
 %         end
