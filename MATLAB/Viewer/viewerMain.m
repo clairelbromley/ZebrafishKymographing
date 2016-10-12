@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 02-Oct-2016 17:32:35
+% Last Modified by GUIDE v2.5 10-Oct-2016 06:18:08
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -266,6 +266,12 @@ for ind = 1:length(axHandles)
         figFilePaths = [cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' upwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position upwards' expTxt '.fig']);...
             cellstr([handles.baseFolder filesep dt ', Embryo ' embryoNumber ' downwards' filesep dt ', Embryo ' embryoNumber ', Cut ' cutNumber expTxt2 'peed against cut position downwards' expTxt '.fig'])];
 
+        if axHandles(ind) == handles.axUpSpeedVPosition
+            direction = 'up';
+        else
+            direction = 'down';
+        end
+            
 
         axHandles = [handles.axUpSpeedVPosition; handles.axDownSpeedVPosition]; 
     
@@ -277,7 +283,25 @@ for ind = 1:length(axHandles)
         handles.speeds{ind} = get(dataObjs, 'YData');
         handles.poss{ind} = get(dataObjs, 'XData');
 
+        % TODO: use SCATTER with HOLD to generate large cicles in front of
+        % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
+        % control labelling. 
+        filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
+            ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction);
+        tempQC = {handles.includedData.userQCLabel};
+        tempQC = tempQC(filt);
+        tempQC(strcmp(tempQC, 'no edge')) = [];
+        qcColor = cell(size(tempQC));
+        qcColor(strcmp(tempQC, 'Good')) = {[0 1 0]};
+        qcColor(strcmp(tempQC, 'not QCd')) = {[1 1 1]};
+        qcColor(strcmp(tempQC, 'Manual')) = {[0 0 1]};
+        qcColor(strcmp(tempQC, 'Noise')) = {[1 0 0]};
+        qcColor(strcmp(tempQC, 'Misassigned')) = {[0 1 1]};
+        
+        hold(axHandles(ind), 'on');
+        handles.qcScatter{ind} = scatter(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 200, [1 1 1], 'MarkerFaceColor', [1 1 1]);
         handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+        hold(axHandles(ind), 'off');
         xlab = 'Kymograph position along cut, \mum';
         ylab = 'Membrane speed, \mum s^{-1}';
         xlabel(axHandles(ind), xlab);
@@ -621,9 +645,7 @@ end
 
 folder = [baseFolder2 appendText];
 
-
-
-h = findobj('Parent', gca);
+h = findobj('Parent', gca, '-not', 'Type', 'hggroup');
 
 for ind = 1:length(h)
     if (get(h(ind), 'Color') == [1 0 0])
@@ -698,66 +720,6 @@ try
     temp = regionprops(logical(sum(im,1) == 0));
     handles.currentBlockedFrames = max([temp.Area]);
 
-    fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
-        ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(kym_ind)...
-       ' - quantitative kymograph.fig'];
-    h = openfig(fpath, 'new', 'invisible');
-    fAx = get(h, 'Children');
-    dataObjs = get(fAx, 'Children');
-
-    % TODO: get data on frames/second and pre- and post-cut time from metadata
-    metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
-    timeBeforeCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeBeforeCut');
-    timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
-    handles.frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
-    handles.umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
-        
-    xoffset = (sum(sum(im(:,(timeBeforeCut/handles.frameTime):((timeBeforeCut/handles.frameTime) + 5)),1)==0) - 1.5)*handles.frameTime;
-    y=get(dataObjs{1}(1), 'YData') + handles.umPerPixel;
-    x=get(dataObjs{1}(1), 'XData');
-    x = x + xoffset;
-    x = [x(1) x(end)];
-    y = [y(1) y(end)];
-
-    set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
-
-    % handles.kymIm(ax) = imH;
-
-    fitLineState = get(handles.menuOverlayFitLine, 'Checked');
-    membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
-
-    
-    
-    membrane = get(dataObjs{2}, 'CData');
-    prePad = zeros(size(membrane, 1), ((timeBeforeCut/handles.frameTime) - 4) + find(sum(im(:,((timeBeforeCut/handles.frameTime) - 3):((timeBeforeCut/handles.frameTime) + 7)),1)==0, 1, 'last') - 1);
-%     prePad = zeros(size(membrane, 1), 21+find(sum(im(:,22:32),1)==0, 1, 'last'));
-    postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
-    handles.paddedMembrane{ax} = [prePad membrane postPad];
-
-    % if(~strcmp(membraneOverlayState, 'on'))
-        imshow(colBg, RI, 'Parent', kym_ax);
-        handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
-
-        % For now, default overlay to on
-    % if(~strcmp(membraneOverlayState, 'on'))    
-        set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
-        set(handles.menuOverlayEdge, 'Checked', 'on');
-    % else
-    %     set(handles.kymIm(ax), 'AlphaData', 1);
-    % end
-        hold(kym_ax, 'off');
-        set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
-    % end
-
-    handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-    handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
-        'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
-
-    if(~strcmp(fitLineState, 'on'))
-        set(handles.fitLine(ax), 'Visible', 'off');
-        set(handles.fitText(ax), 'Visible', 'off');
-    end
-    
     indices = checkIfStored(handles, direction, handles.currentPosition);
     if sum(indices) > 0
         if strcmp(handles.includedData(indices).userQCLabel, 'Good')
@@ -766,6 +728,8 @@ try
             set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
         elseif strcmp(handles.includedData(indices).userQCLabel, 'Noise')
             set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+        elseif strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+            set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
         else
             set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
         end
@@ -773,8 +737,26 @@ try
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
     
-    axis(kym_ax, [-timeBeforeCut timeAfterCut 0 max(y)], 'tight');
+    if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+        [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'manual');
+    else
+        [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'auto');
+    end
+        
+
+    handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+    handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
+        'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+
+    fitLineState = get(handles.menuOverlayFitLine, 'Checked')   ;
+    membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
+    if(~strcmp(fitLineState, 'on'))
+        set(handles.fitLine(ax), 'Visible', 'off');
+        set(handles.fitText(ax), 'Visible', 'off');
+    end
     
+    axis(kym_ax, [-handles.timeBeforeCut handles.timeAfterCut 0 max(y)], 'tight');
+
     handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
     if strcmp(handles.edgeSide(1), 'u')
         bgcol = [1 0 0];
@@ -790,8 +772,83 @@ end
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
-% guidata(gcbo, handles);
-% guidata(hObject, handles);
+
+
+function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_auto)
+
+    if strcmp(handles.currentDir, 'up')
+        ax = 1;
+        appendText = ' upwards';
+        kym_ax = handles.axUpSelectedKym;
+        direction = 'up';
+        handles.currentDir = 'up';
+    else
+        ax = 2;
+        appendText = ' downwards';
+        kym_ax = handles.axDownSelectedKym;
+        direction = 'down';
+        handles.currentDir = 'down';
+    end
+    
+    hold(kym_ax, 'on');
+    RI = imref2d(size(im));
+    RI.XWorldLimits = [min(x) max(x)];
+    RI.YWorldLimits = [min(y) max(y)];
+    bg = zeros(size(im));
+    cmap = gray;
+    cmap(1,:) = [0 1 1];
+    colBg = ind2rgb(bg, cmap);
+    
+    if strcmp(manual_auto, 'auto')
+        fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+            ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(handles.currentKymInd)...
+           ' - quantitative kymograph.fig'];
+    else
+        fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
+            ', Cut ' handles.cutNumber ', Kymograph index along cut = ' num2str(handles.currentKymInd)...
+           ' - quantitative kymograph - MANUAL.fig'];
+    end
+    h = openfig(fpath, 'new', 'invisible');
+    fAx = get(h, 'Children');
+    dataObjs = get(fAx, 'Children');
+
+    % TODO: get data on frames/second and pre- and post-cut time from metadata
+    metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+    handles.timeBeforeCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeBeforeCut');
+    handles.timeAfterCut = getNumericMetadataFromText(metadataFName, 'userOptions.timeAfterCut');
+    handles.frameTime = getNumericMetadataFromText(metadataFName, 'metadata.acqMetadata.cycleTime');
+    handles.umPerPixel = getNumericMetadataFromText(metadataFName, 'metadata.umperpixel');
+    handles.quantAnalysisTime = getNumericMetadataFromText(metadataFName, 'userOptions.quantAnalysisTime');
+        
+    xoffset = (sum(sum(im(:,(handles.timeBeforeCut/handles.frameTime):((handles.timeBeforeCut/handles.frameTime) + 5)),1)==0) - 1.5)*handles.frameTime;
+    y=get(dataObjs{1}(1), 'YData') + handles.umPerPixel;
+    x=get(dataObjs{1}(1), 'XData');
+    x = x + xoffset;
+    x = [x(1) x(end)];
+    y = [y(1) y(end)];
+
+    set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+
+    % handles.kymIm(ax) = imH;
+
+    membrane = get(dataObjs{2}, 'CData');
+    prePad = zeros(size(membrane, 1), ((handles.timeBeforeCut/handles.frameTime) - 4) + find(sum(im(:,((handles.timeBeforeCut/handles.frameTime) - 3):((handles.timeBeforeCut/handles.frameTime) + 7)),1)==0, 1, 'last') - 1);
+    postPad = zeros(abs(size(im) - size(membrane) - size(prePad)));
+    handles.paddedMembrane{ax} = [prePad membrane postPad];
+
+
+        imshow(colBg, RI, 'Parent', kym_ax);
+        handles.kymIm(ax) = imshow(im, RI, [min(im(:)) max(im(:))], 'Parent', kym_ax);
+
+        % For now, default overlay to on
+        set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
+        set(handles.menuOverlayEdge, 'Checked', 'on');
+        hold(kym_ax, 'off');
+        set(handles.kymIm(ax), 'UIContextMenu', handles.menuSelectedKymFig);
+        
+        title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
+        ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.currentPosition) ' \mum'];
+        handles.kymTitle{ax} = title(kym_ax, title_txt);
 
 
 % --------------------------------------------------------------------
@@ -1622,6 +1679,8 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
     set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
 guidata(hObject, handles);
@@ -1752,6 +1811,35 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+if strcmp(eventdata.Key, 'f')
+    if strcmp(handles.currentDir, 'up')
+        axes(handles.axUpSelectedKym);
+        axind = 1;
+    else
+        axes(handles.axDownSelectedKym);
+        axind = 2;
+    end
+            
+    if isfield(handles, 'kymIm')
+%         if ~isempty(get(handles.kymIm(axind), 'CData'))
+            
+            [figurePath, handles.currentManualLineSpeed] = manualSpeedFreehand(handles, get(handles.kymIm(axind), 'CData'));
+            %  - update viewer to show new edge and new speed
+            [folder,~,~] = fileparts(figurePath);
+            [handles, ~, ~] = getQuantitativeKym(handles, folder, get(handles.kymIm(axind), 'XData'),...
+                get(handles.kymIm(axind), 'YData'), get(handles.kymIm(axind), 'CData'), 'manual');
+            guidata(hObject, handles);
+            
+            %  - add extra qclabel to highlight manual speeds, inc. title
+            % color
+            hObject = handles.menuIncludeManual;
+            callback = get(handles.menuIncludeManual, 'Callback');
+            callback(hObject, eventdata);
+            
+%         end
+    end
+end
+
 if strcmp(eventdata.Key, 'e')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
@@ -1811,11 +1899,13 @@ end
 if strcmp(eventdata.Key, 'uparrow')
     handles.currentDir = 'up';
     axes(handles.axUpSpeedVPosition);
+    guidata(hObject, handles);
 end
 
 if strcmp(eventdata.Key, 'downarrow')
     handles.currentDir = 'down';
     axes(handles.axDownSpeedVPosition);
+    guidata(hObject, handles);
 end
 
 if strcmp(eventdata.Key, 'rightarrow')
@@ -1841,6 +1931,8 @@ if strcmp(eventdata.Key, 'rightarrow')
     if (closest + delta) > 0 && (closest + delta) <= length(handles.poss{ax})
         handles = move_selected_point(closest + delta);
     end
+    
+    guidata(hObject, handles);
     
 end
 
@@ -1868,13 +1960,20 @@ if strcmp(eventdata.Key, 'leftarrow')
         handles = move_selected_point(closest + delta);
     end
     
+    guidata(hObject, handles);
 end
 
 if strcmp(eventdata.Key, 'd')
     
-    showDamageIcon(handles.currentDir, handles);  
-    handles.currentDamageSide = handles.currentDir;
-    handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    if strcmp(eventdata.Modifier, 'shift')
+        showDamageIcon('none', handles);  
+        handles.currentDamageSide = '';
+        handles.damagedSideList{get(handles.listData, 'Value')} = '';
+    else
+        showDamageIcon(handles.currentDir, handles);  
+        handles.currentDamageSide = handles.currentDir;
+        handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    end
     
     % set appropriate lines in included data, this side damaged to 'yes'
     filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
@@ -1889,6 +1988,9 @@ if strcmp(eventdata.Key, 'd')
     n{1} = 'no';
     temp(filt) = y;
     temp(filt2) = n;
+    if strcmp(eventdata.Modifier, 'shift')
+        temp(filt | filt2) = '';
+    end
     
     for ind = 1:length(temp)
         handles.includedData(ind).thisSideDamaged = temp{ind};
@@ -1896,7 +1998,7 @@ if strcmp(eventdata.Key, 'd')
     
 end
 
-guidata(hObject, handles);
+
 
 
 % --------------------------------------------------------------------
@@ -2283,6 +2385,8 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
     set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
 guidata(hObject, handles);
@@ -2323,6 +2427,8 @@ elseif strcmp(get(hObject, 'Label'), 'Noise')
     set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
 elseif strcmp(get(hObject, 'Label'), 'Good')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
 guidata(hObject, handles);
@@ -2355,3 +2461,49 @@ else
     cla(handles.axDownDamage, 'reset');
     set(handles.axDownDamage, 'XTick', [], 'YTick', [], 'Color', 'none');
 end
+
+
+% --------------------------------------------------------------------
+function menuIncludeManual_Callback(hObject, eventdata, handles)
+% hObject    handle to menuIncludeManual (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% hObject    handle to menuIncludeMisassigned (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Return warning/break if metadata hasn't been loaded yet...
+if ~isfield(handles, 'experimentMetadata')
+    msgbox('You need to load metadata before trying to include data for export!');
+    return;
+end
+
+%% clear other checkboxes
+menuHs = get(get(hObject, 'Parent'), 'Children');
+for menuH = menuHs
+    set(menuH, 'Checked', 'off');
+end
+set(hObject, 'Checked', 'on');
+
+if strcmp(handles.currentDir, 'up')
+    direction = 'up';
+    ax = 1;
+else
+    direction = 'down';
+    ax = 2;
+end
+
+handles = genericInclude(handles, get(hObject, 'Label'), direction, handles.currentPosition);
+
+% Make this bit verbose for greater accessbility later...
+if strcmp(get(hObject, 'Label'), 'Misassigned edge')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 1]);
+elseif strcmp(get(hObject, 'Label'), 'Noise')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [1 0 0]);
+elseif strcmp(get(hObject, 'Label'), 'Good')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 1 0]);
+elseif strcmp(get(hObject, 'Label'), 'Manual')
+    set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
+end
+
+guidata(hObject, handles);
