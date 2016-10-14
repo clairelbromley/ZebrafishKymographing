@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 10-Oct-2016 06:18:08
+% Last Modified by GUIDE v2.5 14-Oct-2016 23:11:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2545,3 +2545,10 @@ handles.qcColor{ax} = generateQCColorArray(handles, handles.qcColor{ax}, directi
 updateMyScatterColors(handles.qcScatter{ax}, handles.qcColor{ax});
 
 guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuUpdateAllSpeeds_Callback(hObject, eventdata, handles)
+% hObject    handle to menuUpdateAllSpeeds (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
