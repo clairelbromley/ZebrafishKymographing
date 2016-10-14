@@ -741,8 +741,19 @@ try
         
 
     handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-    handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = 3'},...
+    if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+        filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
+            ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction) & ...
+            (round(1000*handles.currentPosition) == round(1000 * [handles.includedData.kymPosition]));
+        handles.currentManualLineSpeed = handles.includedData(filt).manualSpeed;
+        handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
+            'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+    else
+        handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = '},...
         'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+    end
+    
+    
 
     fitLineState = get(handles.menuOverlayFitLine, 'Checked')   ;
     membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
@@ -1822,6 +1833,13 @@ if strcmp(eventdata.Key, 'f')
 %         if ~isempty(get(handles.kymIm(axind), 'CData'))
             
             [figurePath, handles.currentManualLineSpeed] = manualSpeedFreehand(handles, get(handles.kymIm(axind), 'CData'));
+            xposs = get(handles.fitLine(axind), 'XData');
+            xpos = max(xposs);
+            yposs = (get(handles.fitLine(axind), 'YData'));
+            ypos = xposs(xposs == xpos);
+            
+            handles.fitText(axind) = text(xpos, ypos, {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
+                'Parent', gca, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
             %  - update viewer to show new edge and new speed
             [folder,~,~] = fileparts(figurePath);
             [handles, ~, ~] = getQuantitativeKym(handles, folder, get(handles.kymIm(axind), 'XData'),...
@@ -2024,6 +2042,13 @@ if strcmp(reply, 'Yes')
         handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
     end
     
+    % ensure that dates are in string format in order that comparisons work
+    % later...
+    for ind = 1:length(handles.includedData)
+        handles.includedData(ind).date = num2str(handles.includedData(ind).date);
+        handles.includedData(ind).embryoNumber = num2str(handles.includedData(ind).embryoNumber);
+    end
+    
     ids = {handles.includedData.ID};
     for ind = 1:length(ids)
         r  = regexp(ids{ind}, '-', 'split');
@@ -2045,6 +2070,12 @@ if strcmp(reply, 'Yes')
     
     % update to show damage side icon for current view
     showDamageIcon(handles.damagedSideList(get(handles.listData, 'Value')), handles)   
+
+    directions = {'up' 'down'};
+    for hind = 1:2
+        handles.qcColor{hind} = generateQCColorArray(handles, handles.qcColor{hind}, directions{hind});
+        updateMyScatterColors(handles.qcScatter{hind}, handles.qcColor{hind});
+    end
     
 end
 
