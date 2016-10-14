@@ -1560,7 +1560,6 @@ end
 
 function handles = genericInclude(handles, qcLabel, direction, position)
 
-
 % if nargin == 0
 %     position = handles.currentPosition;
 %     fractionalPosition = handles.currentFractionalPosition;
@@ -1678,6 +1677,9 @@ elseif strcmp(get(hObject, 'Label'), 'Good')
 elseif strcmp(get(hObject, 'Label'), 'Manual')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
+
+handles.qcColor{ax} = generateQCColorArray(handles, handles.qcColor{ax}, direction);
+updateMyScatterColors(handles.qcScatter{ax}, handles.qcColor{ax});
 
 guidata(hObject, handles);
     
@@ -2385,6 +2387,9 @@ elseif strcmp(get(hObject, 'Label'), 'Manual')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
 
+handles.qcColor{ax} = generateQCColorArray(handles, handles.qcColor{ax}, direction);
+updateMyScatterColors(handles.qcScatter{ax}, handles.qcColor{ax});
+
 guidata(hObject, handles);
 
 % --------------------------------------------------------------------
@@ -2426,6 +2431,9 @@ elseif strcmp(get(hObject, 'Label'), 'Good')
 elseif strcmp(get(hObject, 'Label'), 'Manual')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
+
+handles.qcColor{ax} = generateQCColorArray(handles, handles.qcColor{ax}, direction);
+updateMyScatterColors(handles.qcScatter{ax}, handles.qcColor{ax});
 
 guidata(hObject, handles);
 
@@ -2501,5 +2509,8 @@ elseif strcmp(get(hObject, 'Label'), 'Good')
 elseif strcmp(get(hObject, 'Label'), 'Manual')
     set(handles.kymTitle{ax}, 'BackgroundColor', [0 0 1]);
 end
+
+handles.qcColor{ax} = generateQCColorArray(handles, handles.qcColor{ax}, direction);
+updateMyScatterColors(handles.qcScatter{ax}, handles.qcColor{ax});
 
 guidata(hObject, handles);

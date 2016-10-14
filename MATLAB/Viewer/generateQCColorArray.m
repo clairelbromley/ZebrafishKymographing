@@ -43,7 +43,7 @@ for ind = 1:length(tempQC)
             qcColor(ind, :) = [0 0 1];
         case 'Noise'
             qcColor(ind, :) = [1 0 0];
-        case 'Misassigned'
+        case 'Misassigned edge'
             qcColor(ind, :) = [0 1 1];
         otherwise
             qcColor(ind, :) = [0.95 0.95 0.95];    % for now, change back to white after debug
