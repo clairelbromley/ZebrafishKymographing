@@ -1,8 +1,12 @@
 function hs = myScatter(x, y, S, C, parent)
 
+haskids = ~isempty(get(parent, 'Children'));
 hold(parent, 'on');
-xlim = get(parent, 'XLim');
-ylim = get(parent, 'YLim');
+
+if haskids
+    xlmts = get(parent, 'XLim');
+    ylmts = get(parent, 'YLim');
+end
 % check vectors are all either the same length or one element. 
 
 
@@ -22,10 +26,13 @@ for ind = 1:length(x)
         ci = C(ind, :);
     end
     
-    hs(ind) = scatter(x(ind), y(ind), si, ci, 'fill');
+    hs(ind) = scatter(x(ind), y(ind), si, ci, 'fill', 'Parent', parent);
     
 end
 
 hold(parent, 'off');
-set(parent, 'XLim', xlim);
-set(parent, 'YLim', ylim);
+
+if haskids
+    set(parent, 'XLim', xlmts);
+    set(parent, 'YLim', ylmts);
+end

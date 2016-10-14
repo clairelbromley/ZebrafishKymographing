@@ -256,6 +256,10 @@ handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);
 fractional_pos_along_cut = getNumericMetadataFromText(mdfpath, 'metadata.kym_region.fraction_along_cut');
 distance_from_edge = getNumericMetadataFromText(mdfpath, 'metadata.kym_region.distance_from_edge');
 handles.plotHandles = num2cell(axHandles);
+handles.qcColor = cell(2,1);
+handles.qcScatter = cell(2,1);
+handles.poss = cell(2,1);
+handles.speeds = cell(2,1);
 
 % buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
 %     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
@@ -283,6 +287,19 @@ for ind = 1:length(axHandles)
         handles.speeds{ind} = get(dataObjs, 'YData');
         handles.poss{ind} = get(dataObjs, 'XData');
 
+%         hold(axHandles(ind), 'on');
+        handles.qcColor{ind} = 0.95 * ones(length(handles.poss{ind}), 3);   % put scatter in place to be modified once qc data dealt with
+%         handles.qcColor{ind}(:,2:3) = 0; % DEBUG
+        handles.qcScatter{ind} = myScatter(handles.poss{ind}, handles.speeds{ind}, 200, handles.qcColor{ind}, axHandles(ind));
+        hold(axHandles(ind), 'on');
+        handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+        hold(axHandles(ind), 'off');
+        xlab = 'Kymograph position along cut, \mum';
+        ylab = 'Membrane speed, \mum s^{-1}';
+        xlabel(axHandles(ind), xlab);
+        ylabel(axHandles(ind), ylab);
+        title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
+                
     catch ME
 
         disp(ME)
@@ -417,6 +434,7 @@ try
         directions = {'up' 'down'};
 %         if ~isempty(handles.includedData)
             for direction = directions
+                ind = find(strcmp(direction, directions)); % untidy, but never mind - saves rewriting...
                 baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
                 folder = [baseFolder2 ' ' direction{1} 'wards'];
                 filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
@@ -455,39 +473,12 @@ try
                        end
                    end
                 end
-            
-                % TODO: use SCATTER with HOLD to generate large cicles in front of
-                % plotted points (MarkerFaceAlpha = 0.5) to indicate quality
-                % control labelling. 
-                filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
-                    ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction);
-                tempQC = {handles.includedData.userQCLabel};
-                tempQC = tempQC(filt);
-                tempQC(strcmp(tempQC, 'no edge')) = [];
-                qcColor = 0.1 * ones(length(tempQC), 3);
-                % this bit is cumbersome - must be a better way of dealing
-                % with case when all elements in logical indexing array are
-                % false?
-                lindarr = strcmp(tempQC, 'Good');
-                if sum(lindarr) > 0
-                    qcColor(lindarr, :) = [0 1 0];
-                end
-                qcColor(strcmp(tempQC, 'not QCd'), :) = [1 1 1];
-                qcColor(strcmp(tempQC, 'Manual'), :) = [0 0 1];
-                qcColor(strcmp(tempQC, 'Noise'), :) = [1 0 0];
-                qcColor(strcmp(tempQC, 'Misassigned'), :) = [0 1 1];
 
-                hold(axHandles(ind), 'on');
-                handles.qcScatter{ind} = myScatter(handles.poss{ind}, handles.speeds{ind}, 200, qcColor, 'MarkerFaceColor', [1 1 1]);
-                handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
-                hold(axHandles(ind), 'off');
-                xlab = 'Kymograph position along cut, \mum';
-                ylab = 'Membrane speed, \mum s^{-1}';
-                xlabel(axHandles(ind), xlab);
-                ylabel(axHandles(ind), ylab);
-                title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
-                
+                handles.qcColor{ind} = generateQCColorArray(handles, handles.qcColor{ind}, direction);
+                updateMyScatterColors(handles.qcScatter{ind}, handles.qcColor{ind});
+            
             end
+            
 %         end
         
 catch ME
