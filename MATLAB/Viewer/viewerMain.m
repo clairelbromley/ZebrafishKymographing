@@ -1599,7 +1599,7 @@ if sum(indices) == 0
     
     incData.distanceCutToApicalSurfaceUm = handles.currentApicalSurfaceToCutDistance;
     
-    if isfield(handles, 'currentManualLineSpeed')
+    if isfield(handles, 'currentManualLineSpeed') && strcmp(qcLabel, 'Manual')
         incData.manualSpeed = handles.currentManualLineSpeed;
     else
         incData.manualSpeed = nan;
@@ -1619,7 +1619,7 @@ if sum(indices) == 0
 else
     handles.includedData(indices).userQCLabel = qcLabel;
     handles.includedData(indices).speed = handles.currentSpeed;
-    if isfield(handles, 'currentManualLineSpeed')
+    if isfield(handles, 'currentManualLineSpeed') && strcmp(qcLabel, 'Manual')
         handles.includedData(indices).manualSpeed = handles.currentManualLineSpeed;
     else
         handles.includedData(indices).manualSpeed = nan;
