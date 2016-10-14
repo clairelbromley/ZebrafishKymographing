@@ -286,24 +286,11 @@ for ind = 1:length(axHandles)
         dataObjs = get(ax, 'Children');
         handles.speeds{ind} = get(dataObjs, 'YData');
         handles.poss{ind} = get(dataObjs, 'XData');
-
 %         hold(axHandles(ind), 'on');
         handles.qcColor{ind} = 0.95 * ones(length(handles.poss{ind}), 3);   % put scatter in place to be modified once qc data dealt with
 %         handles.qcColor{ind}(:,2:3) = 0; % DEBUG
         handles.qcScatter{ind} = myScatter(handles.poss{ind}, handles.speeds{ind}, 200, handles.qcColor{ind}, axHandles(ind));
         hold(axHandles(ind), 'on');
-        tempQC = {handles.includedData.userQCLabel};
-        tempQC = tempQC(filt);
-        tempQC(strcmp(tempQC, 'no edge')) = [];
-        qcColor = cell(size(tempQC));
-        qcColor(strcmp(tempQC, 'Good')) = {[0 1 0]};
-        qcColor(strcmp(tempQC, 'not QCd')) = {[1 1 1]};
-        qcColor(strcmp(tempQC, 'Manual')) = {[0 0 1]};
-        qcColor(strcmp(tempQC, 'Noise')) = {[1 0 0]};
-        qcColor(strcmp(tempQC, 'Misassigned')) = {[0 1 1]};
-        
-        hold(axHandles(ind), 'on');
-        handles.qcScatter{ind} = scatter(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 200, [1 1 1], 'MarkerFaceColor', [1 1 1]);
         handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
         hold(axHandles(ind), 'off');
         xlab = 'Kymograph position along cut, \mum';
@@ -311,6 +298,7 @@ for ind = 1:length(axHandles)
         xlabel(axHandles(ind), xlab);
         ylabel(axHandles(ind), ylab);
         title(axHandles(ind), sprintf('%s, Embryo %s, Cut %s, %s', dt, embryoNumber, cutNumber, titleAppendices{ind}));
+
                 
     catch ME
 
