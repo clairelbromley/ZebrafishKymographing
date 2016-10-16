@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 14-Oct-2016 23:11:49
+% Last Modified by GUIDE v2.5 16-Oct-2016 16:38:20
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2077,6 +2077,7 @@ if strcmp(reply, 'Yes')
         updateMyScatterColors(handles.qcScatter{hind}, handles.qcColor{hind});
     end
     
+    set(handles.menuUpdateAllSpeeds, 'Enable', 'on');
 end
 
 busyDlg(busyOutput);
@@ -2552,3 +2553,45 @@ function menuUpdateAllSpeeds_Callback(hObject, eventdata, handles)
 % hObject    handle to menuUpdateAllSpeeds (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+%% start busy
+busyOutput = busyDlg();
+
+ids = {handles.includedData.ID};
+
+for id = unique(ids)
+    
+    filt = ~strcmp({handles.includedData.userQCLabel}, 'no edge') & ...
+    ~strcmp({handles.includedData.userQCLabel}, 'not QCd') & ...
+    strcmp(ids, id);
+
+    if sum(filt) > 0
+        lines = handles.includedData(filt);
+        fpath = [handles.baseFolder filesep ...
+            lines(1).date ', Embryo ' lines(1).embryoNumber ' ' lines(1).direction 'wards' filesep ...
+            lines(1).date ', Embryo ' lines(1).embryoNumber ', Cut ' num2str(lines(1).cutNumber) ...
+            ', Speed against cut position ' lines(1).direction 'wards'];
+        
+        h = openfig(fpath, 'new', 'invisible');
+        ax = get(h, 'Children');
+        dataObjs = get(ax, 'Children');
+        speeds = get(dataObjs, 'YData');
+        poss = get(dataObjs, 'XData');
+        close(h);
+        
+        for ind = 1:length(poss)
+            filt2 = ~strcmp({handles.includedData.userQCLabel}, 'no edge') & ...
+                ~strcmp({handles.includedData.userQCLabel}, 'not QCd') & ...
+                strcmp(ids, id) & (round(1000 * [handles.includedData.kymPosition]) == round( 1000 * poss(ind)));
+            if sum(filt2) > 0
+                handles.includedData(filt2).speed = speeds(ind);
+            end
+        end
+        
+    end
+
+end
+    
+busyDlg(busyOutput);
+guidata(hObject, handles);    
+
