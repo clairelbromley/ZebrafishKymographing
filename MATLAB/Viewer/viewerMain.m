@@ -2012,10 +2012,9 @@ if strcmp(eventdata.Key, 'd')
         handles.includedData(ind).thisSideDamaged = temp{ind};
     end
     
+    guidata(hObject, handles);
+    
 end
-
-
-
 
 % --------------------------------------------------------------------
 function menuImportInclusion_Callback(hObject, eventdata, handles)
