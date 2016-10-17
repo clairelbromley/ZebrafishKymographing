@@ -35,4 +35,14 @@ hold(parent, 'off');
 if haskids
     set(parent, 'XLim', xlmts);
     set(parent, 'YLim', ylmts);
+else
+    % manually set limits since it seems matlab can't be trusted to do this
+    % properly
+    rx = max(x) - min(x);
+    ry = max(y) - min(y);
+    set(parent, 'XLim', [(min(x) - 0.1 * rx) (max(x) + 0.1 * rx)]);
+    set(parent, 'YLim', [(min(y) - 0.1 * ry) (max(y) + 0.1 * ry)]);
+    axis fill;
+    axis normal;
+    
 end
