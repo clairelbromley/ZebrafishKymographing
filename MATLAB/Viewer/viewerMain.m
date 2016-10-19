@@ -286,12 +286,19 @@ for ind = 1:length(axHandles)
         dataObjs = get(ax, 'Children');
         handles.speeds{ind} = get(dataObjs, 'YData');
         handles.poss{ind} = get(dataObjs, 'XData');
-%         hold(axHandles(ind), 'on');
-        handles.qcColor{ind} = 0.95 * ones(length(handles.poss{ind}), 3);   % put scatter in place to be modified once qc data dealt with
-%         handles.qcColor{ind}(:,2:3) = 0; % DEBUG
-        handles.qcScatter{ind} = myScatter(handles.poss{ind}, handles.speeds{ind}, 200, handles.qcColor{ind}, axHandles(ind));
+        handles.qcColor{ind} = 0.3 * ones(length(handles.positionsAlongLine), 3);   % put scatter in place to be modified once qc data dealt with
+        % generate dummy speeds for unfound edges
+        dummyspeeds = zeros(1, length(handles.positionsAlongLine));
+        for posind = 1:length(handles.poss{ind})
+           if ~isempty(round(1000 * handles.poss{ind}(posind)) == round(1000 * handles.positionsAlongLine)) 
+               dummyspeeds(round( 1000 * handles.poss{ind}(posind)) == round( 1000 * handles.positionsAlongLine)) ...
+                   = handles.speeds{ind}(posind);
+               handles.qcColor{ind}(round(1000 * handles.poss{ind}(posind)) == round(1000 * handles.positionsAlongLine),:) = [0.95 0.95 0.95];
+           end
+        end
+        handles.qcScatter{ind} = myScatter(handles.positionsAlongLine, dummyspeeds, 200, handles.qcColor{ind}, axHandles(ind));
         hold(axHandles(ind), 'on');
-        handles.plotHandles{ind} = plot(axHandles(ind), handles.poss{ind}, handles.speeds{ind}, 'x-');
+        handles.plotHandles{ind} = plot(axHandles(ind), handles.positionsAlongLine, dummyspeeds, 'x-');
         hold(axHandles(ind), 'off');
         xlab = 'Kymograph position along cut, \mum';
         ylab = 'Membrane speed, \mum s^{-1}';
