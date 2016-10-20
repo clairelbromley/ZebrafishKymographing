@@ -4,7 +4,7 @@ filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.inclu
     ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction);
 tempQC = {handles.includedData.userQCLabel};
 tempQC = tempQC(filt);
-tempQC(strcmp(tempQC, 'no edge')) = [];
+% tempQC(strcmp(tempQC, 'no edge')) = [];
 
 % % this bit is cumbersome - must be a better way of dealing
 % % with case when all elements in logical indexing array are
