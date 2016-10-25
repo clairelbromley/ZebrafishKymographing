@@ -296,6 +296,7 @@ for ind = 1:length(axHandles)
                handles.qcColor{ind}(round(1000 * handles.poss{ind}(posind)) == round(1000 * handles.positionsAlongLine),:) = [0.95 0.95 0.95];
            end
         end
+        handles.speeds{ind} = dummyspeeds;
         handles.qcScatter{ind} = myScatter(handles.positionsAlongLine, dummyspeeds, 200, handles.qcColor{ind}, axHandles(ind));
         hold(axHandles(ind), 'on');
         handles.plotHandles{ind} = plot(axHandles(ind), handles.positionsAlongLine, dummyspeeds, 'x-');
@@ -317,7 +318,7 @@ for ind = 1:length(axHandles)
         ds = {'up' 'down'};
         for i = 1:length(handles.positionsAlongLine)
             handles.currentPosition = handles.positionsAlongLine(i);
-            handles.poss{ind} = [];
+            handles.positionsAlongLine{ind} = [];
             handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
                             == round(1000*handles.currentPosition)/1000);
             handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
@@ -461,7 +462,7 @@ try
                    if (sum(checkIfStored(handles, direction{1}, pos)) == 0)
                        % was edge found, i.e. is relevant x position in the
                        % speed v position plot?
-                       if isempty(handles.poss)
+                       if isempty(handles.positionsAlongLine)
                            qcLabel = 'no edge';
                            handles = genericInclude(handles, qcLabel, direction{1}, pos);
                        else
@@ -474,8 +475,13 @@ try
                                    handles = genericInclude(handles, qcLabel, direction{1}, pos);
                                end
                            else
-                               qcLabel = 'no edge';
-                               handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                               if ((sum(round(1000*handles.poss(strcmp(directions, direction{1})))/1000 == round(1000*pos)/1000) > 0))  % nonsense
+                                   qcLabel = 'not QCd';
+                                   handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                               else
+                                   qcLabel = 'no edge';
+                                   handles = genericInclude(handles, qcLabel, direction{1}, pos);
+                               end
                            end
                        end
                    end
@@ -617,7 +623,7 @@ end
 
 a = get(gca, 'CurrentPoint');
 xpos = a(1,1);
-x = abs(handles.poss{ax} - xpos);
+x = abs(handles.positionsAlongLine - xpos);
 
 closest = find(x == min(x));
 
@@ -657,10 +663,11 @@ for ind = 1:length(h)
 end
 
 hold on
-plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
+plot(handles.positionsAlongLine(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
 hold off
 
-[~, closest_kymline] = min(abs(handles.positionsAlongLine - handles.poss{ax}(closest)));
+% [~, closest_kymline] = min(abs(handles.positionsAlongLine - handles.poss{ax}(closest)));
+closest_kymline = closest;
 
 for kymInd = 1:length(handles.kymLines(ax,:))
     if kymInd == closest_kymline
@@ -676,7 +683,7 @@ filepath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 pos_along_cut = getKymPosMetadataFromText(filepath);
 fractional_pos_along_cut = getNumericMetadataFromText(filepath, 'metadata.kym_region.fraction_along_cut');
 distance_from_edge = getNumericMetadataFromText(filepath, 'metadata.kym_region.distance_from_edge');
-kym_ind = find((round(100*pos_along_cut)/100) == (round(100*handles.poss{ax}(closest))/100)) - 2;
+kym_ind = find((round(100*pos_along_cut)/100) == (round(100*handles.positionsAlongLine(closest))/100)) - 2;
 handles.currentKymInd = kym_ind;
 
 fpath = [folder filesep handles.date ', Embryo ' handles.embryoNumber ...
@@ -709,10 +716,10 @@ try
     
 
     title_txt = [handles.date ' Embryo ' handles.embryoNumber ', Cut ' handles.cutNumber...
-        ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
+        ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.positionsAlongLine(closest)) ' \mum'];
     handles.kymTitle{ax} = title(kym_ax, title_txt);
 
-    handles.currentPosition = handles.poss{ax}(closest);
+    handles.currentPosition = handles.positionsAlongLine(closest);
     handles.currentSpeed = handles.speeds{ax}(closest);
     handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_along_cut)/1000 ...
         == round(1000*handles.currentPosition)/1000);
@@ -1941,7 +1948,7 @@ if strcmp(eventdata.Key, 'rightarrow')
     end
     % identify current point, and therefore point to the right
     xpos = handles.currentPosition;
-    x = abs(handles.poss{ax} - xpos);
+    x = abs(handles.positionsAlongLine - xpos);
 
     closest = find(x == min(x));
 
@@ -1951,7 +1958,7 @@ if strcmp(eventdata.Key, 'rightarrow')
         delta = -1;
     end
 
-    if (closest + delta) > 0 && (closest + delta) <= length(handles.poss{ax})
+    if (closest + delta) > 0 && (closest + delta) <= length(handles.positionsAlongLine)
         handles = move_selected_point(closest + delta);
     end
     
@@ -1969,7 +1976,7 @@ if strcmp(eventdata.Key, 'leftarrow')
     end
     % identify current point, and therefore point to the right
     xpos = handles.currentPosition;
-    x = abs(handles.poss{ax} - xpos);
+    x = abs(handles.positionsAlongLine - xpos);
 
     closest = find(x == min(x));
     
@@ -1979,7 +1986,7 @@ if strcmp(eventdata.Key, 'leftarrow')
         delta = 1;
     end
 
-    if (closest + delta) > 0 && (closest + delta) <= length(handles.poss{ax})
+    if (closest + delta) > 0 && (closest + delta) <= length(handles.positionsAlongLine)
         handles = move_selected_point(closest + delta);
     end
     
