@@ -255,11 +255,20 @@ mdfpath = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 handles.positionsAlongLine = getKymPosMetadataFromText(mdfpath);    
 fractional_pos_along_cut = getNumericMetadataFromText(mdfpath, 'metadata.kym_region.fraction_along_cut');
 distance_from_edge = getNumericMetadataFromText(mdfpath, 'metadata.kym_region.distance_from_edge');
+handles.timeBeforeCut = getNumericMetadataFromText(mdfpath, 'userOptions.timeBeforeCut');
+handles.timeAfterCut = getNumericMetadataFromText(mdfpath, 'userOptions.timeAfterCut');
+handles.frameTime = getNumericMetadataFromText(mdfpath, 'metadata.acqMetadata.cycleTime');
+handles.umPerPixel = getNumericMetadataFromText(mdfpath, 'metadata.umperpixel');
+handles.quantAnalysisTime = getNumericMetadataFromText(mdfpath, 'userOptions.quantAnalysisTime');
 handles.plotHandles = num2cell(axHandles);
 handles.qcColor = cell(2,1);
 handles.qcScatter = cell(2,1);
 handles.poss = cell(2,1);
 handles.speeds = cell(2,1);
+% handles.fitLine = zeros(2,1);
+% handles.fitText = zeros(2,1);
+
+    
 
 % buttonDownFcns = {{@axUpSpeedVPosition_ButtonDownFcn, handles};...
 %     {@axDownSpeedVPosition_ButtonDownFcn, handles}};
@@ -754,18 +763,23 @@ try
             [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'auto');
         end
 
-
-        handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+        if isfield(handles, 'fitLine')
+            handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
+        end
         if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
             filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
                 ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction) & ...
                 (round(1000*handles.currentPosition) == round(1000 * [handles.includedData.kymPosition]));
             handles.currentManualLineSpeed = handles.includedData(filt).manualSpeed;
-            handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
+            if isfield(handles, 'fitText')
+                handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
                 'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+            end
         else
-            handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = '},...
-            'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+            if isfield(handles, 'fitText')
+                handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = '},...
+                'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+            end
         end
     end
     
@@ -773,21 +787,24 @@ try
 
     fitLineState = get(handles.menuOverlayFitLine, 'Checked')   ;
     membraneOverlayState = get(handles.menuOverlayEdge, 'Checked');
-    if(~strcmp(fitLineState, 'on'))
+    if(~strcmp(fitLineState, 'on')) && isfield(handles, 'fitLine')
         set(handles.fitLine(ax), 'Visible', 'off');
         set(handles.fitText(ax), 'Visible', 'off');
     end
     
     axis(kym_ax, [-handles.timeBeforeCut handles.timeAfterCut 0 max(y)], 'tight');
 
-    handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
-    if strcmp(handles.edgeSide(1), 'u')
-        bgcol = [1 0 0];
-    else
-        bgcol = [0 1 0.2];
-    end
-    handles.edgeSideTxt = text(9, 1, handles.edgeSide(1), 'Parent', kym_ax, 'BackgroundColor', bgcol);
+    if ~strcmp(handles.includedData(indices).userQCLabel, 'no edge')
+        handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
+        if strcmp(handles.edgeSide(1), 'u')
+            bgcol = [1 0 0];
+        else
+            bgcol = [0 1 0.2];
+        end
+        handles.edgeSideTxt = text(9, 1, handles.edgeSide(1), 'Parent', kym_ax, 'BackgroundColor', bgcol);
     
+    end
+            
     
 catch ME
     disp(ME);
@@ -1849,24 +1866,29 @@ if strcmp(eventdata.Key, 'f')
 %         if ~isempty(get(handles.kymIm(axind), 'CData'))
             
             [figurePath, handles.currentManualLineSpeed] = manualSpeedFreehand(handles, get(handles.kymIm(axind), 'CData'));
-            xposs = get(handles.fitLine(axind), 'XData');
-            xpos = max(xposs);
-            yposs = (get(handles.fitLine(axind), 'YData'));
-            ypos = xposs(xposs == xpos);
-            
-            handles.fitText(axind) = text(xpos, ypos, {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
-                'Parent', gca, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+            if isfield(handles, 'fitLine')
+                if ~(handles.fitLine(axind) == 0)
+                    xposs = get(handles.fitLine(axind), 'XData');
+                    xpos = max(xposs);
+                    yposs = (get(handles.fitLine(axind), 'YData'));
+                    ypos = xposs(xposs == xpos);
+
+                    handles.fitText(axind) = text(xpos, ypos, {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
+                        'Parent', gca, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+                end
+            end
             %  - update viewer to show new edge and new speed
             [folder,~,~] = fileparts(figurePath);
             [handles, ~, ~] = getQuantitativeKym(handles, folder, get(handles.kymIm(axind), 'XData'),...
                 get(handles.kymIm(axind), 'YData'), get(handles.kymIm(axind), 'CData'), 'manual');
             guidata(hObject, handles);
-            
+
             %  - add extra qclabel to highlight manual speeds, inc. title
             % color
             hObject = handles.menuIncludeManual;
             callback = get(handles.menuIncludeManual, 'Callback');
             callback(hObject, eventdata);
+%             end
             
 %         end
     end
