@@ -777,7 +777,7 @@ try
     end
     handles.edgeSideTxt = text(9, 1, handles.edgeSide(1), 'Parent', kym_ax, 'BackgroundColor', bgcol);
     
-    
+    close(h);
 catch ME
     disp(ME);
 end
@@ -862,6 +862,7 @@ function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_a
         ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.currentPosition) ' \mum'];
         handles.kymTitle{ax} = title(kym_ax, title_txt);
 
+    delete(h);
 
 % --------------------------------------------------------------------
 function saveToPNG_Callback(hObject, eventdata, handles)
