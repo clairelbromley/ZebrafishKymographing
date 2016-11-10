@@ -521,7 +521,7 @@ figs(figs == handles.figure1) = []; % delete your current figure from the list
 close(figs)
 
 
-
+saveTempVars(handles);
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -2598,4 +2598,10 @@ end
     
 busyDlg(busyOutput);
 guidata(hObject, handles);    
+
+% -------------------------------------------------------------------------
+function saveTempVars(handles)
+
+tDir = tempdir;
+save([tDir filesep 'viewerMainTempVars.mat'], 'handles');
 
