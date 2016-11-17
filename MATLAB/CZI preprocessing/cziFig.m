@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 08-Jun-2016 22:58:50
+% Last Modified by GUIDE v2.5 16-Nov-2016 17:11:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -70,6 +70,8 @@ handles.params.cutEndY = 50;
 handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
 handles.params.kymSpacing = 1;
+handles.params.currZPlane = 1;
+handles.params.zPlanes = 1;
 handles.params.firstFrame = 1;
 handles.params.lastFrame = 50;
 handles.params.sequenceLength = 50;
@@ -115,6 +117,7 @@ set(handles.txtFrameTime, 'String', num2str(params.frameTime));
 % set(handles.txtStartY, 'String', num2str(params.cutStartY));
 % set(handles.txtEndY, 'String', num2str(params.cutEndY));
 % set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
+set(handles.txtZPlaneDisplay, 'String', sprintf('(%d/%d)', params.currZPlane, params.zPlanes));
 set(handles.txtFirstFrameDisplay, 'String', sprintf('(%d/%d)', params.firstFrame, params.sequenceLength));
 set(handles.txtLastFrameDisplay, 'String', sprintf('(%d/%d)', params.lastFrame, params.sequenceLength));
 set(handles.txtAnalysisTimeDisplay, 'String', sprintf('(%0.2f)', params.analysisTime))
@@ -125,6 +128,9 @@ set(handles.txtAnalysisTimeDisplay, 'String', sprintf('(%0.2f)', params.analysis
 % set(handles.scrollLastFrame, 'Value', params.lastFrame);
 % set(handles.scrollLastFrame, 'Min', params.firstFrame);
 
+set(handles.scrollZPlane, 'Max', params.currZPlane+1);
+set(handles.scrollZPlane, 'Min', 1);
+set(handles.scrollZPlane, 'Value', params.currZPlane);
 set(handles.scrollFirstFrame, 'Max', params.sequenceLength);
 set(handles.scrollFirstFrame, 'Value', params.firstFrame);
 set(handles.scrollFirstFrame, 'Min', 1);
@@ -292,7 +298,7 @@ function buttonBrowseImagePath_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles = guidata(gcf);
 
-[fname, pname, ~] = uigetfile('*.czi');
+[fname, pname, ~] = uigetfile({'*.czi'; '*.tif'; '*.tiff'});
 
 set(handles.txtImagePath, 'String', [pname fname]);
 handles = imagePathChanged({[pname fname]}, hObject);
@@ -348,9 +354,10 @@ if ischar(new_image_path{1})
     set(handles.txtImagePath, 'String', new_image_path);
 
     % check that path is a .czi file
-    [~,~,ext] = fileparts(new_image_path{1});
-    if ~strcmp(ext, '.czi')
-        errorHandler('Image must be CZI format!');
+    [pathstr,~,ext] = fileparts(new_image_path{1});
+    if ~strcmp(ext, '.czi') && ~strcmp(ext, '.tif')
+        % TODO: add functionality for TIFF import. 
+        errorHandler('Image must be CZI/OME-TIFF format!');
     else
         try
             % load first frame to image preview pane
@@ -359,13 +366,24 @@ if ischar(new_image_path{1})
     %         im = data{1}{1};
             % don't load whole series yet...
             handles.reader = bfGetReader(new_image_path{1});
-            omeMeta = handles.reader.getMetadataStore();
+            
+            if strcmp(ext, '.tif')
+                [metaFName, metaPName, ~] = uigetfile('*.czi', 'Locate the original .czi file for metadata...', pathstr);
+                metareader = bfGetReader([metaPName filesep metaFName]);
+                omeMeta = metareader.getMetadataStore();
+            else
+                omeMeta = handles.reader.getMetadataStore();
+            end
+            
+            handles.currentDispFrame = 1;
             im = bfGetPlane(handles.reader, 1);
             padim = zeros(size(im, 1)+200, size(im, 2)+200);
             padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
             im = padim;
             clear padim; 
-
+            
+            handles.currentIm = im;
+            
             imagesc(im, 'Parent', handles.axImage);
             colormap gray;
             set(gca, 'XTick', []);
@@ -379,9 +397,13 @@ if ischar(new_image_path{1})
             handles.params.firstFrame = 1;
             handles.params.lastFrame = handles.params.sequenceLength;
             handles.params.analysisTime = handles.params.frameTime * 20;
+            handles.params.zPlanes = double(omeMeta.getPixelsSizeZ(0).getValue());
+            handles.params.channels = double(omeMeta.getPixelsSizeC(0).getValue());
 %             guidata(hObject, handles);
             handles.params = updateUIParams(handles.params);
-
+            
+            handles.currentMask = zeros([size(im) handles.params.zPlanes]);
+            handles.lastMask = handles.currentMask;
 
         catch ME
             errorHandler(ME);
@@ -691,6 +713,35 @@ function axImage_ButtonDownFcn(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+if (get(handles.chkExclusionMask, 'Value') == 1)
+
+    % get current mask to modify
+    exclude_mask_temp = squeeze(handles.currentMask(:, :, handles.currentDispFrame));
+    
+    % get current displayed image
+    curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+    im = get(curr_im_obj, 'CData');
+    
+    % get freehand selection:
+    M = imfreehand(gca, 'Closed', 1);
+    exclude_mask_temp = exclude_mask_temp + M.createMask;
+
+    % put temp mask into right page of multipage mask
+    handles.lastMask  = handles.currentMask;
+    handles.currentMask(:, :, handles.currentDispFrame) = exclude_mask_temp;
+
+    % apply mask to displayed image and re-display
+    im(logical(exclude_mask_temp)) = 0;
+    set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+%     h = imagesc(im, 'Parent', handles.axImage,'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    delete(M);
+    
+end
+
+guidata(hObject, handles);
+
+
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over txtStartX.
@@ -868,15 +919,26 @@ handles.params.firstFrame = new_first_frame;
 handles.params = updateUIParams(handles.params);
 
 omeMeta = handles.reader.getMetadataStore();
-im = bfGetPlane(handles.reader, new_first_frame * omeMeta.getPixelsSizeC(0).getValue());
+handles.currentDispFrame = new_first_frame * omeMeta.getPixelsSizeC(0).getValue();
+im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
+handles.currentIm = im;
+im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
-curr_im_obj = get(handles.axImage, 'Children');
-curr_im_obj = curr_im_obj(2);
+% curr_im_obj = get(handles.axImage, 'Children');
+% curr_im_obj = curr_im_obj(2);
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
+
+if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+    set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    
+end
 
 updateUIParams(handles.params)
 
@@ -930,15 +992,27 @@ handles.params.lastFrame = new_last_frame;
 handles.params = updateUIParams(handles.params);
 
 omeMeta = handles.reader.getMetadataStore();
-im = bfGetPlane(handles.reader, new_last_frame * omeMeta.getPixelsSizeC(0).getValue());
+handles.currentDispFrame = new_last_frame * omeMeta.getPixelsSizeC(0).getValue();
+im = bfGetPlane(handles.reader, handels.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
+im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
-curr_im_obj = get(handles.axImage, 'Children');
-curr_im_obj = curr_im_obj(2);
+handles.currentIm = im;
+
+% curr_im_obj = get(handles.axImage, 'Children');
+% curr_im_obj = curr_im_obj(2);
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
+
+if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+    set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    
+end
 
 updateUIParams(handles.params)
 
@@ -985,15 +1059,27 @@ handles.params.analysisTime = new_anal_time;
 handles.params = updateUIParams(handles.params);
 
 omeMeta = handles.reader.getMetadataStore();
-im = bfGetPlane(handles.reader, (handles.params.firstFrame + (new_anal_time / handles.params.frameTime)) * omeMeta.getPixelsSizeC(0).getValue() - 1);
+handles.currentDispFrame =(handles.params.firstFrame + (new_anal_time / handles.params.frameTime)) * omeMeta.getPixelsSizeC(0).getValue() - 1;
+im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
+im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
-curr_im_obj = get(handles.axImage, 'Children');
-curr_im_obj = curr_im_obj(2);
+handles.currentIm = im;
+
+% curr_im_obj = get(handles.axImage, 'Children');
+% curr_im_obj = curr_im_obj(2);
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
+
+if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+    set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    
+end
 
 updateUIParams(handles.params)
 
@@ -1066,3 +1152,96 @@ end
 
 guidata(hObject, handles);
 
+
+
+% --- Executes on button press in chkExclusionMask.
+function chkExclusionMask_Callback(hObject, eventdata, handles)
+% hObject    handle to chkExclusionMask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% im = checkerboard(10, 10);
+if ( get(hObject, 'Value') == 1 )
+    im = handles.currentIm;
+    im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+%     h = imagesc(im, 'Parent', handles.axImage,'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+    set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    axis equal tight;
+else
+    set(handles.axImage, 'ButtonDownFcn', {});
+    im = handles.currentIm;
+    im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+%     h = imagesc(im, 'Parent', handles.axImage,'HitTest', 'off', 'ButtonDownFcn', {});
+    curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+    set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {});
+    axis equal tight;
+end
+
+% --------------------------------------------------------------------
+function menuUndoMask_Callback(hObject, eventdata, handles)
+% hObject    handle to menuUndoMask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles.currentMask = handles.lastMask;
+guidata(hObject, handles);
+
+
+
+
+% --------------------------------------------------------------------
+function menuFile_Callback(hObject, eventdata, handles)
+% hObject    handle to menuFile (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuLoadMask_Callback(hObject, eventdata, handles)
+% hObject    handle to menuLoadMask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuSaveMask_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSaveMask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menuRemoveMask_Callback(hObject, eventdata, handles)
+% hObject    handle to menuRemoveMask (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+im = get(curr_im_obj, 'CData');
+handles.currentMask = zeros([size(im) handles.params.sequenceLength]);
+handles.lastMask = handles.currentMask;
+
+guidata(hObject, handles);
+
+% --- Executes on slider movement.
+function scrollZPlane_Callback(hObject, eventdata, handles)
+% hObject    handle to scrollZPlane (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function scrollZPlane_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scrollZPlane (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
