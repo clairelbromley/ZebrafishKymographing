@@ -51,7 +51,7 @@ function cziFig_OpeningFcn(hObject, eventdata, handles, varargin)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to cziFig (see VARARGIN)
-
+ 
 % Choose default command line output for cziFig
 handles.output = hObject;
 
@@ -71,10 +71,11 @@ handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
 handles.params.kymSpacing = 1;
 handles.params.currZPlane = 1;
-handles.params.zPlanes = 1;
+handles.params.zPlanes = 10;
 handles.params.firstFrame = 1;
 handles.params.lastFrame = 50;
 handles.params.sequenceLength = 50;
+handles.params.currTPlane = 1;
 handles.params.analysisTime = 20 * handles.params.frameTime;
 
 handles.params.dir = [0 1]; % up
@@ -128,9 +129,12 @@ set(handles.txtAnalysisTimeDisplay, 'String', sprintf('(%0.2f)', params.analysis
 % set(handles.scrollLastFrame, 'Value', params.lastFrame);
 % set(handles.scrollLastFrame, 'Min', params.firstFrame);
 
-set(handles.scrollZPlane, 'Max', params.currZPlane+1);
+set(handles.scrollZPlane, 'Max', params.zPlanes);
+% set(handles.scrollZPlane, 'Max', params.zPlanes*params.sequenceLength*2);
 set(handles.scrollZPlane, 'Min', 1);
 set(handles.scrollZPlane, 'Value', params.currZPlane);
+% set(handles.scrollZPlane, 'SliderStep', [(1/(params.zPlanes*params.sequenceLength*2)) (1/(params.zPlanes*params.sequenceLength*2))]);
+set(handles.scrollZPlane, 'SliderStep', [(1/(params.zPlanes)) (1/(params.zPlanes))]);
 set(handles.scrollFirstFrame, 'Max', params.sequenceLength);
 set(handles.scrollFirstFrame, 'Value', params.firstFrame);
 set(handles.scrollFirstFrame, 'Min', 1);
@@ -399,6 +403,9 @@ if ischar(new_image_path{1})
             handles.params.analysisTime = handles.params.frameTime * 20;
             handles.params.zPlanes = double(omeMeta.getPixelsSizeZ(0).getValue());
             handles.params.channels = double(omeMeta.getPixelsSizeC(0).getValue());
+            dimOrder = char(omeMeta.getPixelsDimensionOrder(0).getValue());
+            handles.params.CZTOrder = [regexp(dimOrder, 'C'); regexp(dimOrder, 'Z'); regexp(dimOrder, 'T')];
+            
 %             guidata(hObject, handles);
             handles.params = updateUIParams(handles.params);
             
@@ -918,8 +925,7 @@ end
 handles.params.firstFrame = new_first_frame;
 handles.params = updateUIParams(handles.params);
 
-omeMeta = handles.reader.getMetadataStore();
-handles.currentDispFrame = new_first_frame * omeMeta.getPixelsSizeC(0).getValue();
+handles.currentDispFrame = new_first_frame * handles.params.channels;
 im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
@@ -947,6 +953,29 @@ set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (
 % uistack(handles.cutLine, 'top');
 
 guidata(hObject, handles);
+
+function updateDisplayImage(currentDisplayFrame, hObject, handles)
+
+    im = bfGetPlane(handles.reader, currentDisplayFrame);
+    padim = zeros(size(im, 1)+200, size(im, 2)+200);
+    padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+    im = padim;
+    clear padim; 
+    handles.currentIm = im;
+    im(logical(squeeze(handles.currentMask(:, :, currentDisplayFrame)))) = 0;
+
+    % curr_im_obj = get(handles.axImage, 'Children');
+    % curr_im_obj = curr_im_obj(2);
+    curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+    set(curr_im_obj, 'CData', im);
+
+    if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+        set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+        set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    end
+    
+    guidata(hObject, handles);
 
 
 
@@ -1230,6 +1259,42 @@ function scrollZPlane_Callback(hObject, eventdata, handles)
 % hObject    handle to scrollZPlane (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+handles.params.currZPlane = round(get(hObject, 'Value'));
+handles.params = updateUIParams(handles.params);
+disp(handles.params.currZPlane);
+
+%display frame - always choosing the fluorscence (first) channel
+channel = 1;
+handles.currentDispFrame = (handles.params.zPlanes - 1)*(handles.params.channels - 1)*(handles.params.currTPlane - 1) + ...
+    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
+    (handles.params.channels- 1 )*(channel - 1) + 1;
+% handles.currentDispFrame = handles.params.currZPlane;
+disp(handles.currentDispFrame);
+
+im = bfGetPlane(handles.reader, handles.currentDispFrame);
+padim = zeros(size(im, 1)+200, size(im, 2)+200);
+padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+im = padim;
+clear padim; 
+handles.currentIm = im;
+% im(logical(squeeze(handles.currentMask(:, :,
+% handles.params.currZPlane)))) = 0;;
+
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+set(curr_im_obj, 'CData', im);
+
+if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+    set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    
+end
+
+updateUIParams(handles.params);
+
+guidata(hObject, handles);
 
 % Hints: get(hObject,'Value') returns position of slider
 %        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
