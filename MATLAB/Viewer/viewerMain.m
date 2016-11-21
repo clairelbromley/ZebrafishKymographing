@@ -234,6 +234,8 @@ dt = s.date;
 embryoNumber = s.embryoNumber;
 cutNumber = s.cutNumber;
 
+% FORCE LINEAR ALWAYS:
+handles.linTexpF = true;
 if handles.linTexpF
     expTxt = '';
     expTxt2 = ', S';
