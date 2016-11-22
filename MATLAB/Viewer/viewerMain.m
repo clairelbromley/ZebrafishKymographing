@@ -1553,8 +1553,12 @@ if isfield(handles, 'includedData');
         embryoNs = convertToStringUtil({stored(strcmp(f, 'embryoNumber'), :)});
         cutNs = cell2mat(stored(strcmp(f, 'cutNumber'), :));
         directions = convertToStringUtil({stored(strcmp(f, 'direction'), :)}); 
-        positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
-
+        if ischar(stored{strcmp(f, 'kymPosition'), 1})
+            positions = cellfun(@str2num, stored(strcmp(f, 'kymPosition'), :));
+        else
+            positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
+        end
+            
         if max(size(dates)) == 1
             indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
@@ -2065,13 +2069,17 @@ if strcmp(reply, 'Yes')
     [~, ia, ic] = unique(ids2, 'stable');
     
     for ind = 1:max(ic)
-        if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
-            handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
-        elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '') || isnan(handles.includedData(ia(ind)).thisSideDamaged)
+        if ischar(handles.includedData(ia(ind)).thisSideDamaged)
+            if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
+                handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
+            elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '')
+                handles.damagedSideList{ind} = [];
+            else
+                ud = {'up' 'down'};
+                handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
+            end
+        elseif isnan(handles.includedData(ia(ind)).thisSideDamaged)
             handles.damagedSideList{ind} = [];
-        else
-            ud = {'up' 'down'};
-            handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
         end
     end
     
