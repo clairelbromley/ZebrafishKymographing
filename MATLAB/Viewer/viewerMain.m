@@ -522,6 +522,8 @@ figs = findobj('Type', 'figure');
 figs(figs == handles.figure1) = []; % delete your current figure from the list
 close(figs)
 
+% no kymograph is selcted at this point...
+handles.currentKymInd = [];
 
 saveTempVars(handles);
 guidata(hObject, handles);
@@ -1755,7 +1757,7 @@ folder = [baseFolder2 appendText];
 metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 
-handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName);
+handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, handles);
 
 busyDlg(busyOutput);
 
@@ -1786,7 +1788,7 @@ imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
     ', embryo = ' handles.embryoNumber ', cut = ' handles.cutNumber appendText '.avi']);
 
 if fileName ~= 0
-    handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
+    handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, handles, [pathName fileName]);
 end
     
 busyDlg(busyOutput);

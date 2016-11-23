@@ -1,4 +1,4 @@
-function movieFrames = makeMovieOfProcessedData(imfname, metafname, movfname, frames, fps)
+function movieFrames = makeMovieOfProcessedData(imfname, metafname, handles, movfname, frames, fps)
 % generate video from processed data frames, overlaying kymograph lines.
 % These will be labelled with positions once debug is complete. 
 % movieFrames = makeMovieOfProcessedData(imfname, metafname) generates and
@@ -11,7 +11,7 @@ function movieFrames = makeMovieOfProcessedData(imfname, metafname, movfname, fr
 % imfname = 'C:\Users\Doug\Desktop\test\280815, Embryo 14 upwards\trimmed_stack_cut_1.tif';
 % metafname = 'C:\Users\Doug\Desktop\test\280815, Embryo 14 upwards\trimmed_cutinfo_cut_1.txt';
 
-if nargin < 4
+if nargin < 5
     info = imfinfo(imfname);
 
     im = zeros(info(1).Height, info(1).Width, length(info));
@@ -50,6 +50,15 @@ if nargin < 4
         cutLineH  = line(cutx, cuty, 'Color', 'c', 'LineStyle', '-');
         kymLinesH = line([kymstartx; kymendx], [kymstarty; kymendy], 'Color', 'r', 'LineStyle', '--');
 
+        if ~isempty(handles.currentKymInd)
+            set(kymLinesH(...
+                (round(1000*handles.positionsAlongLine) == round(1000*handles.currentPosition))), ...
+                'Color', 'g');
+            % OR
+%             set(kymLinesH(...
+%                 (round(1000*handles.positionsAlongLine) == round(1000*handles.currentPosition))), ...
+%                 'Visible', 'off');
+        end
         drawnow
 
         F(ind) = getframe(ax);
@@ -59,7 +68,7 @@ if nargin < 4
     set(figH, 'CloseRequestFcn', 'closereq');
     close(figH);
 
-    if nargin == 3
+    if nargin == 4
         % force save as avi for now...
         [pname, fname, ext] = fileparts(movfname);
         if ~strcmp(ext, 'avi')
