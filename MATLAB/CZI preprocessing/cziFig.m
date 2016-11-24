@@ -138,12 +138,15 @@ set(handles.scrollZPlane, 'SliderStep', [(1/(params.zPlanes)) (1/(params.zPlanes
 set(handles.scrollFirstFrame, 'Max', params.sequenceLength);
 set(handles.scrollFirstFrame, 'Value', params.firstFrame);
 set(handles.scrollFirstFrame, 'Min', 1);
+set(handles.scrollFirstFrame, 'SliderStep', [(1/(params.sequenceLength)) (1/(params.sequenceLength))]);
 set(handles.scrollLastFrame, 'Max', params.sequenceLength);
 set(handles.scrollLastFrame, 'Value', params.lastFrame);
 set(handles.scrollLastFrame, 'Min', 1);
+set(handles.scrollLastFrame, 'SliderStep', [(1/(params.sequenceLength)) (1/(params.sequenceLength))]);
 set(handles.scrollAnalysisTime, 'Min', params.frameTime);
 set(handles.scrollAnalysisTime, 'Max', params.sequenceLength * params.frameTime);
 set(handles.scrollAnalysisTime, 'Value', params.analysisTime);
+set(handles.scrollAnalysisTime, 'SliderStep', [(1/(params.sequenceLength)) (1/(params.sequenceLength))]);
 
 guidata(gcf, handles);
  
@@ -923,16 +926,21 @@ if (handles.params.lastFrame - new_first_frame) * handles.params.frameTime < han
 end
 
 handles.params.firstFrame = new_first_frame;
+handles.params.currTPlane = new_first_frame;
 handles.params = updateUIParams(handles.params);
 
-handles.currentDispFrame = new_first_frame * handles.params.channels;
+% handles.currentDispFrame = new_first_frame * handles.params.channels;
+channel = 1;
+handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
+    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
+    (handles.params.channels)*(channel - 1) + 1;
 im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
 handles.currentIm = im;
-im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+% im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
 % curr_im_obj = get(handles.axImage, 'Children');
 % curr_im_obj = curr_im_obj(2);
@@ -1018,16 +1026,19 @@ if (new_last_frame - handles.params.firstFrame) * handles.params.frameTime < han
 end
 
 handles.params.lastFrame = new_last_frame;
+handles.params.currTPlane = new_last_frame;
 handles.params = updateUIParams(handles.params);
 
-omeMeta = handles.reader.getMetadataStore();
-handles.currentDispFrame = new_last_frame * omeMeta.getPixelsSizeC(0).getValue();
-im = bfGetPlane(handles.reader, handels.currentDispFrame);
+channel = 1;
+handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
+    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
+    (handles.params.channels)*(channel - 1) + 1;
+im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
-im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+% im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
 handles.currentIm = im;
 
@@ -1085,16 +1096,20 @@ if new_anal_time > handles.params.frameTime * ...
 end
 
 handles.params.analysisTime = new_anal_time;
+handles.params.currTPlane = round(get(hObject, 'Value') / handles.params.frameTime);
 handles.params = updateUIParams(handles.params);
 
-omeMeta = handles.reader.getMetadataStore();
-handles.currentDispFrame =(handles.params.firstFrame + (new_anal_time / handles.params.frameTime)) * omeMeta.getPixelsSizeC(0).getValue() - 1;
+
+channel = 1;
+handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
+    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
+    (handles.params.channels)*(channel - 1) + 1;
 im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
-im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+% im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
 handles.currentIm = im;
 
@@ -1267,9 +1282,9 @@ disp(handles.params.currZPlane);
 
 %display frame - always choosing the fluorscence (first) channel
 channel = 1;
-handles.currentDispFrame = (handles.params.zPlanes - 1)*(handles.params.channels - 1)*(handles.params.currTPlane - 1) + ...
+handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
     (handles.params.channels)*(handles.params.currZPlane - 1) + ...
-    (handles.params.channels- 1 )*(channel - 1) + 1;
+    (handles.params.channels)*(channel - 1) + 1;
 % handles.currentDispFrame = handles.params.currZPlane;
 disp(handles.currentDispFrame);
 
