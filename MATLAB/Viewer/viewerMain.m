@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 16-Oct-2016 16:38:20
+% Last Modified by GUIDE v2.5 24-Nov-2016 17:16:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2618,3 +2618,26 @@ function saveTempVars(handles)
 tDir = tempdir;
 save([tDir filesep 'viewerMainTempVars.mat'], 'handles');
 
+
+
+% --------------------------------------------------------------------
+function menuRescue_Callback(hObject, eventdata, handles)
+% hObject    handle to menuRescue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[varsfname, varspname] = uigetfile('*.mat', 'Choose temp vars file...', tempdir);
+
+% stop if cancel clicked
+if isequal(varsfname, 0)
+    return;
+end
+
+temp = load([varspname filesep varsfname]);
+
+currentIncDataStore = handles.includedData;
+handles.includedData = temp.handles.includedData;
+
+exportWizard_Callback(hObject, eventdata, handles);
+
+handles.includedData = currentIncDataStore;
