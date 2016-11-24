@@ -2060,6 +2060,12 @@ if strcmp(reply, 'Yes')
     for ind = 1:length(handles.includedData)
         handles.includedData(ind).date = num2str(handles.includedData(ind).date);
         handles.includedData(ind).embryoNumber = num2str(handles.includedData(ind).embryoNumber);
+          if ischar(handles.includedData(ind).kymPosition)
+            handles.includedData(ind).kymPosition = str2double(handles.includedData(ind).kymPosition);
+        end
+        if ischar(handles.includedData(ind).cutNumber)
+            handles.includedData(ind).cutNumber = str2double(handles.includedData(ind).cutNumber)
+        end
     end
     
     ids = {handles.includedData.ID};
