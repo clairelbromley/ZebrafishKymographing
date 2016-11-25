@@ -1268,12 +1268,49 @@ function menuLoadMask_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+reply = questdlg('Replace existing masks?', 'Replace existing masks?', ...
+    'No');
+
+if strcmp(reply, 'Yes')
+    
+    [fname, pname, ~] = uigetfile('*.tif', 'Locate existing mask data to load...');
+    
+    if (fname ~= -0)
+        handles.lastMask = handles.currentMask;
+        handles.currentMask = loadMultipageTiff([pname filesep fname]);
+        
+        im = handles.currentIm;
+        im(logical(squeeze(handles.currentMask(:, :, handles.params.currZPlane)))) = 0;
+        curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+        set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {});
+        axis equal tight;
+    
+    end
+end
+
+guidata(hObject, handles);
+    
 
 % --------------------------------------------------------------------
 function menuSaveMask_Callback(hObject, eventdata, handles)
 % hObject    handle to menuSaveMask (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+[fname, pname] = uiputfile('*.tif', 'Choose location to save mask tiff...');
+
+if (fname ~= 0)
+    saveMultipageTiff(handles.currentMask, [pname filesep fname]);
+    
+    [ffname, ppname] = uiputfile('*.tif', 'Choose location to save masked tiff', pname);
+    
+    if (ffname ~= 0)
+        % use bioformats to write data with mask applied to an OME-TIFF
+        % with metadata attached. 
+        
+    end
+    
+end
 
 
 % --------------------------------------------------------------------
