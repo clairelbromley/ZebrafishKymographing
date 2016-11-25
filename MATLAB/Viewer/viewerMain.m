@@ -95,6 +95,17 @@ handles.includedData = [];
 
 handles.laserIcon = imread('laser-icon-12.png');
 
+handles.initTimeStamp = datestr(now);
+% search temp directory for temp files older than 1 day, and delete
+files = dir([tempdir filesep '* viewerMainTempVars.mat']);
+files = {files.name};
+dates = regexp(files, ' viewerMainTempVars.mat', 'split');
+for ind = 1:length(files)
+    if (datenum(dates{ind}{1}) - now) > 1
+        delete([tempdir filesep files{ind}])
+    end
+end
+
 guidata(hObject, handles);
 
 % UIWAIT makes viewerMain wait for user response (see UIRESUME)
@@ -2622,7 +2633,7 @@ guidata(hObject, handles);
 function saveTempVars(handles)
 
 tDir = tempdir;
-save([tDir filesep 'viewerMainTempVars.mat'], 'handles');
+save([tDir filesep handles.initTimeStamp ' viewerMainTempVars.mat'], 'handles');
 
 
 
