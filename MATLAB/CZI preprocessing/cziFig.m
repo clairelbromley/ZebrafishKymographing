@@ -726,7 +726,7 @@ function axImage_ButtonDownFcn(hObject, eventdata, handles)
 if (get(handles.chkExclusionMask, 'Value') == 1)
 
     % get current mask to modify
-    exclude_mask_temp = squeeze(handles.currentMask(:, :, handles.currentDispFrame));
+    exclude_mask_temp = squeeze(handles.currentMask(:, :, handles.params.currZPlane));
     
     % get current displayed image
     curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
@@ -734,11 +734,11 @@ if (get(handles.chkExclusionMask, 'Value') == 1)
     
     % get freehand selection:
     M = imfreehand(gca, 'Closed', 1);
-    exclude_mask_temp = exclude_mask_temp + M.createMask;
+    exclude_mask_temp = exclude_mask_temp                                                                             + M.createMask;
 
     % put temp mask into right page of multipage mask
     handles.lastMask  = handles.currentMask;
-    handles.currentMask(:, :, handles.currentDispFrame) = exclude_mask_temp;
+    handles.currentMask(:, :, handles.params.currZPlane) = exclude_mask_temp;
 
     % apply mask to displayed image and re-display
     im(logical(exclude_mask_temp)) = 0;
@@ -940,10 +940,9 @@ padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
 handles.currentIm = im;
-% im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+im(logical(squeeze(handles.currentMask(:, :,...
+ handles.params.currZPlane)))) = 0;
 
-% curr_im_obj = get(handles.axImage, 'Children');
-% curr_im_obj = curr_im_obj(2);
 curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
 
@@ -1038,12 +1037,10 @@ padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
-% im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
-
 handles.currentIm = im;
+im(logical(squeeze(handles.currentMask(:, :,...
+ handles.params.currZPlane)))) = 0;
 
-% curr_im_obj = get(handles.axImage, 'Children');
-% curr_im_obj = curr_im_obj(2);
 curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
 
@@ -1109,12 +1106,11 @@ padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
-% im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
 
 handles.currentIm = im;
+im(logical(squeeze(handles.currentMask(:, :,...
+ handles.params.currZPlane)))) = 0;
 
-% curr_im_obj = get(handles.axImage, 'Children');
-% curr_im_obj = curr_im_obj(2);
 curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
 
@@ -1207,7 +1203,7 @@ function chkExclusionMask_Callback(hObject, eventdata, handles)
 % im = checkerboard(10, 10);
 if ( get(hObject, 'Value') == 1 )
     im = handles.currentIm;
-    im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+    im(logical(squeeze(handles.currentMask(:, :, handles.params.currZPlane)))) = 0;
 %     h = imagesc(im, 'Parent', handles.axImage,'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
     curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
     set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
@@ -1216,7 +1212,7 @@ if ( get(hObject, 'Value') == 1 )
 else
     set(handles.axImage, 'ButtonDownFcn', {});
     im = handles.currentIm;
-    im(logical(squeeze(handles.currentMask(:, :, handles.currentDispFrame)))) = 0;
+    im(logical(squeeze(handles.currentMask(:, :, handles.params.currZPlane)))) = 0;
 %     h = imagesc(im, 'Parent', handles.axImage,'HitTest', 'off', 'ButtonDownFcn', {});
     curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
     set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {});
@@ -1230,6 +1226,30 @@ function menuUndoMask_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 handles.currentMask = handles.lastMask;
+
+channel = 1;
+handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
+    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
+    (handles.params.channels)*(channel - 1) + 1;
+im = bfGetPlane(handles.reader, handles.currentDispFrame);
+padim = zeros(size(im, 1)+200, size(im, 2)+200);
+padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+im = padim;
+clear padim; 
+handles.currentIm = im;
+im(logical(squeeze(handles.currentMask(:, :,...
+ handles.params.currZPlane)))) = 0;
+
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+set(curr_im_obj, 'CData', im);
+
+if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+    set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    
+end
+
 guidata(hObject, handles);
 
 
@@ -1262,10 +1282,15 @@ function menuRemoveMask_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
-im = get(curr_im_obj, 'CData');
-handles.currentMask = zeros([size(im) handles.params.sequenceLength]);
-handles.lastMask = handles.currentMask;
+button = questdlg('Are you sure?','Remove all masks?','No');
+
+if strcmp(button, 'Yes')
+    curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+    set(curr_im_obj, 'CData', handles.currentIm);
+
+    handles.lastMask = handles.currentMask;
+    handles.currentMask = zeros([size(handles.currentIm) handles.params.zPlanes]);
+end
 
 guidata(hObject, handles);
 
@@ -1294,8 +1319,8 @@ padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
 im = padim;
 clear padim; 
 handles.currentIm = im;
-% im(logical(squeeze(handles.currentMask(:, :,
-% handles.params.currZPlane)))) = 0;;
+im(logical(squeeze(handles.currentMask(:, :,...
+ handles.params.currZPlane)))) = 0;
 
 curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
 set(curr_im_obj, 'CData', im);
