@@ -2012,9 +2012,11 @@ if strcmp(eventdata.Key, 'd')
         handles.currentDamageSide = '';
         handles.damagedSideList{get(handles.listData, 'Value')} = '';
     else
-        showDamageIcon(handles.currentDir, handles);  
-        handles.currentDamageSide = handles.currentDir;
-        handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+        if isfield(handles, 'currentDir')
+            showDamageIcon(handles.currentDir, handles);  
+            handles.currentDamageSide = handles.currentDir;
+            handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+        end
     end
     
     % set appropriate lines in included data, this side damaged to 'yes'

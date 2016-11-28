@@ -14,7 +14,7 @@ function experimentMetadata = getExperimentMetadata(filepath)
         flds = raw(headerLines,2:end);
         flds(cellfun(@(V) any(isnan(V(:))), flds)) = [];
         raw = raw(headerLines+1:end,:);
-        disp(raw);
+%         disp(raw);
         lbl = raw(:,1);
         
         rowsToKeep = cellfun(@ischar,lbl);
