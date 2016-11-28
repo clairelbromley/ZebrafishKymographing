@@ -100,9 +100,11 @@ handles.initTimeStamp = datestr(now);
 files = dir([tempdir filesep '* viewerMainTempVars.mat']);
 files = {files.name};
 dates = regexp(files, ' viewerMainTempVars.mat', 'split');
+dates = [dates{:}];
+dates = dates(1:2:end);
 dates = strrep(dates, '_', ':');
 for ind = 1:length(files)
-    if (datenum(dates{ind}{1}) - now) > 1
+    if (datenum(dates{ind}) - now) > 1
         delete([tempdir filesep files{ind}])
     end
 end
@@ -1846,6 +1848,27 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+if strcmp(eventdata.Key, 'slash')
+    % get current list data position
+    currpos = get(handles.listData, 'Value');
+    if currpos ~=1
+        set(handles.listData, 'Value', currpos - 1);
+        guidata(hObject, handles);
+        listData_Callback(handles.listData, eventdata, handles)
+    end
+end
+
+if strcmp(eventdata.Key, 'backslash')
+    % get current list data position
+    currpos = get(handles.listData, 'Value');
+    if currpos ~= length(get(handles.listData, 'String'))
+        set(handles.listData, 'Value', currpos + 1);
+        guidata(hObject, handles);
+        listData_Callback(handles.listData, eventdata, handles)
+    end
+end
+    
+    
 if strcmp(eventdata.Key, 'f')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
