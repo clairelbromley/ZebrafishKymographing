@@ -100,6 +100,7 @@ handles.initTimeStamp = datestr(now);
 files = dir([tempdir filesep '* viewerMainTempVars.mat']);
 files = {files.name};
 dates = regexp(files, ' viewerMainTempVars.mat', 'split');
+dates = strrep(dates, '_', ':');
 for ind = 1:length(files)
     if (datenum(dates{ind}{1}) - now) > 1
         delete([tempdir filesep files{ind}])
@@ -2633,7 +2634,11 @@ guidata(hObject, handles);
 function saveTempVars(handles)
 
 tDir = tempdir;
-save([tDir filesep handles.initTimeStamp ' viewerMainTempVars.mat'], 'handles');
+if tDir(end) ~= filesep
+    tDir = [tDir filesep];
+end
+ts = strrep(handles.initTimeStamp, ':', '_');
+save([tDir ts ' viewerMainTempVars.mat'], 'handles');
 
 
 
