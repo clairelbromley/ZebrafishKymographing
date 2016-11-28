@@ -1848,7 +1848,7 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
-if strcmp(eventdata.Key, 'slash')
+if strcmp(eventdata.Key, 'backslash')
     % get current list data position
     currpos = get(handles.listData, 'Value');
     if currpos ~=1
@@ -1858,7 +1858,7 @@ if strcmp(eventdata.Key, 'slash')
     end
 end
 
-if strcmp(eventdata.Key, 'backslash')
+if strcmp(eventdata.Key, 'slash')
     % get current list data position
     currpos = get(handles.listData, 'Value');
     if currpos ~= length(get(handles.listData, 'String'))
