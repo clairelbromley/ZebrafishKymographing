@@ -2029,41 +2029,42 @@ if strcmp(eventdata.Key, 'leftarrow')
 end
 
 if strcmp(eventdata.Key, 'd')
-    
-    if strcmp(eventdata.Modifier, 'shift')
-        showDamageIcon('none', handles);  
-        handles.currentDamageSide = '';
-        handles.damagedSideList{get(handles.listData, 'Value')} = '';
-    else
-        if isfield(handles, 'currentDir')
-            showDamageIcon(handles.currentDir, handles);  
-            handles.currentDamageSide = handles.currentDir;
-            handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    if isfield(handles, 'currentDir')
+        if strcmp(eventdata.Modifier, 'shift')
+            showDamageIcon('none', handles);  
+            handles.currentDamageSide = '';
+            handles.damagedSideList{get(handles.listData, 'Value')} = '';
+        else
+
+                showDamageIcon(handles.currentDir, handles);  
+                handles.currentDamageSide = handles.currentDir;
+                handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+
         end
+
+        % set appropriate lines in included data, this side damaged to 'yes'
+        filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
+            & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, handles.currentDir);
+        filt2 = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
+            & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ~strcmp({handles.includedData.direction}, handles.currentDir);
+
+        temp = {handles.includedData.thisSideDamaged};
+        y = cell(1);
+        n = cell(1);
+        y{1} = 'yes';
+        n{1} = 'no';
+        temp(filt) = y;
+        temp(filt2) = n;
+        if strcmp(eventdata.Modifier, 'shift')
+            temp(filt | filt2) = '';
+        end
+
+        for ind = 1:length(temp)
+            handles.includedData(ind).thisSideDamaged = temp{ind};
+        end
+
+        guidata(hObject, handles);
     end
-    
-    % set appropriate lines in included data, this side damaged to 'yes'
-    filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
-        & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, handles.currentDir);
-    filt2 = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
-        & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ~strcmp({handles.includedData.direction}, handles.currentDir);
-    
-    temp = {handles.includedData.thisSideDamaged};
-    y = cell(1);
-    n = cell(1);
-    y{1} = 'yes';
-    n{1} = 'no';
-    temp(filt) = y;
-    temp(filt2) = n;
-    if strcmp(eventdata.Modifier, 'shift')
-        temp(filt | filt2) = '';
-    end
-    
-    for ind = 1:length(temp)
-        handles.includedData(ind).thisSideDamaged = temp{ind};
-    end
-    
-    guidata(hObject, handles);
     
 end
 
