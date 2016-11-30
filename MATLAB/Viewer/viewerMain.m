@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 16-Oct-2016 16:38:20
+% Last Modified by GUIDE v2.5 24-Nov-2016 17:16:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -94,6 +94,20 @@ handles.kymAxisThickness = 1;
 handles.includedData = [];
 
 handles.laserIcon = imread('laser-icon-12.png');
+
+handles.initTimeStamp = datestr(now);
+% search temp directory for temp files older than 1 day, and delete
+files = dir([tempdir filesep '* viewerMainTempVars.mat']);
+files = {files.name};
+dates = regexp(files, ' viewerMainTempVars.mat', 'split');
+dates = [dates{:}];
+dates = dates(1:2:end);
+dates = strrep(dates, '_', ':');
+for ind = 1:length(files)
+    if (datenum(dates{ind}) - now) > 1
+        delete([tempdir filesep files{ind}])
+    end
+end
 
 guidata(hObject, handles);
 
@@ -234,6 +248,8 @@ dt = s.date;
 embryoNumber = s.embryoNumber;
 cutNumber = s.cutNumber;
 
+% FORCE LINEAR ALWAYS:
+handles.linTexpF = true;
 if handles.linTexpF
     expTxt = '';
     expTxt2 = ', S';
@@ -520,6 +536,8 @@ figs = findobj('Type', 'figure');
 figs(figs == handles.figure1) = []; % delete your current figure from the list
 close(figs)
 
+% no kymograph is selcted at this point...
+handles.currentKymInd = [];
 
 saveTempVars(handles);
 guidata(hObject, handles);
@@ -1551,8 +1569,12 @@ if isfield(handles, 'includedData');
         embryoNs = convertToStringUtil({stored(strcmp(f, 'embryoNumber'), :)});
         cutNs = cell2mat(stored(strcmp(f, 'cutNumber'), :));
         directions = convertToStringUtil({stored(strcmp(f, 'direction'), :)}); 
-        positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
-
+        if ischar(stored{strcmp(f, 'kymPosition'), 1})
+            positions = cellfun(@str2num, stored(strcmp(f, 'kymPosition'), :));
+        else
+            positions = cell2mat(stored(strcmp(f, 'kymPosition'), :));
+        end
+            
         if max(size(dates)) == 1
             indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
@@ -1749,7 +1771,7 @@ folder = [baseFolder2 appendText];
 metadataFName = [folder filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
 imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
 
-handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName);
+handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, handles);
 
 busyDlg(busyOutput);
 
@@ -1780,7 +1802,7 @@ imFName = [folder filesep 'trimmed_stack_cut_' handles.cutNumber '.tif'];
     ', embryo = ' handles.embryoNumber ', cut = ' handles.cutNumber appendText '.avi']);
 
 if fileName ~= 0
-    handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, [pathName fileName]);
+    handles.movieFrames{ax} = makeMovieOfProcessedData(imFName, metadataFName, handles, [pathName fileName]);
 end
     
 busyDlg(busyOutput);
@@ -1826,6 +1848,27 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+if strcmp(eventdata.Key, 'backslash')
+    % get current list data position
+    currpos = get(handles.listData, 'Value');
+    if currpos ~=1
+        set(handles.listData, 'Value', currpos - 1);
+        guidata(hObject, handles);
+        listData_Callback(handles.listData, eventdata, handles)
+    end
+end
+
+if strcmp(eventdata.Key, 'slash')
+    % get current list data position
+    currpos = get(handles.listData, 'Value');
+    if currpos ~= length(get(handles.listData, 'String'))
+        set(handles.listData, 'Value', currpos + 1);
+        guidata(hObject, handles);
+        listData_Callback(handles.listData, eventdata, handles)
+    end
+end
+    
+    
 if strcmp(eventdata.Key, 'f')
     if strcmp(handles.currentDir, 'up')
         axes(handles.axUpSelectedKym);
@@ -1986,39 +2029,42 @@ if strcmp(eventdata.Key, 'leftarrow')
 end
 
 if strcmp(eventdata.Key, 'd')
-    
-    if strcmp(eventdata.Modifier, 'shift')
-        showDamageIcon('none', handles);  
-        handles.currentDamageSide = '';
-        handles.damagedSideList{get(handles.listData, 'Value')} = '';
-    else
-        showDamageIcon(handles.currentDir, handles);  
-        handles.currentDamageSide = handles.currentDir;
-        handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+    if isfield(handles, 'currentDir')
+        if strcmp(eventdata.Modifier, 'shift')
+            showDamageIcon('none', handles);  
+            handles.currentDamageSide = '';
+            handles.damagedSideList{get(handles.listData, 'Value')} = '';
+        else
+
+                showDamageIcon(handles.currentDir, handles);  
+                handles.currentDamageSide = handles.currentDir;
+                handles.damagedSideList{get(handles.listData, 'Value')} = handles.currentDir;
+
+        end
+
+        % set appropriate lines in included data, this side damaged to 'yes'
+        filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
+            & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, handles.currentDir);
+        filt2 = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
+            & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ~strcmp({handles.includedData.direction}, handles.currentDir);
+
+        temp = {handles.includedData.thisSideDamaged};
+        y = cell(1);
+        n = cell(1);
+        y{1} = 'yes';
+        n{1} = 'no';
+        temp(filt) = y;
+        temp(filt2) = n;
+        if strcmp(eventdata.Modifier, 'shift')
+            temp(filt | filt2) = '';
+        end
+
+        for ind = 1:length(temp)
+            handles.includedData(ind).thisSideDamaged = temp{ind};
+        end
+
+        guidata(hObject, handles);
     end
-    
-    % set appropriate lines in included data, this side damaged to 'yes'
-    filt = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
-        & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, handles.currentDir);
-    filt2 = strcmp({handles.includedData.date}, num2str(handles.date)) & strcmp({handles.includedData.embryoNumber}, num2str(handles.embryoNumber)) ...
-        & ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ~strcmp({handles.includedData.direction}, handles.currentDir);
-    
-    temp = {handles.includedData.thisSideDamaged};
-    y = cell(1);
-    n = cell(1);
-    y{1} = 'yes';
-    n{1} = 'no';
-    temp(filt) = y;
-    temp(filt2) = n;
-    if strcmp(eventdata.Modifier, 'shift')
-        temp(filt | filt2) = '';
-    end
-    
-    for ind = 1:length(temp)
-        handles.includedData(ind).thisSideDamaged = temp{ind};
-    end
-    
-    guidata(hObject, handles);
     
 end
 
@@ -2052,6 +2098,12 @@ if strcmp(reply, 'Yes')
     for ind = 1:length(handles.includedData)
         handles.includedData(ind).date = num2str(handles.includedData(ind).date);
         handles.includedData(ind).embryoNumber = num2str(handles.includedData(ind).embryoNumber);
+          if ischar(handles.includedData(ind).kymPosition)
+            handles.includedData(ind).kymPosition = str2double(handles.includedData(ind).kymPosition);
+        end
+        if ischar(handles.includedData(ind).cutNumber)
+            handles.includedData(ind).cutNumber = str2double(handles.includedData(ind).cutNumber)
+        end
     end
     
     ids = {handles.includedData.ID};
@@ -2063,13 +2115,17 @@ if strcmp(reply, 'Yes')
     [~, ia, ic] = unique(ids2, 'stable');
     
     for ind = 1:max(ic)
-        if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
-            handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
-        elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '') || isnan(handles.includedData(ia(ind)).thisSideDamaged)
+        if ischar(handles.includedData(ia(ind)).thisSideDamaged)
+            if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
+                handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
+            elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '')
+                handles.damagedSideList{ind} = [];
+            else
+                ud = {'up' 'down'};
+                handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
+            end
+        elseif isnan(handles.includedData(ia(ind)).thisSideDamaged)
             handles.damagedSideList{ind} = [];
-        else
-            ud = {'up' 'down'};
-            handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
         end
     end
     
@@ -2604,5 +2660,32 @@ guidata(hObject, handles);
 function saveTempVars(handles)
 
 tDir = tempdir;
-save([tDir filesep 'viewerMainTempVars.mat'], 'handles');
+if tDir(end) ~= filesep
+    tDir = [tDir filesep];
+end
+ts = strrep(handles.initTimeStamp, ':', '_');
+save([tDir ts ' viewerMainTempVars.mat'], 'handles');
 
+
+
+% --------------------------------------------------------------------
+function menuRescue_Callback(hObject, eventdata, handles)
+% hObject    handle to menuRescue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+[varsfname, varspname] = uigetfile('*.mat', 'Choose temp vars file...', tempdir);
+
+% stop if cancel clicked
+if isequal(varsfname, 0)
+    return;
+end
+
+temp = load([varspname filesep varsfname]);
+
+currentIncDataStore = handles.includedData;
+handles.includedData = temp.handles.includedData;
+
+exportWizard_Callback(hObject, eventdata, handles);
+
+handles.includedData = currentIncDataStore;
