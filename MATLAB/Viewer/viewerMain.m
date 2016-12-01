@@ -2102,7 +2102,7 @@ if strcmp(reply, 'Yes')
             handles.includedData(ind).kymPosition = str2double(handles.includedData(ind).kymPosition);
         end
         if ischar(handles.includedData(ind).cutNumber)
-            handles.includedData(ind).cutNumber = str2double(handles.includedData(ind).cutNumber)
+            handles.includedData(ind).cutNumber = str2double(handles.includedData(ind).cutNumber);
         end
     end
     
@@ -2118,11 +2118,11 @@ if strcmp(reply, 'Yes')
         if ischar(handles.includedData(ia(ind)).thisSideDamaged)
             if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
                 handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
-            elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, '')
-                handles.damagedSideList{ind} = [];
-            else
+            elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'no')
                 ud = {'up' 'down'};
                 handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
+            else
+                handles.damagedSideList{ind} = [];
             end
         elseif isnan(handles.includedData(ia(ind)).thisSideDamaged)
             handles.damagedSideList{ind} = [];
