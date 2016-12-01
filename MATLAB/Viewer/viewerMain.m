@@ -991,7 +991,7 @@ data = struct2cell(handles.includedData)';
 parseForXLExport(handles, headerLine, data, outputName, includeStats);    % Complete output
 
 colFilt = strcmp(headerLine, 'userQCLabel');
-rowFilt = strcmp(data(:, colFilt), 'Good');
+rowFilt = strcmp(data(:, colFilt), 'Good') | strcmp(data(:, colFilt), 'Manual');
 goodData = data(rowFilt, :);
 [pa, fn, ext] = fileparts(outputName);
 goodOutputName = [pa filesep fn '_user QCd' ext];
