@@ -1072,11 +1072,12 @@ if includeStats
         med(ind) = median(temp);
         
         numQCLabels(ind,1) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Good'));
-        numQCLabels(ind,2) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Noise'));
-        numQCLabels(ind,3) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Misassigned edge'));
-        numQCLabels(ind,4) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'no edge'));
-        numQCLabels(ind,5) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'not QCd'));
-        summ_headerLine = {'EmbryoID' 'Date' 'Embryo number' 'Cut number' 'direction' 'Good' 'Noise' 'Misassigned Edge' 'No Edge' 'Not QCd'};
+        numQCLabels(ind,2) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Manual'));
+        numQCLabels(ind,3) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Noise'));
+        numQCLabels(ind,4) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'Misassigned edge'));
+        numQCLabels(ind,5) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'no edge'));
+        numQCLabels(ind,6) = sum(strcmp(data(ic == ind, strcmp(headerLine, 'userQCLabel')), 'not QCd'));
+        summ_headerLine = {'EmbryoID' 'Date' 'Embryo number' 'Cut number' 'direction' 'Good' 'Manual' 'Noise' 'Misassigned Edge' 'No Edge' 'Not QCd'};
 
     end
     
@@ -1157,25 +1158,25 @@ if includeStats
         filtmudata = data(ia, :);
         if ~isempty(filtmudata) && ~isempty(filtmu)
             filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-            xxwrite(outputName, [headerLine; filtmudata], 'JonFiltMean');
+            xxwrite(outputName, [headerLine; filtmudata], 'CombinedUpDownApicalMean');
         end
 
         filtsddata = data(ia, :);
         if ~isempty(filtsddata) && ~isempty(filtsd)
             filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-            xxwrite(outputName, [headerLine; filtsddata], 'JonFiltSD');
+            xxwrite(outputName, [headerLine; filtsddata], 'CombinedUpDownApicalSD');
         end
 
         filtmxdata = data(ia, :);
         if ~isempty(filtmxdata) && ~isempty(filtmx)
             filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-            xxwrite(outputName, [headerLine; filtmxdata], 'JonFiltMax');
+            xxwrite(outputName, [headerLine; filtmxdata], 'CombinedUpDownApicalMax');
         end
 
         filtmeddata = data(ia, :);
         if ~isempty(filtmeddata) && ~isempty(filtmed)
             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-            xxwrite(outputName, [headerLine; filtmeddata], 'JonFiltMedian');
+            xxwrite(outputName, [headerLine; filtmeddata], 'CombinedUpDownApicalMedian');
         end
 
 
@@ -1219,25 +1220,25 @@ if includeStats
         filtmudata = data(ia, :);
         if ~isempty(filtmudata) && ~isempty(filtmu)
             filtmudata(:, strcmp(headerLine, 'speed')) = num2cell(filtmu);
-            xxwrite(outputName, [headerLine; filtmudata], 'InsideCutFiltMean');
+            xxwrite(outputName, [headerLine; filtmudata], 'SeparateUpDownBehindAMean');
         end
 
         filtsddata = data(ia, :);
         if ~isempty(filtsddata) && ~isempty(filtsd)
             filtsddata(:, strcmp(headerLine, 'speed')) = num2cell(filtsd);
-            xxwrite(outputName, [headerLine; filtsddata], 'InsideCutFiltSD');
+            xxwrite(outputName, [headerLine; filtsddata], 'SeparateUpDownBehindASD');
         end
 
         filtmxdata = data(ia, :);
         if ~isempty(filtmxdata) && ~isempty(filtmx)
             filtmxdata(:, strcmp(headerLine, 'speed')) = num2cell(filtmx);
-            xxwrite(outputName, [headerLine; filtmxdata], 'InsideCutFiltMax');
+            xxwrite(outputName, [headerLine; filtmxdata], 'SeparateUpDownBehindAMax');
         end
 
         filtmeddata = data(ia, :);
         if ~isempty(filtmeddata) && ~isempty(filtmed)
             filtmeddata(:, strcmp(headerLine, 'speed')) = num2cell(filtmed);
-            xxwrite(outputName, [headerLine; filtmeddata], 'InsideCutFiltMedian');
+            xxwrite(outputName, [headerLine; filtmeddata], 'SeparateUpDownBehindAMedian');
         end
         
 %         %% Now do Jon-style ("inside cut only") filtering, but separating damaged and undamaged side kymographs
