@@ -993,6 +993,13 @@ parseForXLExport(handles, headerLine, data, outputName, includeStats);    % Comp
 colFilt = strcmp(headerLine, 'userQCLabel');
 rowFilt = strcmp(data(:, colFilt), 'Good') | strcmp(data(:, colFilt), 'Manual');
 goodData = data(rowFilt, :);
+
+% replace speeds in manual-labelled cases with manually-determined speeds
+goodData(strcmp(goodData(:,strcmp(headerLine, 'userQCLabel')), 'Manual'),...
+    strcmp(headerLine, 'speed')) = ...
+    goodData(strcmp(goodData(:,strcmp(headerLine, 'userQCLabel')), 'Manual'),... 
+    strcmp(headerLine, 'manualSpeed'));
+
 [pa, fn, ext] = fileparts(outputName);
 goodOutputName = [pa filesep fn '_user QCd' ext];
 % did Doug still want linees 876-878 to be included - as these did not
