@@ -1058,6 +1058,9 @@ if includeStats
     [uniqueKymIDs,ia,ic]  = unique(data(:, strcmp(headerLine, 'ID')),'stable');
     numQCLabels = [];
     
+    % get rid of 'NaN's as side effect of shitty Mac xl import...
+    data(strcmp(data(:,strcmp(headerLine, 'speed')), 'NaN'),strcmp(headerLine, 'speed')) = {nan};
+    
     %% for each kymograph, isolate the  relevant data rows and calculate stats
     for ind = 1:max(ic)
         temp = [data{ic == ind, strcmp(headerLine, 'speed')}];
@@ -1856,6 +1859,7 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+%%
 if strcmp(eventdata.Key, 'backslash')
     % get current list data position
     currpos = get(handles.listData, 'Value');
@@ -1875,6 +1879,8 @@ if strcmp(eventdata.Key, 'slash')
         listData_Callback(handles.listData, eventdata, handles)
     end
 end
+%%
+
     
     
 if strcmp(eventdata.Key, 'f')
@@ -2126,15 +2132,29 @@ if strcmp(reply, 'Yes')
         if ischar(handles.includedData(ia(ind)).thisSideDamaged)
             if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
                 handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
+                out = 'yes';
             elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'no')
                 ud = {'up' 'down'};
-                handles.damagedSideList{ind} = ud(~strcmp(ud, handles.includedData(ia(ind)).direction));
+                handles.damagedSideList{ind} = ud{~strcmp(ud, handles.includedData(ia(ind)).direction)};
+                out = 'no';
             else
                 handles.damagedSideList{ind} = [];
+                out = '';
             end
         elseif isnan(handles.includedData(ia(ind)).thisSideDamaged)
             handles.damagedSideList{ind} = [];
+            out = '';
         end
+        
+        % then update included data to ensure consistency...
+        % hacky and horribly slow
+        temp = strcmp({handles.includedData.ID}, [ids2{ia(ind)} '-' handles.includedData(ia(ind)).direction]);
+        for nind = 1:length(temp)
+            if temp(nind)
+                handles.includedData(nind).thisSideDamaged = out;
+            end
+        end
+        
     end
     
     % update to show damage side icon for current view
