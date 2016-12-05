@@ -1859,6 +1859,15 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+if strcmp(eventdata.Key, 'l')
+   if strcmp(handles.currentDir, 'up')
+       ax = handles.axUpSelectedKym;
+   else
+       ax = handles.axDownSelectedKym;
+   end
+   menuOverlayFitLine_Callback(hObject, eventdata, handles, ax); 
+end
+
 %%
 if strcmp(eventdata.Key, 'backslash')
     % get current list data position
