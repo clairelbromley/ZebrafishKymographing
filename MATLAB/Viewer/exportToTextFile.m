@@ -42,7 +42,7 @@ function exportToTextFile(outputFile, headerLine, data, fieldDelimiter, recordDe
     end
     formatSpec = [formatSpec rdlm];
     
-    disp(formatSpec);
+%     disp(formatSpec);
     
     %% write file
     fid = fopen(outputFile, 'a');

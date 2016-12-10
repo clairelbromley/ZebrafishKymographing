@@ -1051,6 +1051,8 @@ if ~isfield(handles.includedData, 'distanceCutToApicalSurfaceUm')
  
 end
 
+[p, f, ~] = fileparts(outputName);
+exportToTextFile([p f '.csv'], headerLine, data, ',', '\n');
 xxwrite(outputName, [headerLine; data]);
 
 if includeStats
