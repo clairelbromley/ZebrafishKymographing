@@ -8,8 +8,8 @@ handles.manualSpeedFig = figure;
 set(handles.manualSpeedFig, 'Position', get(0,'Screensize')); % Maximize figure.
 
 cut_frame = round(handles.timeBeforeCut/handles.frameTime) + 1;
-x = find(sum(squeeze(im(:,cut_frame:cut_frame+5)),1)==0);
-first_frame = max(x) + cut_frame;
+x = find(sum(squeeze(im(:,cut_frame-1:cut_frame+5)),1)==0);
+first_frame = max(x) - 1 + cut_frame;
 if isempty(x)
     first_frame = 2;
 end
