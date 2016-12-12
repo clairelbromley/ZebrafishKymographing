@@ -104,7 +104,7 @@ dates = [dates{:}];
 dates = dates(1:2:end);
 dates = strrep(dates, '_', ':');
 for ind = 1:length(files)
-    if (datenum(dates{ind}) - now) > 1
+    if (datenum(dates{ind}) - now) > 7
         delete([tempdir filesep files{ind}])
     end
 end
