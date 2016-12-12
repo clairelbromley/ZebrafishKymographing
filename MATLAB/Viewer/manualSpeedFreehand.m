@@ -38,7 +38,7 @@ end
 
 folder = [baseFolder2 appendText];
 
-imagesc(kym_segment);
+imagesc(kym_segment, [min(im(:)) max(im(:))]);
 colormap gray;
 axis equal tight;
 
