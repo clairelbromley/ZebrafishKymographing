@@ -5,6 +5,9 @@ function kym_positioning = testCutPositioningFast(stack, md, uO)
 % pertaining to the positioning of the kymographs. 
 
 
+%% set cross size
+crossSize = 10;
+
 %% work out where the cut and kymograph lines should go
 kym_positioning = placeKymographs(md, uO);
 kp = kym_positioning;
@@ -26,8 +29,8 @@ if (uO.saveFirstFrameFigure)
     for frameind = 1:size(stack, 3)
 
         %% Add crosses for kymograph
-        for x = -5:5
-            for y = -5:5
+        for x = -crossSize/2:crossSize/2
+            for y = -crossSize/2:crossSize/2
                 stack(kp.ycut(1)+y, kp.xcut(1), frameind) = 0;
                 stack(kp.ycut(1), kp.xcut(1)+x, frameind) = 0;
                 stack(kp.ycut(2)+y, kp.xcut(2), frameind) = 0;
