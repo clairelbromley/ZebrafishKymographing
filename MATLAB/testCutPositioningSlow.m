@@ -6,7 +6,7 @@ function kym_positioning = testCutPositioningSlow(stack, md, uO)
 
 
     %% easy setting: cross colour and size:
-    crossSize = 12;
+    crossSize = uO.crossSize;
     crossColor = 'w'; % set cross colour to white
 %     crossColor = 'k'; % set cross colour to black
 

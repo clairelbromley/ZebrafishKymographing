@@ -39,6 +39,8 @@ classdef UserOptions
          manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual' or 'off'   Default = 'off'
          usePreviouslySavedApicalSurfacePos = false;
          flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
+         
+         crossSize = 7;                     % cross size for indicating ends of cuts in multipage tiffs
         
          nonBeepSound = load('train');
 

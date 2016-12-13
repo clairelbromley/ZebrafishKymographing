@@ -59,6 +59,8 @@ userOptions.flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
 userOptions.lumenOpening = false;               % Normal lumen opening images are prone to have kymographs going off the edge of the image so will need padding. Default false.
 userOptions.speedInUmPerMinute = false;         % For slow normal lumen opening, we may want to record speeds in um/min rather than um/s. Default to fasle.
 
+userOptions.crossSize = 7;                      % cross size for indicating ends of cuts in multipage tiffs
+
 userOptions.nonBeepSound = load('train');
 
 narginchk(1, 2);
