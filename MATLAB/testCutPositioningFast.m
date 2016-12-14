@@ -28,25 +28,25 @@ else
     direction = '';
 end
 
-if (uO.saveFirstFrameFigure)
-    
-    
-    title_txt = sprintf('%s, Embryo %s, Cut %d', md.acquisitionDate, ...
-        md.embryoNumber, md.cutNumber);
-    title_txt = [title_txt uO.firstFigureTitleAppend];
-    dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);    
-            
-    for frameind = 1:size(stack, 3)
+% if (uO.saveFirstFrameFigure)
 
-        offset = ceil(crossSize/2);
-        for cutend = 1:2
-            stack((kp.xcut(cutend) - offset):(kp.xcut(cutend) - offset + size(X,1)-1),...
-                (kp.ycut(cutend) - offset):(kp.ycut(cutend) - offset + size(X,2)-1), ...
-                frameind) = ...
-                im((kp.xcut(cutend) - offset):(kp.xcut(cutend) - offset + size(X,1)-1), ...
-                (kp.ycut(cutend) - offset):(kp.ycut(cutend) - offset + size(X,2)-1), ...
-                frameind).*~X;
-        end
+
+title_txt = sprintf('%s, Embryo %s, Cut %d', md.acquisitionDate, ...
+    md.embryoNumber, md.cutNumber);
+title_txt = [title_txt uO.firstFigureTitleAppend];
+dir_txt = sprintf('%s, Embryo %s%s', md.acquisitionDate, md.embryoNumber, direction);    
+
+for frameind = 1:size(stack, 3)
+
+    offset = ceil(crossSize/2);
+    for cutend = 1:2
+        stack((kp.xcut(cutend) - offset):(kp.xcut(cutend) - offset + size(X,1)-1),...
+            (kp.ycut(cutend) - offset):(kp.ycut(cutend) - offset + size(X,2)-1), ...
+            frameind) = ...
+            im((kp.xcut(cutend) - offset):(kp.xcut(cutend) - offset + size(X,1)-1), ...
+            (kp.ycut(cutend) - offset):(kp.ycut(cutend) - offset + size(X,2)-1), ...
+            frameind).*~X;
+    end
 %         %% Add crosses for kymograph
 %         for x = -crossSize/2:crossSize/2
 %             for y = -crossSize/2:crossSize/2
@@ -56,7 +56,7 @@ if (uO.saveFirstFrameFigure)
 %                 stack(kp.ycut(2), kp.xcut(2)+x, frameind) = 0;
 %             end
 %         end
-        
+
 %         imagesc(squeeze(stack(:,:,frameind)));
 %         axis equal tight;
 %         colormap gray;
@@ -70,19 +70,19 @@ if (uO.saveFirstFrameFigure)
 %         set(h, 'Units', 'normalized')
 %         set(h, 'Position', [0 0 1 1]);
 
-        if ~isdir([uO.outputFolder filesep dir_txt])
-            mkdir([uO.outputFolder filesep dir_txt])
-        end
-        out_file = [uO.outputFolder filesep dir_txt filesep title_txt '.tif'];
-        
-        if (frameind == 1)
-            imwrite(uint16(squeeze(stack(:,:,frameind))), out_file);
-        else
-            % IF THIS STEP FAILS, CLOSE THE EXPLORER/FINDER WINDOW THAT IS
-            % OPEN TO THE CONTAINING FOLDER!!!
-            imwrite(uint16(squeeze(stack(:,:,frameind))), out_file, 'writemode', 'append');
-        end
-    
+    if ~isdir([uO.outputFolder filesep dir_txt])
+        mkdir([uO.outputFolder filesep dir_txt])
     end
-    
+    out_file = [uO.outputFolder filesep dir_txt filesep title_txt '.tif'];
+
+    if (frameind == 1)
+        imwrite(uint16(squeeze(stack(:,:,frameind))), out_file);
+    else
+        % IF THIS STEP FAILS, CLOSE THE EXPLORER/FINDER WINDOW THAT IS
+        % OPEN TO THE CONTAINING FOLDER!!!
+        imwrite(uint16(squeeze(stack(:,:,frameind))), out_file, 'writemode', 'append');
+    end
+
 end
+
+% end
