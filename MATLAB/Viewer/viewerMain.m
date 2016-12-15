@@ -103,6 +103,7 @@ else
     home = getenv('HOME');
 end
 vtemp = [home filesep 'viewerMainTemp'];
+handles.tempFilePath = vtemp;
 mkdir(vtemp);
 files = dir([vtemp filesep '* viewerMainTempVars.mat']);
 files = {files.name};
@@ -2705,7 +2706,7 @@ guidata(hObject, handles);
 % -------------------------------------------------------------------------
 function saveTempVars(handles)
 
-tDir = tempdir;
+tDir = handles.tempFilePath;
 if tDir(end) ~= filesep
     tDir = [tDir filesep];
 end
