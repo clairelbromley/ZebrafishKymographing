@@ -96,8 +96,15 @@ handles.includedData = [];
 handles.laserIcon = imread('laser-icon-12.png');
 
 handles.initTimeStamp = datestr(now);
-% search temp directory for temp files older than 1 day, and delete
-files = dir([tempdir filesep '* viewerMainTempVars.mat']);
+% search temp directory for temp files older than 7 days, and delete
+if ispc
+    home = [getenv('HOMEDRIVE') getenv('HOMEPATH')];
+else
+    home = getenv('HOME');
+end
+vtemp = [home filesep 'viewerMainTemp'];
+mkdir(vtemp);
+files = dir([vtemp filesep '* viewerMainTempVars.mat']);
 files = {files.name};
 dates = regexp(files, ' viewerMainTempVars.mat', 'split');
 dates = [dates{:}];
@@ -105,7 +112,7 @@ dates = dates(1:2:end);
 dates = strrep(dates, '_', ':');
 for ind = 1:length(files)
     if (datenum(dates{ind}) - now) > 7
-        delete([tempdir filesep files{ind}])
+        delete([vtemp filesep files{ind}])
     end
 end
 
