@@ -548,6 +548,7 @@ close(figs)
 handles.currentKymInd = [];
 
 saveTempVars(handles);
+memoryTest();
 guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -810,7 +811,23 @@ end
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
 
+memoryTest();
 
+function memoryTest()
+    
+    hObj = findobj();
+    categories = unique(get(hObj, 'Type'));
+    disp(['Total number of objects = ' num2str(length(hObj))])
+    for ind = 1:length(categories)
+        freq = sum(strcmp(categories{ind}, get(hObj, 'Type')));
+        disp(['Number of ' categories{ind} ' objects = ' num2str(freq)]);
+    end
+    
+    if ispc
+        memory;
+    end
+
+    
 
 function [handles, x, y] = getQuantitativeKym(handles, folder, x,y, im, manual_auto)
 
