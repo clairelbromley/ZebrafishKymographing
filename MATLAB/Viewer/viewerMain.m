@@ -780,7 +780,7 @@ try
         if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
             filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
                 ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction) & ...
-                (round(1000*handles.currentPosition) == round(1000 * [handles.includedData.kymPosition]));
+                (ceil(1000*handles.currentPosition) == ceil(1000 * [handles.includedData.kymPosition]));
             handles.currentManualLineSpeed = handles.includedData(filt).manualSpeed;
             handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
                 'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
@@ -1382,13 +1382,25 @@ end
 
 fitLineState = get(handles.menuOverlayFitLine, 'Checked');
 if strcmp(fitLineState, 'on')
-    set(handles.menuOverlayFitLine, 'Checked', 'off');
-    set(handles.fitLine(ax), 'Visible', 'off');
-    set(handles.fitText(ax), 'Visible', 'off');
+    if isfield(handles, 'menuOverlayFitLine')
+        set(handles.menuOverlayFitLine, 'Checked', 'off');
+    end
+    if isfield(handles, 'fitLine')
+        set(handles.fitLine(ax), 'Visible', 'off');
+    end
+    if isfield(handles, 'fitText')
+        set(handles.fitText(ax), 'Visible', 'off');
+    end
 else
-    set(handles.menuOverlayFitLine, 'Checked', 'on');
-    set(handles.fitLine(ax), 'Visible', 'on');
-    set(handles.fitText(ax), 'Visible', 'on');
+    if isfield(handles, 'menuOverlayFitLine')
+        set(handles.menuOverlayFitLine, 'Checked', 'on');
+    end
+    if isfield(handles, 'fitLine')
+        set(handles.fitLine(ax), 'Visible', 'on');
+    end
+    if isfield(handles, 'fitText')
+    	set(handles.fitText(ax), 'Visible', 'on');
+    end
 end
 
 guidata(hObject, handles);
@@ -1628,11 +1640,11 @@ if isfield(handles, 'includedData');
         if max(size(dates)) == 1
             indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
-                round(1000*positions)/1000 == round(1000*position)/1000;
+                ceil(1000*positions)/1000 == ceil(1000*position)/1000;
         else
             indices = strcmp(dates, handles.date) & strcmp(embryoNs, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{:}, direction) & ...
-                round(1000*positions)/1000 == round(1000*position)/1000;
+                ceil(1000*positions)/1000 == ceil(1000*position)/1000;
         end
             
     end
