@@ -70,6 +70,7 @@ addpath(resPath);
 
 javaaddpath([currdir filesep 'Archive' filesep 'jxl.jar']);
 javaaddpath([currdir filesep 'Archive' filesep 'MXL.jar']);
+javaaddpath([currdir filesep 'jheapcl' filesep 'MatlabGarbageCollector.jar']);
     
 set(handles.axUpFirstFrame, 'XTick', []);
 set(handles.axDownFirstFrame, 'XTick', []);
@@ -815,6 +816,7 @@ memoryTest();
 
 function memoryTest()
     
+    jheapcl;
     hObj = findobj();
     categories = unique(get(hObj, 'Type'));
     disp(['Total number of objects = ' num2str(length(hObj))])
