@@ -766,26 +766,32 @@ try
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
     
-    if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
-        [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'manual');
-    else
-        [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'auto');
+    if sum(indices) > 0
+        if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+            [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'manual');
+        else
+            [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'auto');
+        end
     end
         
 
     handles.fitLine(ax) = line(x, y, 'Parent', kym_ax, 'Color', 'r');
-    if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
-        filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
-            ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction) & ...
-            (round(1000*handles.currentPosition) == round(1000 * [handles.includedData.kymPosition]));
-        handles.currentManualLineSpeed = handles.includedData(filt).manualSpeed;
-        handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
+    if sum(indices) > 0
+        if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
+            filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
+                ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction) & ...
+                (round(1000*handles.currentPosition) == round(1000 * [handles.includedData.kymPosition]));
+            handles.currentManualLineSpeed = handles.includedData(filt).manualSpeed;
+            handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
+                'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+        else
+            handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = '},...
             'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+        end
     else
         handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.speeds{ax}(closest)) ' \mum s^{-1}'], 'R^{2} = '},...
-        'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
+            'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
     end
-    
     
 
     fitLineState = get(handles.menuOverlayFitLine, 'Checked')   ;
@@ -1456,19 +1462,23 @@ function menuOverlayEdge_Callback(hObject, eventdata, handles)
 
 handles = guidata(gcf);
 
-if (gca == handles.axUpSelectedKym)
-    ax = 1;
-elseif (gca == handles.axDownSelectedKym)
-    ax = 2;
-end
+if isfield(handles, 'paddedMembrane')
 
-overlayEdgeState = get(handles.menuOverlayEdge, 'Checked');
-if strcmp(overlayEdgeState, 'on')
-    set(handles.menuOverlayEdge, 'Checked', 'off');
-    set(handles.kymIm(ax), 'AlphaData', 1);
-else
-    set(handles.menuOverlayEdge, 'Checked', 'on');
-    set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
+    if (gca == handles.axUpSelectedKym)
+        ax = 1;
+    elseif (gca == handles.axDownSelectedKym)
+        ax = 2;
+    end
+
+    overlayEdgeState = get(handles.menuOverlayEdge, 'Checked');
+    if strcmp(overlayEdgeState, 'on')
+        set(handles.menuOverlayEdge, 'Checked', 'off');
+        set(handles.kymIm(ax), 'AlphaData', 1);
+    else
+        set(handles.menuOverlayEdge, 'Checked', 'on');
+        set(handles.kymIm(ax), 'AlphaData', 1-handles.paddedMembrane{ax}/2);
+    end
+
 end
 
 guidata(hObject, handles);
