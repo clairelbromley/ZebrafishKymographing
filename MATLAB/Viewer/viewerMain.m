@@ -2153,68 +2153,69 @@ if strcmp(reply, 'Yes')
         [~,~,dummy] = xlsread([pname fname]);
 
         handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
-    end
     
-    % ensure that dates are in string format in order that comparisons work
-    % later...
-    for ind = 1:length(handles.includedData)
-        handles.includedData(ind).date = num2str(handles.includedData(ind).date);
-        handles.includedData(ind).embryoNumber = num2str(handles.includedData(ind).embryoNumber);
-          if ischar(handles.includedData(ind).kymPosition)
-            handles.includedData(ind).kymPosition = str2double(handles.includedData(ind).kymPosition);
+    
+        % ensure that dates are in string format in order that comparisons work
+        % later...
+        for ind = 1:length(handles.includedData)
+            handles.includedData(ind).date = num2str(handles.includedData(ind).date);
+            handles.includedData(ind).embryoNumber = num2str(handles.includedData(ind).embryoNumber);
+              if ischar(handles.includedData(ind).kymPosition)
+                handles.includedData(ind).kymPosition = str2double(handles.includedData(ind).kymPosition);
+            end
+            if ischar(handles.includedData(ind).cutNumber)
+                handles.includedData(ind).cutNumber = str2double(handles.includedData(ind).cutNumber);
+            end
         end
-        if ischar(handles.includedData(ind).cutNumber)
-            handles.includedData(ind).cutNumber = str2double(handles.includedData(ind).cutNumber);
+
+        ids = {handles.includedData.ID};
+        for ind = 1:length(ids)
+            r  = regexp(ids{ind}, '-', 'split');
+            ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
         end
-    end
-    
-    ids = {handles.includedData.ID};
-    for ind = 1:length(ids)
-        r  = regexp(ids{ind}, '-', 'split');
-        ids2{ind} = sprintf('%s-%s-%s', r{1}, r{2}, r{3});
-    end
-    
-    [~, ia, ic] = unique(ids2, 'stable');
-    
-    for ind = 1:max(ic)
-        if ischar(handles.includedData(ia(ind)).thisSideDamaged)
-            if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
-                handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
-                out = 'yes';
-            elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'no')
-                ud = {'up' 'down'};
-                handles.damagedSideList{ind} = ud{~strcmp(ud, handles.includedData(ia(ind)).direction)};
-                out = 'no';
-            else
+
+        [~, ia, ic] = unique(ids2, 'stable');
+
+        for ind = 1:max(ic)
+            if ischar(handles.includedData(ia(ind)).thisSideDamaged)
+                if strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'yes')
+                    handles.damagedSideList{ind} = handles.includedData(ia(ind)).direction;
+                    out = 'yes';
+                elseif strcmp(handles.includedData(ia(ind)).thisSideDamaged, 'no')
+                    ud = {'up' 'down'};
+                    handles.damagedSideList{ind} = ud{~strcmp(ud, handles.includedData(ia(ind)).direction)};
+                    out = 'no';
+                else
+                    handles.damagedSideList{ind} = [];
+                    out = '';
+                end
+            elseif isnan(handles.includedData(ia(ind)).thisSideDamaged)
                 handles.damagedSideList{ind} = [];
                 out = '';
             end
-        elseif isnan(handles.includedData(ia(ind)).thisSideDamaged)
-            handles.damagedSideList{ind} = [];
-            out = '';
-        end
-        
-        % then update included data to ensure consistency...
-        % hacky and horribly slow
-        temp = strcmp({handles.includedData.ID}, [ids2{ia(ind)} '-' handles.includedData(ia(ind)).direction]);
-        for nind = 1:length(temp)
-            if temp(nind)
-                handles.includedData(nind).thisSideDamaged = out;
-            end
-        end
-        
-    end
-    
-    % update to show damage side icon for current view
-    showDamageIcon(handles.damagedSideList(get(handles.listData, 'Value')), handles)   
 
-    directions = {'up' 'down'};
-    for hind = 1:2
-        handles.qcColor{hind} = generateQCColorArray(handles, handles.qcColor{hind}, directions{hind});
-        updateMyScatterColors(handles.qcScatter{hind}, handles.qcColor{hind});
+            % then update included data to ensure consistency...
+            % hacky and horribly slow
+            temp = strcmp({handles.includedData.ID}, [ids2{ia(ind)} '-' handles.includedData(ia(ind)).direction]);
+            for nind = 1:length(temp)
+                if temp(nind)
+                    handles.includedData(nind).thisSideDamaged = out;
+                end
+            end
+
+        end
+
+        % update to show damage side icon for current view
+        showDamageIcon(handles.damagedSideList(get(handles.listData, 'Value')), handles)   
+
+        directions = {'up' 'down'};
+        for hind = 1:2
+            handles.qcColor{hind} = generateQCColorArray(handles, handles.qcColor{hind}, directions{hind});
+            updateMyScatterColors(handles.qcScatter{hind}, handles.qcColor{hind});
+        end
+
+        set(handles.menuUpdateAllSpeeds, 'Enable', 'on');
     end
-    
-    set(handles.menuUpdateAllSpeeds, 'Enable', 'on');
 end
 
 busyDlg(busyOutput);
