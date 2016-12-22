@@ -341,7 +341,7 @@ for ind = 1:length(axHandles)
         for i = 1:length(handles.positionsAlongLine)
             handles.currentPosition = handles.positionsAlongLine(i);
             handles.poss{ind} = [];
-            handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
+            handles.currentFractionalPosition = fractional_pos_along_cut(round(100*handles.positionsAlongLine)/100 ...
                             == round(1000*handles.currentPosition)/1000);
             handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
                 == round(1000*handles.currentPosition)/1000);
@@ -489,7 +489,7 @@ try
                            handles = genericInclude(handles, qcLabel, direction{1}, pos);
                        else
                            if iscell(handles.poss)
-                               if ((sum(round(1000*handles.poss{strcmp(directions, direction{1})})/1000 == round(1000*pos)/1000) > 0))  % nonsense
+                               if ((sum(round(100*handles.poss{strcmp(directions, direction{1})})/100 == round(100*pos)/100) > 0))  % nonsense
                                    qcLabel = 'not QCd';
                                    handles = genericInclude(handles, qcLabel, direction{1}, pos);
                                else
@@ -738,7 +738,7 @@ try
         ',' appendText ', kymograph position along cut: ' sprintf('%0.2f', handles.poss{ax}(closest)) ' \mum'];
     handles.kymTitle{ax} = title(kym_ax, title_txt);
 
-    handles.currentPosition = handles.poss{ax}(closest);
+    handles.currentPosition = round(100*handles.poss{ax}(closest))/100;
     handles.currentSpeed = handles.speeds{ax}(closest);
     handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_along_cut)/1000 ...
         == round(1000*handles.currentPosition)/1000);
@@ -780,7 +780,7 @@ try
         if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
             filt = strcmp({handles.includedData.date}, handles.date) & strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) & ...
                 ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & strcmp({handles.includedData.direction}, direction) & ...
-                (ceil(1000*handles.currentPosition) == ceil(1000 * [handles.includedData.kymPosition]));
+                (round(100*handles.currentPosition) == round(100 * [handles.includedData.kymPosition]));
             handles.currentManualLineSpeed = handles.includedData(filt).manualSpeed;
             handles.fitText(ax) = text(x(2)+1, y(2), {[sprintf('%0.2f', handles.currentManualLineSpeed) ' \mum s^{-1}'], 'R^{2} = '},...
                 'Parent', kym_ax, 'Color', 'r', 'FontSize', 10, 'BackgroundColor', 'k');
@@ -825,10 +825,10 @@ function memoryTest()
     jheapcl;
     hObj = findobj();
     categories = unique(get(hObj, 'Type'));
-    disp(['Total number of objects = ' num2str(length(hObj))])
+%     disp(['Total number of objects = ' num2str(length(hObj))])
     for ind = 1:length(categories)
         freq = sum(strcmp(categories{ind}, get(hObj, 'Type')));
-        disp(['Number of ' categories{ind} ' objects = ' num2str(freq)]);
+%         disp(['Number of ' categories{ind} ' objects = ' num2str(freq)]);
     end
     
     if ispc
@@ -1640,11 +1640,11 @@ if isfield(handles, 'includedData');
         if max(size(dates)) == 1
             indices = strcmp(dates{1}, handles.date) & strcmp(embryoNs{1}, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{1}, direction) & ...
-                ceil(1000*positions)/1000 == ceil(1000*position)/1000;
+                round(100*positions)/100 == round(100*position)/100;
         else
             indices = strcmp(dates, handles.date) & strcmp(embryoNs, handles.embryoNumber) & ...
                 (cutNs == str2double(handles.cutNumber)) & strcmp(directions{:}, direction) & ...
-                ceil(1000*positions)/1000 == ceil(1000*position)/1000;
+                round(100*positions)/100 == round(100*position)/100;
         end
             
     end
@@ -2172,7 +2172,7 @@ if strcmp(reply, 'Yes')
         for ind = 1:length(handles.includedData)
             handles.includedData(ind).date = num2str(handles.includedData(ind).date);
             handles.includedData(ind).embryoNumber = num2str(handles.includedData(ind).embryoNumber);
-              if ischar(handles.includedData(ind).kymPosition)
+            if ischar(handles.includedData(ind).kymPosition)
                 handles.includedData(ind).kymPosition = str2double(handles.includedData(ind).kymPosition);
             end
             if ischar(handles.includedData(ind).cutNumber)
@@ -2732,7 +2732,7 @@ for id = unique(ids)
         for ind = 1:length(poss)
             filt2 = ~strcmp({handles.includedData.userQCLabel}, 'no edge') & ...
                 ~strcmp({handles.includedData.userQCLabel}, 'not QCd') & ...
-                strcmp(ids, id) & (round(1000 * [handles.includedData.kymPosition]) == round( 1000 * poss(ind)));
+                strcmp(ids, id) & (round(100 * [handles.includedData.kymPosition]) == round( 100 * poss(ind)));
             if sum(filt2) > 0
                 handles.includedData(filt2).speed = speeds(ind);
             end
