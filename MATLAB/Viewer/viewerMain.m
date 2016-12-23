@@ -286,6 +286,12 @@ handles.timeAfterCut = getNumericMetadataFromText(mdfpath, 'userOptions.timeAfte
 handles.frameTime = getNumericMetadataFromText(mdfpath, 'metadata.acqMetadata.cycleTime');
 handles.umPerPixel = getNumericMetadataFromText(mdfpath, 'metadata.umperpixel');
 handles.quantAnalysisTime = getNumericMetadataFromText(mdfpath, 'userOptions.quantAnalysisTime');
+x1 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.startPositionX');
+x2 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.stopPositionX');
+y1 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.startPositionY');
+y2 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.stopPositionY');
+handles.currentCutLength = sqrt( (x1 - x2)^2 + (y1 - y2)^2 ) * handles.umPerPixel;
+handles.currentCutDuration = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.time');
 handles.qcColor = cell(2,1);
 handles.qcScatter = cell(2,1);
 handles.poss = cell(2,1);
@@ -1687,6 +1693,8 @@ if sum(indices) == 0
         (cell2mat(cutNs{1}) == str2double(handles.cutNumber));
     
     incData = handles.experimentMetadata(expMetaIndices);
+    incData.cutLength = handles.currentCutLength;
+    incData.cutDuration = handles.currentCutDuration;
     incData.ID = [handles.date '-' handles.embryoNumber '-' handles.cutNumber '-' direction];
     incData.kymPosition = handles.currentPosition;
     incData.fractionalPosition = handles.currentFractionalPosition;
@@ -2729,12 +2737,26 @@ for id = unique(ids)
         poss = get(dataObjs, 'XData');
         close(h);
         
+        baseFolder2 = [handles.baseFolder filesep handles.date ', Embryo ' handles.embryoNumber];
+        folder = [baseFolder2 ' downwards'];
+        mdfpath = [handles.baseFolder filesep ...
+            lines(1).date ', Embryo ' lines(1).embryoNumber ' ' lines(1).direction 'wards' filesep ...
+            filesep 'trimmed_cutinfo_cut_' handles.cutNumber '.txt'];
+        x1 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.startPositionX');
+        x2 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.stopPositionX');
+        y1 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.startPositionY');
+        y2 = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.stopPositionY');
+        cutLength = sqrt( (x1 - x2)^2 + (y1 - y2)^2 ) * handles.umPerPixel;
+        cutDuration = getNumericMetadataFromText(mdfpath, 'metadata.cutMetadata.time');
+        
         for ind = 1:length(poss)
             filt2 = ~strcmp({handles.includedData.userQCLabel}, 'no edge') & ...
                 ~strcmp({handles.includedData.userQCLabel}, 'not QCd') & ...
                 strcmp(ids, id) & (round(100 * [handles.includedData.kymPosition]) == round( 100 * poss(ind)));
             if sum(filt2) > 0
                 handles.includedData(filt2).speed = speeds(ind);
+                handles.includedData(filt2).cutLength = cutLength;
+                handles.includedData(filt2).cutDuration = cutDuration;
             end
         end
         
