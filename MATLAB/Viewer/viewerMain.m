@@ -342,9 +342,9 @@ for ind = 1:length(axHandles)
             handles.currentPosition = handles.positionsAlongLine(i);
             handles.poss{ind} = [];
             handles.currentFractionalPosition = fractional_pos_along_cut(round(100*handles.positionsAlongLine)/100 ...
-                            == round(1000*handles.currentPosition)/1000);
-            handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
-                == round(1000*handles.currentPosition)/1000);
+                            == round(100*handles.currentPosition)/100);
+            handles.currentDistanceFromEdge = distance_from_edge(round(100*handles.positionsAlongLine)/100 ...
+                == round(100*handles.currentPosition)/100);
             handles.currentSpeed = 0;
             handles.currentBlockedFrames = nan;
             handles.edgeSide = '';
@@ -474,10 +474,10 @@ try
                 for pos = handles.positionsAlongLine
                     handles.currentPosition = pos;
                     handles.currentSpeed = nan;
-                    handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*handles.positionsAlongLine)/1000 ...
-                        == round(1000*handles.currentPosition)/1000);
-                    handles.currentDistanceFromEdge = distance_from_edge(round(1000*handles.positionsAlongLine)/1000 ...
-                        == round(1000*handles.currentPosition)/1000);
+                    handles.currentFractionalPosition = fractional_pos_along_cut(round(100*handles.positionsAlongLine)/100 ...
+                        == round(100*handles.currentPosition)/100);
+                    handles.currentDistanceFromEdge = distance_from_edge(round(100*handles.positionsAlongLine)/100 ...
+                        == round(100*handles.currentPosition)/100);
                     handles.edgeSide = '';
                     handles.currentBlockedFrames = nan;
                     
@@ -740,10 +740,10 @@ try
 
     handles.currentPosition = round(100*handles.poss{ax}(closest))/100;
     handles.currentSpeed = handles.speeds{ax}(closest);
-    handles.currentFractionalPosition = fractional_pos_along_cut(round(1000*pos_along_cut)/1000 ...
-        == round(1000*handles.currentPosition)/1000);
-    handles.currentDistanceFromEdge = distance_from_edge(round(1000*pos_along_cut)/1000 ...
-        == round(1000*handles.currentPosition)/1000);
+    handles.currentFractionalPosition = fractional_pos_along_cut(round(100*pos_along_cut)/100 ...
+        == round(100*handles.currentPosition)/100);
+    handles.currentDistanceFromEdge = distance_from_edge(round(100*pos_along_cut)/100 ...
+        == round(100*handles.currentPosition)/100);
 
     %% get number of blocked out frames
     temp = regionprops(logical(sum(im,1) == 0));
@@ -1802,7 +1802,7 @@ end
 if isfield(handles, 'movieFrames')
     if length(handles.movieFrames) >= ax  
         if ~isempty(handles.movieFrames{ax})
-            set(handles.menuSaveMovie, 'Enable', 'on');
+%             set(handles.menuSaveMovie, 'Enable', 'on');
         else
             set(handles.menuSaveMovie, 'Enable', 'off');
         end
