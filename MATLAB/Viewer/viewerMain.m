@@ -60,6 +60,8 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+handles.newMatlab = ~verLessThan('matlab', '8.4.0.150421 (R2014b)');
+
 dummy = [mfilename('fullpath') '.m'];
 currdir = fileparts(dummy);
 resPath = [currdir filesep 'Resources'];
@@ -443,6 +445,10 @@ try
         end
 catch ME
     disp(ME)
+    for ind = 1:length(ME.stack)
+        disp(ME.stack(ind).name);
+        disp(ME.stack(ind).line);
+    end
     uiwait(msgbox(['No figure to load at ' fpath]));   
     axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
     imagesc(zeros(5),'Parent',axHandles(ind));
@@ -519,9 +525,10 @@ try
         
 catch ME
     disp(ME)
-    disp(ME.stack)
-    disp(ME.stack(1).name);
-    disp(ME.stack(1).line);
+    for ind = 1:length(ME.stack)
+        disp(ME.stack(ind).name);
+        disp(ME.stack(ind).line);
+    end
     uiwait(msgbox('Error parsing metadata to include data structure!'));   
     imagesc(zeros(5),'Parent',axHandles(ind));
 
@@ -680,13 +687,17 @@ end
 
 folder = [baseFolder2 appendText];
 
-h = findobj('Parent', gca, '-not', 'Type', 'hggroup');
-
+if handles.newMatlab
+    h = findobj('Parent', gca, '-not', 'Type', 'Scatter');
+else
+    h = findobj('Parent', gca, '-not', 'Type', 'hggroup');
+end
+    
 for ind = 1:length(h)
     if (get(h(ind), 'Color') == [1 0 0])
         delete(h(ind));
     end
-end
+end    
 
 hold on
 plot(handles.poss{ax}(closest), handles.speeds{ax}(closest), 'o', 'Color', 'r');
