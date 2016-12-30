@@ -51,10 +51,27 @@ function exportToTextFile(outputFile, headerLine, data, fieldDelimiter, recordDe
     
     for rcrd = 1:size(data, 1)
         
-       fprintf(fid, formatSpec, data{rcrd, :});
+        inCell = data(rcrd, :);
+        outCell = replaceCommas(inCell, ';');
+        fprintf(fid, formatSpec, outCell{:});
         
     end
     
     fclose(fid);
+    
+end
+
+
+function outCell = replaceCommas(inCell, repChar)
+    
+    outCell = inCell;
+    for ind = 1:length(inCell)
+        if ischar(inCell{ind})
+            outCell{ind} = strrep(inCell{ind}, ',', repChar);
+        end
+    end
+    
+end
+        
 
         
