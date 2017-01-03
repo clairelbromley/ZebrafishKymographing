@@ -35,7 +35,7 @@ userOptions.scatterComparisonOnly = false;      % Perform comparison of manual v
 userOptions.loadPreprocessedImages = false;
 userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
 
-userOptions.outputFolder = '/Volumes/Arthur/DATA etc/CUTS/Vienna 1/DATA Vienna 1/Cut data/USE raw SORT/Processed';
+userOptions.outputFolder = '/Volumes/Arthur/DATA etc/CUTS/Vienna 1/DATA Vienna 1/Cut data/USE raw SORT/untitled folder/processed';
 % userOptions.outputFolder = 'C:\Users\d.kelly\Downloads\error test out';
 
 userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
@@ -161,9 +161,17 @@ try
                     
 %                     try
                     if userOptions.basalMembraneKym
-                        stack(51:562,51:562,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                        try
+                            stack(51:562,51:562,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                        catch
+                            stack(51:562,51:562,ind) = zeros(512);
+                        end
                     else
-                        stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                        try
+                            stack(:,:,ind) = imread([curr_path filesep sprintf('%06d_mix.tif', frame_ind)]);
+                        catch
+                            stack(:,:,ind) = zeros(512);
+                        end
                     end
 %                     catch ME
 %                         errString = ['Error: ' ME.identifier ': ' ME.message];
@@ -253,8 +261,8 @@ try
                 end
                 
             catch ME
-                for ind = 1:length(ME.stack)
-                   disp(ME.stack(ind)); 
+                for eind = 1:length(ME.stack)
+                   disp(ME.stack(eind)); 
                 end
                 errString = ['Error: ' ME.identifier ': ' ME.message];
                 errString(errString == '\') = '|';
