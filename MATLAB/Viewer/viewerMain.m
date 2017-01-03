@@ -2185,7 +2185,15 @@ if strcmp(reply, 'Yes')
     
     if fname ~= 0
         filepath = [pname fname];
-        [~,~,dummy] = xlsread([pname fname]);
+        % deal with fact that PC and Mac save first (unnamed) Excel sheet
+        % with different default names
+        [~, sheets] = xlsfinfo(filepath);
+        if (sum(strcmp(sheets, 'MATLAB')) > 0)
+            sh = 'MATLAB';
+        else
+            sh = 'Sheet1';
+        end
+        [~,~,dummy] = xlsread(filepath, sh);
 
         handles.includedData = cell2struct(dummy(2:end, :)', dummy(1,:)', 1);
     
