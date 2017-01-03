@@ -1738,6 +1738,20 @@ if sum(indices) == 0
         incData.thisSideDamaged = 'no';
     end
     
+    % deal with case in which loaded QC data doesn't have all the fields
+    % that are present in the inclusion data that viewer is now trying to
+    % add...
+    if ~isempty(handles.includedData)
+        if length(fields(incData)) ~= length(fields(handles.includedData))
+            flds = fields(incData);
+            for fldind = 1:length(flds)
+                if sum(strcmp(flds(fldind),fields(handles.includedData))) == 0
+                    handles.includedData(size(handles.includedData, 1)).(flds{fldind}) = []; % initialise field values in all array elements as empty
+                end
+            end
+        end
+    end
+        
     handles.includedData = [handles.includedData; incData];
    
 else
