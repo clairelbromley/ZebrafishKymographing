@@ -445,9 +445,9 @@ try
         end
 catch ME
     disp(ME)
-    for ind = 1:length(ME.stack)
-        disp(ME.stack(ind).name);
-        disp(ME.stack(ind).line);
+    for eind = 1:length(ME.stack)
+        disp(ME.stack(eind).name);
+        disp(ME.stack(eind).line);
     end
     uiwait(msgbox(['No figure to load at ' fpath]));   
     axHandles = [handles.axUpFirstFrame; handles.axDownFirstFrame];
@@ -525,9 +525,9 @@ try
         
 catch ME
     disp(ME)
-    for ind = 1:length(ME.stack)
-        disp(ME.stack(ind).name);
-        disp(ME.stack(ind).line);
+    for eind = 1:length(ME.stack)
+        disp(ME.stack(eind).name);
+        disp(ME.stack(eind).line);
     end
     uiwait(msgbox('Error parsing metadata to include data structure!'));   
     imagesc(zeros(5),'Parent',axHandles(ind));
@@ -831,6 +831,10 @@ try
     close(h);
 catch ME
     disp(ME);
+    for eind = 1:length(ME.stack)
+        disp(ME.stack(eind).name);
+        disp(ME.stack(eind).line);
+    end
 end
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
