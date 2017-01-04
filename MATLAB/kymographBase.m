@@ -19,6 +19,7 @@ javaaddpath([currdir filesep 'Viewer' filesep 'Archive' filesep 'MXL.jar']);
 userOptions.forcedSpeedRange = [-1.5 1.5];          % speed [min max]
 userOptions.forcedPositionRange = [-5 20];      % position um [min max]
 
+userOptions.kym_interp = 'nearest';             % interpolation method used when making kymographs - 'nearest', 'bilinear' or 'bicubic'
 userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
 userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
 userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10

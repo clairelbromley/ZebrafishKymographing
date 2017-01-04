@@ -20,6 +20,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
         
         for kpos = 1:numel(kp.kym_startx)
 
+            tic
                 subk = zeros(uO.kym_length, uO.kym_width);  
                 patchX = [];
                 patchY = [];
@@ -50,7 +51,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     subk_x = round(subk_x);
                     subk_y = round(subk_y);
                     
-                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length);
+                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length, uO.kym_interp);
                     l = length(a);
                     subk(1:l, subkpos+1) = a;
                     
@@ -69,6 +70,8 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     kymographs(ind, :, kpos) = max_kym(1:uO.kym_length);
                 end             
 
+                eltime = toc;
+                disp(sprintf('Generating kymograph at pos %d for cut %d took %d', kpos, md.cutNumber, eltime));
         end
 
     end
