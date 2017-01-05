@@ -58,15 +58,24 @@ end
 
 %% Generate output figure
 
-fig_pos = [0 0 4/lenght(med_filt_sizes) 1];
-hfig = figure('Unit', 'normalized', 'Position', fig_pos);
-plot_size = (1 - (5 * spacer)) / 4;
+% get display size in pix
+dispSize = get(0, 'MonitorPositions');
+dispSize = dispSize(3:end);
 
-ax_inds_h = repmat(1:4, 1, length(med_filt_sizes))
-ax_inds_v = repmat(1:length(med_filt_sizes), 1, 4);
+fig_pos = [1 1 (4/length(med_filt_sizes)) * min(dispSize) min(dispSize)]; % assume for now 4x4 tiling...
+hfig = figure('Unit', 'pixels', 'Position', fig_pos);
+plot_size = (1 - ((length(med_filt_sizes) + 1) * plot_space)) / (length(med_filt_sizes)); % plot sizes ALWAYS in normalised units
+
+ax_inds_h = repmat(1:4, 1, length(med_filt_sizes));
+ax_inds_v = repmat(1:length(med_filt_sizes), 4, 1);
+ax_inds_v = ax_inds_v(:)';
 
 for ax_ind = 1:4*length(med_filt_sizes)
     
-    if ax_ind == 1
-        subplot('Position', [ (ax_inds_h(ax_ind) * plot_space) ((ax_inds_v(ax_ind) * plot_size) + ((ax_inds_v(ax_ind) + 1) * plot_space)) ...
-            () () ]
+        h(ax_ind) = subplot('Position', [ (((ax_inds_h(ax_ind) - 1) * plot_size) + ax_inds_h(ax_ind) * plot_space) (1 - (((ax_inds_v(ax_ind)) * plot_size) + ((ax_inds_v(ax_ind) ) * plot_space))) ...
+            (plot_size) (plot_size) ]);
+        imagesc(checkerboard(10));
+        set(h(ax_ind), 'XTick', [], 'YTick', []);
+        axis equal tight;
+
+end
