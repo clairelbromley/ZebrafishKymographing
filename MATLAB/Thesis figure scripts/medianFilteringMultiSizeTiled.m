@@ -6,6 +6,11 @@
 %   to PLOT_SPACE and fig and png files are saved to OUTPUT_PATH. Replacing
 %   any of the arguments with [] results in default values, or in UI 
 
+%need to type into matlab medianFilteringMultiSizeTiled(in, out, [], []);
+%to run
+%after defining in and out as would root e.g. out
+%='/Users/clairebromley/Google Drive/Thesis/THESIS - methods/F2 image preprocessing/new'
+
 function medianFilteringMultiSizeTiled(input_image, output_path, med_filt_sizes, plot_space)
 
 %% Define variables if any arguments have been replacecd with []
