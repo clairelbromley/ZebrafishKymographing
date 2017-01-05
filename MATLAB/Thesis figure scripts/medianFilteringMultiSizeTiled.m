@@ -3,7 +3,8 @@
 %   data identified by path in INPUT_IMAGE, and columns 2-4 show median
 %   filtered, median thresholded and denoised images using each kernel size
 %   given by vector [MED_FILT_SIZES]. Resulting plots are spaced according
-%   to PLOT_SPACE and fig and png files are saved to OUTPUT_PATH. 
+%   to PLOT_SPACE and fig and png files are saved to OUTPUT_PATH. Replacing
+%   any of the arguments with [] results in default values, or in UI 
 
 function medianFilteringMultiSizeTiled(input_image, output_path, med_filt_sizes, plot_space)
 
@@ -74,8 +75,30 @@ for ax_ind = 1:4*length(med_filt_sizes)
     
         h(ax_ind) = subplot('Position', [ (((ax_inds_h(ax_ind) - 1) * plot_size) + ax_inds_h(ax_ind) * plot_space) (1 - (((ax_inds_v(ax_ind)) * plot_size) + ((ax_inds_v(ax_ind) ) * plot_space))) ...
             (plot_size) (plot_size) ]);
-        imagesc(checkerboard(10));
+        
+        switch ax_inds_h(ax_ind)
+            case 1
+                temp = im;
+                clims = [min(im(:)) max(im(:))];
+            case 2
+                temp = squeeze(medfiltims(:,:,ax_inds_v(ax_ind)));
+                clims = [min(medfiltims(:)) max(medfiltims(:))];
+            case 3
+                temp = squeeze(threshims(:,:,ax_inds_v(ax_ind)));
+                clims = [min(threshims(:)) max(threshims(:))];
+            case 4
+                temp = squeeze(denoisedims(:,:,ax_inds_v(ax_ind)));
+                clims = [min(denoisedims(:)) max(denoisedims(:))];
+            otherwise
+                temp = zeros(size(im));
+        end
+        
+        imagesc(temp, clims);
+        colormap gray;
         set(h(ax_ind), 'XTick', [], 'YTick', []);
         axis equal tight;
 
 end
+
+savefig(hfig, [output_path '.fig']);
+print(hfig, [output_path '.png'], '-dpng', '-r300');
