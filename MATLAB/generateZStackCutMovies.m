@@ -23,8 +23,12 @@ for dind = 1:length(dirs)
     
     % Loop through images, superimpose crosses and save to RBG tiffs in
     % output path
+    imdirs = [];
+    channels = {'Green'; 'Yellow'};
+    for chind = 1:length(channels)
+        imdirs = [imdirs; dir([cPath filesep channels{chind} '*.tif'])];
+    end
     
-    imdirs = dir([cPath filesep 'Green*.tif']);
     a = cellfun(@(s)sscanf(s, 'Green_T%d_Z%d.tif'), {imdirs.name}, 'UniformOutput', false);
     a = [a{:}];
     zs = a(2,:)';
