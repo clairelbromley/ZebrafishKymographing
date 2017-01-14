@@ -2,8 +2,6 @@
 
 function generateZStackCutMovies(inputFolder, outputFolder)
 
-% single channel
-
 % get dirs from input folder
 dirs = dir([inputFolder filesep '*_E*']);
 
@@ -29,18 +27,25 @@ for dind = 1:length(dirs)
         imdirs = [imdirs; dir([cPath filesep channels{chind} '*.tif'])];
     end
     
-    a = cellfun(@(s)sscanf(s, 'Green_T%d_Z%d.tif'), {imdirs.name}, 'UniformOutput', false);
-    a = [a{:}];
-    zs = a(2,:)';
-    ts = a(1,:)';
+    for cind = 1:length(imdirs)
+        a = sscanf(imdirs(cind).name, 'Green_T%d_Z%d.tif');
+        if isempty(a)
+            a = sscanf(imdirs(cind).name, 'Yellow_T%d_Z%d.tif');
+        end
+        out{cind} = a;
+    end
+
+    out = [out{:}];
+    zs = out(2,:)';
+    ts = out(1,:)';
     centreZ = max(zs(:))/2 + 1;
      
     for ind = 1:length(imdirs)
         
         im = imread([cPath filesep imdirs(ind).name]);
-        A = sscanf(imdirs(ind).name, 'Green_T%d_Z%d.tif');
-        t = A(1);
-        z = A(2);
+
+        t = ts(ind);
+        z = zs(ind);
         
         if z == centreZ
             crossColor = 'g';
@@ -73,9 +78,9 @@ for dind = 1:length(dirs)
         sctxt = text(nudgex + scx(1) + (scx(2) - scx(1))/2, scy(1) + nudgey, scstr);
         set(sctxt, 'Color', 'w');
         set(sctxt, 'FontSize', 14);
-        
+
         out_file = [outputFolder filesep imdirs(ind).name];
-        print(out_file, '-dtiff', '-r300');
+        print(out_file, '-dtiff', '-r100');
         
     end
 end
