@@ -29,6 +29,7 @@ for dind = 1:length(dirs)
         imdirs = [imdirs; dir([cPath filesep channels{chind} '*.tif'])];
     end
     
+    out = {};
     for cind = 1:length(imdirs)
         a = sscanf(imdirs(cind).name, 'Green_T%d_Z%d.tif');
         if isempty(a)
