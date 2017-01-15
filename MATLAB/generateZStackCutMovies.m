@@ -12,6 +12,8 @@ scale_bar_length = 20;
 
 for dind = 1:length(dirs)
     
+    outputPath = [outputFolder filesep dirs(dind).name];
+    mkdir(outputPath);
     cPath = [inputFolder filesep dirs(dind).name];
     
     md = getMetadata(cPath, 0);
@@ -80,7 +82,7 @@ for dind = 1:length(dirs)
         set(sctxt, 'Color', 'w');
         set(sctxt, 'FontSize', 14);
 
-        out_file = [outputFolder filesep imdirs(ind).name];
+        out_file = [outputPath filesep imdirs(ind).name];
         print(out_file, '-dtiff', '-r300');
         
     end
