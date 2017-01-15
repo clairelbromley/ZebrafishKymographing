@@ -6,7 +6,7 @@ function generateZStackCutMovies(inputFolder, outputFolder)
 dirs = dir([inputFolder filesep '*_E*']);
 
 hfig = figure;
-set(hfig, 'Position', [148    65   792   674]);
+set(hfig, 'Position', [814    80   679   674]);
 crossSize = 11;
 scale_bar_length = 20;
 
@@ -19,7 +19,7 @@ for dind = 1:length(dirs)
             md.embryoNumber, md.cutNumber);
     set(hfig, 'Name', title_txt, 'NumberTitle','off');
     
-    % Loop through images, superimpose crosses and save to RBG tiffs in
+    % Loop through images, superimpose crosses and save to RBG images in
     % output path
     imdirs = [];
     channels = {'Green'; 'Yellow'};
@@ -63,6 +63,7 @@ for dind = 1:length(dirs)
         colormap gray;
 
         set(gca,'xtick',[], 'xticklabel',[], 'ytick', [],'yticklabel',[]);
+       
         h_cutline = line([md.cutMetadata.startPositionX md.cutMetadata.stopPositionX],...
             [md.cutMetadata.startPositionY md.cutMetadata.stopPositionY],....
             'MarkerEdgeColor', crossColor, 'LineWidth', (crossSize/5),...
@@ -80,7 +81,7 @@ for dind = 1:length(dirs)
         set(sctxt, 'FontSize', 14);
 
         out_file = [outputFolder filesep imdirs(ind).name];
-        print(out_file, '-dtiff', '-r100');
+        print(out_file, '-dtiff', '-r300');
         
     end
 end
