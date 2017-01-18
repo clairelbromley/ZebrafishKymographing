@@ -61,6 +61,9 @@ funcPath = [currdir filesep '..'];
 addpath(genpath(currdir));
 addpath(funcPath);
 
+handles.lowMemMask = [];
+handles.lastLowMemMask = [];
+
 handles.params.date = '230514';
 handles.params.embryoNumber = 1;
 handles.params.cutStartX = 1;
@@ -734,14 +737,21 @@ if (get(handles.chkExclusionMask, 'Value') == 1)
     
     % get freehand selection:
     M = imfreehand(gca, 'Closed', 1);
-    exclude_mask_temp = exclude_mask_temp                                                                             + M.createMask;
+    exclude_mask_temp = exclude_mask_temp + M.createMask;
+    
+    lowMemMaskTemp.mask = M;
+    lowMemMaskTemp.z = handles.params.currZPlane;
+    lowMemMaskTemp.t = handles.params.currTPlane;
+    
+    handles.lowMemMask = [handles.lowMemMask; lowMemMaskTemp];
 
     % put temp mask into right page of multipage mask
     handles.lastMask  = handles.currentMask;
     handles.currentMask(:, :, handles.params.currZPlane) = exclude_mask_temp;
 
     % apply mask to displayed image and re-display
-    im(logical(exclude_mask_temp)) = 0;
+%     im(logical(exclude_mask_temp)) = 0;
+    im = applyLowMemMaskToImage(im, handles);
     set(curr_im_obj, 'CData', im, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
 %     h = imagesc(im, 'Parent', handles.axImage,'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
     set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
@@ -751,7 +761,24 @@ end
 
 guidata(hObject, handles);
 
+function im = applyLowMemMaskToImage(im, handles)
 
+    % extract subset of masks that apply to the current Z, T frames
+    ts = [handles.lowMemMask.t];
+    zs = [handles.lowMemMask.z];
+    submasks = handles.lowMemMask((ts == handles.params.currTPlane) & ((zs == handles.params.currZPlane)));
+    
+    % loop through subset to generate a binary mask image
+    binMask = zeros(size(im));
+    for m = submasks.mask
+        
+        binMask = binMask + m.createMask;
+        
+    end
+    
+    % apply to image
+    im(logical(binMask)) = 0;
+    
 
 % --- If Enable == 'on', executes on mouse press in 5 pixel border.
 % --- Otherwise, executes on mouse press in 5 pixel border or over txtStartX.
@@ -1327,6 +1354,10 @@ if strcmp(button, 'Yes')
 
     handles.lastMask = handles.currentMask;
     handles.currentMask = zeros([size(handles.currentIm) handles.params.zPlanes]);
+    
+    handles.lastLowMemMask = handles.lowMemMask;
+    handles.lowMemMask = [];
+%     applyLowMemMaskToImage(handles.currentIm, handles);
 end
 
 guidata(hObject, handles);
