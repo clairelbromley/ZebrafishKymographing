@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 24-Nov-2016 17:16:21
+% Last Modified by GUIDE v2.5 19-Jan-2017 22:28:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1947,6 +1947,11 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+if strcmp(eventdata.Key, 'm')
+    % run code to determine geometrical midlines
+    determineGeometricalMidline(handles);
+end
+
 if strcmp(eventdata.Key, 'l')
    if strcmp(handles.currentDir, 'up')
        ax = handles.axUpSelectedKym;
@@ -2837,3 +2842,67 @@ handles.includedData = temp.handles.includedData;
 exportWizard_Callback(hObject, eventdata, handles);
 
 handles.includedData = currentIncDataStore;
+
+
+% --------------------------------------------------------------------
+function menuGeomMidline_Callback(hObject, eventdata, handles)
+% hObject    handle to menuGeomMidline (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+disp('pause');
+determineGeometricalMidline(handles);
+
+function determineGeometricalMidline(handles)
+
+uiwait(geometricalMidlineRotation(handles));
+geometricalMidlineBasalSurfaceDrawing(handles);
+
+function geometricalMidlineBasalSurfaceDrawing(handles)
+% function that takes rotated image, windows it according to (rotated) cut
+% axis and prompts the user to draw first one basal surface then tother. 
+
+handles = guidata(handles.figure1);
+handles.rotationI = imrotate(handles.rotationI, handles.rotationAngle);
+
+
+function hFig = geometricalMidlineRotation(handles)
+% function which generates a figure prompting for rotation of the image so
+% that anterior-posterior axis lies vertically. 
+    
+handles.rotationI = getimage(handles.axUpFirstFrame);
+
+% setup GUI 
+% hFig = figure('menu','none', 'WindowStyle', 'modal');
+handles.hFig = figure('menu','none', 'Units', 'normalized',...
+    'Position', [0.05 0.05 0.9 0.9]);
+hFig = handles.hFig;
+handles.hAx = axes('Parent',handles.hFig);
+uicontrol('Parent', handles.hFig, 'Style','slider', 'Value',0, 'Min',0,...
+    'Max',360, 'SliderStep',[1 5]./360, ...
+    'Units', 'normalized', ...
+    'Position',[0.3 0.01 0.4 0.05], 'Callback',@geoMidlineRotationSlider) 
+% handles.hTxt = uicontrol('Style','text', 'Position',[290 28 20 15], 'String','0');
+uicontrol('Style', 'pushbutton', 'Units', 'normalized',...
+    'Position', [0.8 0.01 0.1 0.05], 'String', 'Done rotating!', ...
+    'Callback', @geoMidlineRotationButton);
+imagesc(handles.rotationI, 'Parent', handles.hAx);
+set(handles.hAx, 'XTick', [], 'YTick', []);
+axis equal tight; 
+colormap gray; 
+guidata(gcf, handles);  
+
+function geoMidlineRotationButton(hObject, eventdata, handles)
+
+handles = guidata(hObject); 
+guidata(handles.figure1, handles);
+close(handles.hFig);
+
+function geoMidlineRotationSlider(hObject, eventdata, handles)
+
+handles = guidata(hObject);
+handles.rotationAngle = round(get(hObject, 'Value'));
+imagesc(imrotate(handles.rotationI, handles.rotationAngle, 'crop'), 'Parent', handles.hAx);
+set(handles.hAx, 'XTick', [], 'YTick', []);
+axis equal tight; 
+colormap gray; 
+guidata(gcf, handles);
