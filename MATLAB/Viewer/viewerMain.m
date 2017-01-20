@@ -403,6 +403,8 @@ try
             %% cut line...
             cut_line_x = get(dataObjs(end-1), 'XData');
             cut_line_y = get(dataObjs(end-1), 'YData');
+            handles.cut_line_x = cut_line_x;
+            handles.cut_line_y = cut_line_y;
             line(cut_line_x, cut_line_y, 'Parent', axHandles(ind), 'Color', 'b', ...
                 'LineWidth', 2);
 
@@ -2862,17 +2864,40 @@ function hFig = geometricalMidlineBasalSurfaceDrawing(handles)
 % axis and prompts the user to draw first one basal surface then tother. 
 
 handles = guidata(handles.figure1);
-handles.rotationI = imrotate(handles.rotationI, handles.rotationAngle);
+% rotate image, cut line and patch showing where 'up' kymographs lie...
+theta = -degtorad(handles.rotationAngle);
+rotMat = [cos(theta) -sin(theta);...
+    sin(theta) cos(theta)];
+
+% do verbose to check everything is working properly....
+a = [handles.cut_line_x(1); handles.cut_line_y(1)] - size(handles.rotationI)'/2;
+b = rotMat * a;
+c = size(handles.rotationI)'/2 + b;
+a2 = [handles.cut_line_x(2); handles.cut_line_y(2)] - size(handles.rotationI)'/2;
+b2 = rotMat * a2;
+c2 = size(handles.rotationI)'/2 + b2;
+
+rot_cut_x = [c(1) c2(1)];
+rot_cut_y = [c(2) c2(2)];
+
+handles.rotationI = imrotate(handles.rotationI, handles.rotationAngle, 'crop');
 
 handles.basalDrawingFig = figure('menu','none', 'Units', 'normalized',...
     'Position', [0.05 0.05 0.9 0.9], ...
-    'Name', 'Draw the first basal membrane...');
+    'Name', 'Draw the first basal membrane...', ...
+    'NumberTitle', 'off');
     hFig = handles.basalDrawingFig;
 handles.hAx = axes('Parent',handles.hFig);
 imagesc(handles.rotationI, 'Parent', handles.hAx);
 set(handles.hAx, 'XTick', [], 'YTick', []);
 axis equal tight; 
 colormap gray; 
+h_cutline = line(rot_cut_x, rot_cut_y, 'Parent', handles.hAx, ...
+    'MarkerEdgeColor', 'g', 'LineWidth', 2, 'LineStyle', 'none', ...
+    'MarkerSize', 10, 'Marker', '+');
+set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
+    'YLim', [min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y)) ...
+    max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y))]);
 guidata(gcf, handles);  
 M1 = imfreehand('Closed', false);
 P01 = M1.getPosition;
@@ -2907,6 +2932,19 @@ hl2 = line(xf2, yf2, 'Color', 'r', 'LineWidth', 1.5);
 % yy2 = linspace(yf2(1), yf2(2), 100);
 hgml = line( (xf1 + xf2)/2, (yf1 + yf2)/2, 'Color', 'g', 'LineWidth', 3);
 
+% Prompt user to classify which side is longer
+answer = questdlg('Cells on "up" side are...?', ...
+    'Classify results...', ...
+    'Longer', 'Shorter', 'Neither', ...
+    'Neither');
+
+% Fill in inclusion data accordingly
+
+% close all
+if ~isempty(answer)
+    close(handles.basalDrawingFig);
+end
+
 
 
 
@@ -2917,17 +2955,16 @@ function hFig = geometricalMidlineRotation(handles)
 handles.rotationI = getimage(handles.axUpFirstFrame);
 
 % setup GUI 
-% hFig = figure('menu','none', 'WindowStyle', 'modal');
 handles.hFig = figure('menu','none', 'Units', 'normalized',...
     'Position', [0.05 0.05 0.9 0.9], ...
-    'Name', 'Rotate until the anterior-posterior axis is vertical...');
+    'Name', 'Rotate until the anterior-posterior axis is vertical...', ...
+    'NumberTitle', 'off');
 hFig = handles.hFig;
 handles.hAx = axes('Parent',handles.hFig);
 uicontrol('Parent', handles.hFig, 'Style','slider', 'Value',0, 'Min',0,...
     'Max',360, 'SliderStep',[1 5]./360, ...
     'Units', 'normalized', ...
     'Position',[0.3 0.01 0.4 0.05], 'Callback',@geoMidlineRotationSlider) 
-% handles.hTxt = uicontrol('Style','text', 'Position',[290 28 20 15], 'String','0');
 uicontrol('Style', 'pushbutton', 'Units', 'normalized',...
     'Position', [0.8 0.01 0.1 0.05], 'String', 'Done rotating!', ...
     'Callback', @geoMidlineRotationButton);
