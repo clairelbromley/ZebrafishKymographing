@@ -2926,19 +2926,47 @@ else
 end
 hl2 = line(xf2, yf2, 'Color', 'r', 'LineWidth', 1.5); 
 
-% xx1 = linspace(xf1(1), xf1(2), 100);
-% yy1 = linspace(yf1(1), yf1(2), 100);
-% xx2 = linspace(xf2(1), xf2(2), 100);
-% yy2 = linspace(yf2(1), yf2(2), 100);
 hgml = line( (xf1 + xf2)/2, (yf1 + yf2)/2, 'Color', 'g', 'LineWidth', 3);
 
+% show full image
+set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
+    'YLim', [1 size(handles.rotationI, 1)]);
+
+% overlay patch that designated "up" direction
+% "up" lines are held in first row of kymLines structure
+set(handles.basalDrawingFig,...
+    'Name', ...
+    sprintf('Figure showing fitted geometrical midline and patch showing "up" direction: %s_E%sC%s',...
+    handles.date, handles.embryoNumber, handles.cutNumber));
+kymLines = [get(handles.kymLines(1,1)); get(handles.kymLines(1,end))];
+X = [kymLines(1).XData fliplr(kymLines(2).XData)];
+Y = [kymLines(1).YData fliplr(kymLines(2).YData)];
+
+hp = patch(X, Y, 'r', 'EdgeColor', 'r', 'FaceAlpha', 0.05);
+origin = [size(handles.rotationI)/2 0];
+direction = [0 0 1];
+rotate(hp, direction, -handles.rotationAngle, origin);
+
 % Prompt user to classify which side is longer
-answer = questdlg('Cells on "up" side are...?', ...
+answer = questdlg(sprintf('Cells on "up" side are...? \n\n Close this window to discard'), ...
     'Classify results...', ...
     'Longer', 'Shorter', 'Neither', ...
     'Neither');
 
-% Fill in inclusion data accordingly
+if ~isempty(answer)
+    % Save tiff of image
+    [fname, pname] = uiputfile('*.png', ...
+        'Choose location to save classification image...', ...
+        [handles.baseFolder filesep strrep(datestr(now), ':', '') ' geometrical midline classification ' ...
+        sprintf('%s_E%sC%s', handles.date, handles.embryoNumber, handles.cutNumber) '.png']);
+
+    if (fname ~= 0) 
+        print(handles.basalDrawingFig, [pname fname], '-dpng', '-r300');
+    end
+
+    % Fill in inclusion data accordingly
+    
+end
 
 % close all
 if ~isempty(answer)
