@@ -2857,12 +2857,57 @@ function determineGeometricalMidline(handles)
 uiwait(geometricalMidlineRotation(handles));
 geometricalMidlineBasalSurfaceDrawing(handles);
 
-function geometricalMidlineBasalSurfaceDrawing(handles)
+function hFig = geometricalMidlineBasalSurfaceDrawing(handles)
 % function that takes rotated image, windows it according to (rotated) cut
 % axis and prompts the user to draw first one basal surface then tother. 
 
 handles = guidata(handles.figure1);
 handles.rotationI = imrotate(handles.rotationI, handles.rotationAngle);
+
+handles.basalDrawingFig = figure('menu','none', 'Units', 'normalized',...
+    'Position', [0.05 0.05 0.9 0.9], ...
+    'Name', 'Draw the first basal membrane...');
+    hFig = handles.basalDrawingFig;
+handles.hAx = axes('Parent',handles.hFig);
+imagesc(handles.rotationI, 'Parent', handles.hAx);
+set(handles.hAx, 'XTick', [], 'YTick', []);
+axis equal tight; 
+colormap gray; 
+guidata(gcf, handles);  
+M1 = imfreehand('Closed', false);
+P01 = M1.getPosition;
+l1 = fit(P01(:,1), P01(:,2), 'poly1');
+% use variable with longest extent as independent...
+if (max(P01(:,1)) - min(P01(:,1))) > (max(P01(:,2)) - min(P01(:,2)))
+    xf1 = [min(P01(:,1)) max(P01(:,1))];
+yf1 = l1.p1.*xf1 + l1.p2;
+else
+    yf1 = [min(P01(:,2)) max(P01(:,2))];
+    xf1 = (yf1 - l1.p2)./l1.p1;
+end
+hl1 = line(xf1, yf1, 'Color', 'r', 'LineWidth', 1.5);
+
+set(handles.basalDrawingFig, 'Name', 'Draw the second basal membrane...');
+M2 = imfreehand('Closed', false);
+P02 = M2.getPosition;
+l2 = fit(P02(:,1), P02(:,2), 'poly1');
+% use variable with longest extent as independent...
+if (max(P02(:,1)) - min(P02(:,1))) > (max(P02(:,2)) - min(P02(:,2)))
+    xf2 = [min(P02(:,1)) max(P02(:,1))];
+    yf2 = l2.p1.*xf2 + l2.p2;
+else
+    yf2 = [min(P02(:,2)) max(P02(:,2))];
+    xf2 = (yf2 - l2.p2)./l2.p1;
+end
+hl2 = line(xf2, yf2, 'Color', 'r', 'LineWidth', 1.5); 
+
+% xx1 = linspace(xf1(1), xf1(2), 100);
+% yy1 = linspace(yf1(1), yf1(2), 100);
+% xx2 = linspace(xf2(1), xf2(2), 100);
+% yy2 = linspace(yf2(1), yf2(2), 100);
+hgml = line( (xf1 + xf2)/2, (yf1 + yf2)/2, 'Color', 'g', 'LineWidth', 3);
+
+
 
 
 function hFig = geometricalMidlineRotation(handles)
@@ -2874,7 +2919,8 @@ handles.rotationI = getimage(handles.axUpFirstFrame);
 % setup GUI 
 % hFig = figure('menu','none', 'WindowStyle', 'modal');
 handles.hFig = figure('menu','none', 'Units', 'normalized',...
-    'Position', [0.05 0.05 0.9 0.9]);
+    'Position', [0.05 0.05 0.9 0.9], ...
+    'Name', 'Rotate until the anterior-posterior axis is vertical...');
 hFig = handles.hFig;
 handles.hAx = axes('Parent',handles.hFig);
 uicontrol('Parent', handles.hFig, 'Style','slider', 'Value',0, 'Min',0,...
