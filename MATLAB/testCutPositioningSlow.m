@@ -75,7 +75,7 @@ function kym_positioning = testCutPositioningSlow(stack, md, uO)
             set(h, 'Position', [0 0 1 1]);
 
             out_file = [uO.outputFolder filesep 'temp'];
-            print(out_file, '-dpng', '-r300');
+            print(uO.figHandle, out_file, '-dpng', '-r300');
 
             overlaystackpage = imread([out_file '.png']);
             overlaystackpage = squeeze(overlaystackpage(:,:,1));
