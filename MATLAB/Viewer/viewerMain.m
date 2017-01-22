@@ -95,6 +95,7 @@ set(handles.menuExpFit,'Enable','off');
 handles.kymAxisThickness = 1;
 
 handles.includedData = [];
+handles.currentLongerSide = [];
 
 handles.laserIcon = imread('laser-icon-12.png');
 
@@ -1740,6 +1741,22 @@ if sum(indices) == 0
         incData.thisSideDamaged = 'no';
     end
     
+    if isfield(handles, 'currentLongerSide')
+        if ~isempty(handles.currentLongerSide)
+            if strcmp(handles.currentLongerSide, direction)
+                incData.thisSideLonger = 'yes';
+            elseif strcmp(handles.currentLongerSide, 'neither')
+                incData.thisSideLonger = 'equal';
+            else
+                incData.thisSideLonger = 'no';
+            end
+        else
+            incData.thisSideLonger = '';
+        end
+    else
+        incData.thisSideLonger = '';
+    end
+    
     % deal with case in which loaded QC data doesn't have all the fields
     % that are present in the inclusion data that viewer is now trying to
     % add...
@@ -1774,7 +1791,8 @@ else
     else
         handles.includedData(indices).thisSideDamaged = 'no';
     end
-        
+
+    
     
 end
 
@@ -2851,13 +2869,19 @@ function menuGeomMidline_Callback(hObject, eventdata, handles)
 % hObject    handle to menuGeomMidline (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-disp('pause');
 determineGeometricalMidline(handles);
 
 function determineGeometricalMidline(handles)
 
-uiwait(geometricalMidlineRotation(handles));
-geometricalMidlineBasalSurfaceDrawing(handles);
+% check whether inclusion data exists for this data
+position = handles.positionsAlongLine(1);
+indices = checkIfStored(handles, 'up', position);
+if sum(indices > 0)
+    uiwait(geometricalMidlineRotation(handles));
+    geometricalMidlineBasalSurfaceDrawing(handles);
+else
+    msgbox('No inclusion data present for this cut!');
+end
 
 function hFig = geometricalMidlineBasalSurfaceDrawing(handles)
 % function that takes rotated image, windows it according to (rotated) cut
@@ -2944,8 +2968,8 @@ Y = [kymLines(1).YData fliplr(kymLines(2).YData)];
 
 hp = patch(X, Y, 'r', 'EdgeColor', 'r', 'FaceAlpha', 0.05);
 origin = [size(handles.rotationI)/2 0];
-direction = [0 0 1];
-rotate(hp, direction, -handles.rotationAngle, origin);
+ax = [0 0 1];
+rotate(hp, ax, -handles.rotationAngle, origin);
 
 % Prompt user to classify which side is longer
 answer = questdlg(sprintf('Cells on "up" side are...? \n\n Close this window to discard'), ...
@@ -2954,6 +2978,7 @@ answer = questdlg(sprintf('Cells on "up" side are...? \n\n Close this window to 
     'Neither');
 
 if ~isempty(answer)
+    
     % Save tiff of image
     [fname, pname] = uiputfile('*.png', ...
         'Choose location to save classification image...', ...
@@ -2965,13 +2990,51 @@ if ~isempty(answer)
     end
 
     % Fill in inclusion data accordingly
+    filt = strcmp({handles.includedData.date}, handles.date) & ...
+        strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) &...
+        ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ...
+        strcmp({handles.includedData.direction}, 'up');
+    filt2 = strcmp({handles.includedData.date}, handles.date) & ...
+        strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) &...
+        ([handles.includedData.cutNumber] == str2double(handles.cutNumber)) & ...
+        strcmp({handles.includedData.direction}, 'down');
+    switch answer
+        case 'Longer'
+            handles.currentLongerSide = 'up';
+            for ind = find(filt)
+                handles.includedData(ind).thisSideLonger = 'yes';
+            end
+            for ind = find(filt2)
+                handles.includedData(ind).thisSideLonger = 'no';
+            end
+        case 'Shorter'
+            handles.currentLongerSide = 'down';
+            for ind = find(filt)
+                handles.includedData(ind).thisSideLonger = 'no';
+            end
+            for ind = find(filt2)
+                handles.includedData(ind).thisSideLonger = 'yes';
+            end
+        case 'Neither'
+            handles.currentLongerSide = 'neither';
+            for ind = find(filt)
+                handles.includedData(ind).thisSideLonger = 'equal';
+            end
+            for ind = find(filt2)
+                handles.includedData(ind).thisSideLonger = 'equal';
+            end
+        otherwise
+            handles.currentLongerSide = [];
+    end   
     
 end
 
 % close all
-if ~isempty(answer)
+% if ~isempty(answer)
     close(handles.basalDrawingFig);
-end
+    
+    guidata(gcf, handles);  
+% end
 
 
 
