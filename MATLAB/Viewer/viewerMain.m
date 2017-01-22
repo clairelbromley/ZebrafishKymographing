@@ -3055,7 +3055,7 @@ handles.hAx = axes('Parent',handles.hFig);
 handles.hSlider = uicontrol('Parent', handles.hFig, 'Style','slider', 'Value',0, 'Min',0,...
     'Max',360, 'SliderStep',[1 5]./360, ...
     'Units', 'normalized', ...
-    'Position',[0.3 0.01 0.4 0.05], 'Callback',@geoMidlineRotationSlider) 
+    'Position',[0.3 0.01 0.4 0.05], 'Callback',@geoMidlineRotationSlider);
 uicontrol('Style', 'pushbutton', 'Units', 'normalized',...
     'Position', [0.8 0.01 0.1 0.05], 'String', 'Done rotating!', ...
     'Callback', @geoMidlineRotationButton);
@@ -3124,8 +3124,50 @@ indices = checkIfStored(handles, 'up', position);
 if sum(indices > 0)
     uiwait(geometricalMidlineRotation(handles));
     geometricalMidlineBasalSurfaceDrawing(handles);
-    actualMidlineDrawing(handles);
-    compareMidlineCalculationAndExport(handles);
+    uiwait(actualMidlineDrawing(handles));
+%     compareMidlineCalculationAndExport(handles);
 else
     msgbox('No inclusion data present for this cut!');
 end
+
+
+function hFig = actualMidlineDrawing(handles)
+
+% hide all aspects of the figure apart from the image data
+handles = guidata(handles.figure1);
+kids = get(handles.hAx, 'Children');
+types = get(kids, 'Type');
+set(kids(~strcmp(types, 'image')), 'Visible', 'off');
+
+% window the axes so that only the relevant part of the embryo is shown
+cutLine = get(kids(end-1));
+xs = round(cutLine.XData);
+ys = round(cutLine.YData);
+set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
+    'YLim', [(min(ys) - 0.1 * (max(ys) - min(ys))) ...
+    (max(ys) +  0.1 * (max(ys) - min(ys)))]);
+
+% draw the actual midline
+set(handles.basalDrawingFig, 'Name', 'Draw actual midline...');
+M = imfreehand('Closed', false);
+
+% interpolate along the drawn midline and the previously determined
+% geometrical midline, taking 100 points to assess mean and sd in offset
+% between the two
+P = M.getPosition;
+
+% first, trim any overhang on the line that extends furtherst up...
+
+% then trim the any overhang from the line that extends furthest down...
+
+% then interpolate the drawn line to give 100 points between the new limits
+
+% then use the equation for the fitted geometrical midline to find xs at
+% equivalent ys
+
+% then calculate differences, mean and sd
+
+% (consider where to break for a different function...?)
+% export these data. 
+
+disp('pause');
