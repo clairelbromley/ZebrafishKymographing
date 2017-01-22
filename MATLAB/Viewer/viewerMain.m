@@ -22,7 +22,7 @@ function varargout = viewerMain(varargin)
 
 % Edit the above text to modify the response to help viewerMain
 
-% Last Modified by GUIDE v2.5 19-Jan-2017 22:28:15
+% Last Modified by GUIDE v2.5 22-Jan-2017 18:06:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -2966,12 +2966,12 @@ origin = [size(handles.rotationI)/2 0];
 ax = [0 0 1];
 rotate(hp, ax, -handles.rotationAngle, origin);
 
-guidata(gcf, handles);
+guidata(handles.figure1, handles);
 
 
 function geometricalMidlineClassificationAndExport(handles)
 
-handles = guidata(handles.basalDrawingFig);
+handles = guidata(handles.figure1);
 % Prompt user to classify which side is longer
 answer = questdlg(sprintf('Cells on "up" side are...? \n\n Close this window to discard'), ...
     'Classify results...', ...
@@ -3047,13 +3047,16 @@ handles.hFig = figure('menu','none', 'Units', 'normalized',...
     'NumberTitle', 'off');
 hFig = handles.hFig;
 handles.hAx = axes('Parent',handles.hFig);
-uicontrol('Parent', handles.hFig, 'Style','slider', 'Value',0, 'Min',0,...
+handles.hSlider = uicontrol('Parent', handles.hFig, 'Style','slider', 'Value',0, 'Min',0,...
     'Max',360, 'SliderStep',[1 5]./360, ...
     'Units', 'normalized', ...
     'Position',[0.3 0.01 0.4 0.05], 'Callback',@geoMidlineRotationSlider) 
 uicontrol('Style', 'pushbutton', 'Units', 'normalized',...
     'Position', [0.8 0.01 0.1 0.05], 'String', 'Done rotating!', ...
     'Callback', @geoMidlineRotationButton);
+handles.hEdit = uicontrol('Style', 'Edit', 'Units', 'normalized', ... 
+    'Position', [0.7 0.01 0.1 0.05], 'String', '0', ...
+    'Callback', @geoMidlineRotationText);
 imagesc(handles.rotationI, 'Parent', handles.hAx);
 set(handles.hAx, 'XTick', [], 'YTick', []);
 axis equal tight; 
@@ -3066,12 +3069,43 @@ handles = guidata(hObject);
 guidata(handles.figure1, handles);
 close(handles.hFig);
 
+function geoMidlineRotationText(hObject, eventdata, handles)
+
+handles = guidata(hObject);
+try
+    % bring angle into range [0, 360]
+    th = round(str2double(get(hObject, 'String')));
+    th = rem(th, 360);
+    if th < 0
+        th = 360 + th;
+    end
+    set(hObject, 'String', num2str(th));
+    handles.rotationAngle = th;
+    set(handles.hSlider, 'Value', handles.rotationAngle);
+    imagesc(imrotate(handles.rotationI, handles.rotationAngle, 'crop'), 'Parent', handles.hAx);
+    set(handles.hAx, 'XTick', [], 'YTick', []);
+    axis equal tight; 
+    colormap gray;
+catch
+    set(hObject, 'String', num2str(handles.rotationAngle));
+end
+guidata(gcf, handles);
+    
+
 function geoMidlineRotationSlider(hObject, eventdata, handles)
 
 handles = guidata(hObject);
 handles.rotationAngle = round(get(hObject, 'Value'));
+set(handles.hEdit, 'String', num2str(handles.rotationAngle));
 imagesc(imrotate(handles.rotationI, handles.rotationAngle, 'crop'), 'Parent', handles.hAx);
 set(handles.hAx, 'XTick', [], 'YTick', []);
 axis equal tight; 
 colormap gray; 
 guidata(gcf, handles);
+
+
+% --------------------------------------------------------------------
+function menuCompareMidlines_Callback(hObject, eventdata, handles)
+% hObject    handle to menuCompareMidlines (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
