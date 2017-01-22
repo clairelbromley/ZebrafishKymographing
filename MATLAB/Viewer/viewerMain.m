@@ -2923,31 +2923,33 @@ set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
     'YLim', [min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y)) ...
     max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y))]);
 guidata(gcf, handles);  
+
+% to achieve correct fits, need to fit data such that y is independent var
 M1 = imfreehand('Closed', false);
 P01 = M1.getPosition;
-l1 = fit(P01(:,1), P01(:,2), 'poly1');
-% use variable with longest extent as independent...
-if (max(P01(:,1)) - min(P01(:,1))) > (max(P01(:,2)) - min(P01(:,2)))
-    xf1 = [min(P01(:,1)) max(P01(:,1))];
-yf1 = l1.p1.*xf1 + l1.p2;
-else
+l1 = fit(P01(:,2), P01(:,1), 'poly1');
+% for plotting, use variable with longest extent as independent...
+% if (max(P01(:,1)) - min(P01(:,1))) > (max(P01(:,2)) - min(P01(:,2)))
+%     xf1 = [min(P01(:,1)) max(P01(:,1))];
+%     yf1 = (xf1 - l1.p2)./l1.p1;
+% else
     yf1 = [min(P01(:,2)) max(P01(:,2))];
-    xf1 = (yf1 - l1.p2)./l1.p1;
-end
+    xf1 = l1.p1.*yf1 + l1.p2;
+% end
 hl1 = line(xf1, yf1, 'Color', 'r', 'LineWidth', 1.5);
 
 set(handles.basalDrawingFig, 'Name', 'Draw the second basal membrane...');
 M2 = imfreehand('Closed', false);
 P02 = M2.getPosition;
-l2 = fit(P02(:,1), P02(:,2), 'poly1');
-% use variable with longest extent as independent...
-if (max(P02(:,1)) - min(P02(:,1))) > (max(P02(:,2)) - min(P02(:,2)))
-    xf2 = [min(P02(:,1)) max(P02(:,1))];
-    yf2 = l2.p1.*xf2 + l2.p2;
-else
+l2 = fit(P02(:,2), P02(:,1), 'poly1');
+% % use variable with longest extent as independent...
+% if (max(P02(:,1)) - min(P02(:,1))) > (max(P02(:,2)) - min(P02(:,2)))
+%     xf2 = [min(P02(:,1)) max(P02(:,1))];
+%     yf2 = (xf2 - l2.p2)./l2.p1;
+% else
     yf2 = [min(P02(:,2)) max(P02(:,2))];
-    xf2 = (yf2 - l2.p2)./l2.p1;
-end
+    xf2 = l2.p1.*yf2 + l2.p2;
+% end
 hl2 = line(xf2, yf2, 'Color', 'r', 'LineWidth', 1.5); 
 
 hgml = line( (xf1 + xf2)/2, (yf1 + yf2)/2, 'Color', 'g', 'LineWidth', 3);
