@@ -1056,11 +1056,11 @@ goodData(strcmp(goodData(:,strcmp(headerLine, 'userQCLabel')), 'Manual'),...
     goodData(strcmp(goodData(:,strcmp(headerLine, 'userQCLabel')), 'Manual'),... 
     strcmp(headerLine, 'manualSpeed'));
 
-[pa, fn, ext] = fileparts(outputName);
-goodOutputName = [pa filesep fn '_user QCd' ext];
-% did Doug still want linees 876-878 to be included - as these did not
-% appear to be on the pasted function
-parseForXLExport(handles, headerLine, goodData, goodOutputName, includeStats);    % 'Good' kym only output
+if ~isempty(goodData)
+    [pa, fn, ext] = fileparts(outputName);
+    goodOutputName = [pa filesep fn '_user QCd' ext];
+    parseForXLExport(handles, headerLine, goodData, goodOutputName, includeStats);    % 'Good' kym only output
+end
    
 busyDlg(busyOutput);
 set(handles.listData, 'Enable', 'on');
