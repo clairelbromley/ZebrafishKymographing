@@ -1967,6 +1967,11 @@ function figure1_WindowKeyPressFcn(hObject, eventdata, handles)
 % disp(eventdata.Character);
 % disp(eventdata.Modifier);
 
+if strcmp(eventdata.Key, 'c')
+    % run code to compare geometrical and actual midlines
+    compareMidlines(handles);
+end
+
 if strcmp(eventdata.Key, 'm')
     % run code to determine geometrical midlines
     determineGeometricalMidline(handles);
@@ -3109,3 +3114,18 @@ function menuCompareMidlines_Callback(hObject, eventdata, handles)
 % hObject    handle to menuCompareMidlines (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+compareMidlines(handles);
+
+
+function compareMidlines(handles)
+% check whether inclusion data exists for this data
+position = handles.positionsAlongLine(1);
+indices = checkIfStored(handles, 'up', position);
+if sum(indices > 0)
+    uiwait(geometricalMidlineRotation(handles));
+    geometricalMidlineBasalSurfaceDrawing(handles);
+    actualMidlineDrawing(handles);
+    compareMidlineCalculationAndExport(handles);
+else
+    msgbox('No inclusion data present for this cut!');
+end
