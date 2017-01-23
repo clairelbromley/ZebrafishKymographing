@@ -96,6 +96,8 @@ handles.kymAxisThickness = 1;
 
 handles.includedData = [];
 handles.currentLongerSide = [];
+handles.meanDifferenceGeometricalActualMidline = [];
+handles.sdDifferenceGeometricalActualMidline = [];
 
 handles.laserIcon = imread('laser-icon-12.png');
 
@@ -1741,6 +1743,20 @@ if sum(indices) == 0
         incData.thisSideDamaged = 'no';
     end
     
+    if ~isempty(handles.meanDifferenceGeometricalActualMidline)
+        incData.meanDifferenceGeometricalActualMidline = ...
+            handles.meanDifferenceGeometricalActualMidline;
+    else
+        handles.meanDifferenceGeometricalActualMidline = '';
+    end
+    
+    if ~isempty(handles.sdDifferenceGeometricalActualMidline)
+        incData.sdDifferenceGeometricalActualMidline = ...
+            handles.sdDifferenceGeometricalActualMidline;
+    else
+        handles.sdDifferenceGeometricalActualMidline = '';
+    end
+    
     if isfield(handles, 'currentLongerSide')
         if ~isempty(handles.currentLongerSide)
             if strcmp(handles.currentLongerSide, direction)
@@ -2950,7 +2966,7 @@ l2 = fit(P02(:,2), P02(:,1), 'poly1');
 
 hl2 = line(xf2, yf2, 'Color', 'r', 'LineWidth', 1.5); 
 
-hgml = line( (xf1 + xf2)/2, (yf1 + yf2)/2, 'Color', 'g', 'LineWidth', 3);
+hgml = line( (xf1 + xf2)/2, (yf1 + yf2)/2, 'Color', 'g', 'LineWidth', 1.5);
 
 % show full image
 set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
@@ -3066,6 +3082,7 @@ imagesc(handles.rotationI, 'Parent', handles.hAx);
 set(handles.hAx, 'XTick', [], 'YTick', []);
 axis equal tight; 
 colormap gray; 
+handles.rotationAngle = 0;
 guidata(gcf, handles);  
 
 function geoMidlineRotationButton(hObject, eventdata, handles)
@@ -3124,8 +3141,7 @@ indices = checkIfStored(handles, 'up', position);
 if sum(indices > 0)
     uiwait(geometricalMidlineRotation(handles));
     geometricalMidlineBasalSurfaceDrawing(handles);
-    uiwait(actualMidlineDrawing(handles));
-%     compareMidlineCalculationAndExport(handles);
+    actualMidlineDrawing(handles);
 else
     msgbox('No inclusion data present for this cut!');
 end
@@ -3133,6 +3149,7 @@ end
 
 function hFig = actualMidlineDrawing(handles)
 
+hFig = handles.basalDrawingFig;
 % hide all aspects of the figure apart from the image data
 handles = guidata(handles.figure1);
 kids = get(handles.hAx, 'Children');
@@ -3154,20 +3171,64 @@ M = imfreehand('Closed', false);
 % interpolate along the drawn midline and the previously determined
 % geometrical midline, taking 100 points to assess mean and sd in offset
 % between the two
-P = M.getPosition;
+realMidline = M.getPosition;
+realMidlineX = realMidline(:,1);
+realMidlineY = realMidline(:,2);
+geoMidlineX = get(kids(2), 'XData');
+geoMidlineY = get(kids(2), 'YData');
+m = (geoMidlineY(1) - geoMidlineY(2))/(geoMidlineX(1) - geoMidlineX(2));
+c = geoMidlineY(1) - m * geoMidlineX(1);
 
 % first, trim any overhang on the line that extends furtherst up...
+if max(realMidlineY) > max(geoMidlineY)
+    realMidlineX(realMidlineY > max(geoMidlineY)) = [];
+    realMidlineY(realMidlineY > max(geoMidlineY)) = [];
+else
+    geoMidlineX(geoMidlineY == max(geoMidlineY)) = (max(realMidlineY) - c) / m;
+    geoMidlineY(geoMidlineY == max(geoMidlineY)) = max(realMidlineY);
+end 
 
 % then trim the any overhang from the line that extends furthest down...
+if min(realMidlineY) < min(geoMidlineY)
+    realMidlineX(realMidlineY < min(geoMidlineY)) = [];
+    realMidlineY(realMidlineY < min(geoMidlineY)) = [];
+else
+    geoMidlineX(geoMidlineY == min(geoMidlineY)) = (min(realMidlineY) - c) / m;
+    geoMidlineY(geoMidlineY == min(geoMidlineY)) = min(realMidlineY);
+end
 
 % then interpolate the drawn line to give 100 points between the new limits
-
-% then use the equation for the fitted geometrical midline to find xs at
-% equivalent ys
+geoMidlineY = linspace(min(geoMidlineY), max(geoMidlineY), 100);
+geoMidlineX = (geoMidlineY - c) ./ m;
+[~,ia,~] = unique(realMidlineY);
+realMidlineY = realMidlineY(ia);
+realMidlineX = realMidlineX(ia);
+realMidlineX = spline(realMidlineY, realMidlineX, geoMidlineY);
+realMidlineY = geoMidlineY;
 
 % then calculate differences, mean and sd
+handles.meanDifferenceGeometricalActualMidline = mean(realMidlineX - geoMidlineX) * handles.umPerPixel;
+handles.sdDifferenceGeometricalActualMidline = std(realMidlineX - geoMidlineX) * handles.umPerPixel;
 
-% (consider where to break for a different function...?)
-% export these data. 
+% Fill in inclusion data accordingly
+filt = strcmp({handles.includedData.date}, handles.date) & ...
+    strcmp({handles.includedData.embryoNumber}, handles.embryoNumber) &...
+    ([handles.includedData.cutNumber] == str2double(handles.cutNumber));
 
-disp('pause');
+for ind = find(filt)
+    handles.includedData(ind).meanDifferenceGeometricalActualMidline = ...
+        handles.meanDifferenceGeometricalActualMidline;
+    handles.includedData(ind).sdDifferenceGeometricalActualMidline = ...
+        handles.sdDifferenceGeometricalActualMidline;
+end
+
+guidata(handles.figure1, handles);
+% close(hFig);
+
+% sanity check - show real and geometrical midline overlaid on same image
+set(handles.basalDrawingFig, 'Name', 'User-defined "real" midline in red, geometrical midline in green');
+set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
+    'YLim', [1 size(handles.rotationI, 1)]);
+set(kids(2), 'Visible', 'on');
+line(realMidlineX', realMidlineY', 'Color', 'r', 'LineWidth', 1.5);
+delete(M);
