@@ -3147,9 +3147,8 @@ else
 end
 
 
-function hFig = actualMidlineDrawing(handles)
+function actualMidlineDrawing(handles)
 
-hFig = handles.basalDrawingFig;
 % hide all aspects of the figure apart from the image data
 handles = guidata(handles.figure1);
 kids = get(handles.hAx, 'Children');
