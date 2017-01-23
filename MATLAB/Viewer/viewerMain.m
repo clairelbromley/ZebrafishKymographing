@@ -3202,7 +3202,7 @@ geoMidlineX = (geoMidlineY - c) ./ m;
 [~,ia,~] = unique(realMidlineY);
 realMidlineY = realMidlineY(ia);
 realMidlineX = realMidlineX(ia);
-realMidlineX = spline(realMidlineY, realMidlineX, geoMidlineY);
+realMidlineX = pchip(realMidlineY, realMidlineX, geoMidlineY);
 realMidlineY = geoMidlineY;
 
 % then calculate differences, mean and sd
