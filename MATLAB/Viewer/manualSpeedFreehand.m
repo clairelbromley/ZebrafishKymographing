@@ -53,7 +53,7 @@ P0(out,:) = [];
 % combine these three lines?
 [~,ia,ic] = unique(round(P0(:,1)));
 P1 = round([P0(ia,1) P0(ia,2)]);
-Y = round(spline(P1(:,1), P1(:,2), (min(P1(:,1)):max(P1(:,1)))));
+Y = round(pchip(P1(:,1), P1(:,2), (min(P1(:,1)):max(P1(:,1)))));
 X = min(P1(:,1)):max(P1(:,1));
 % P = unique(round(P0), 'rows');
 % [~,ia,~] = unique(P, 'rows');
