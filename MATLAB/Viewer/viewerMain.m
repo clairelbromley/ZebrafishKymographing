@@ -2942,13 +2942,23 @@ h_cutline = line(rot_cut_x, rot_cut_y, 'Parent', handles.hAx, ...
     'MarkerEdgeColor', 'g', 'LineWidth', 2, 'LineStyle', 'none', ...
     'MarkerSize', 10, 'Marker', '+');
 set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
-    'YLim', [min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y)) ...
-    max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y))]);
+    'YLim', [min(rot_cut_y) - 0.2 * (max(rot_cut_y) - min(rot_cut_y)) ...
+    max(rot_cut_y) + 0.2 * (max(rot_cut_y) - min(rot_cut_y))]);
 guidata(gcf, handles);  
+tempLine1 = line([1 size(handles.rotationI, 2)], ...
+    [max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y)) ...
+    max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y))], 'Color', 'r', ...
+    'LineStyle', '--');
+tempLine2 = line([1 size(handles.rotationI, 2)], ...
+    [min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y)) ...
+    min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y))], 'Color', 'r', ...
+    'LineStyle', '--');
 
 % to achieve correct fits, need to fit data such that y is independent var
 M1 = imfreehand('Closed', false);
 P01 = M1.getPosition;
+P01(P01(:,2) > ( max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y))), :) = [];
+P01(P01(:,2) < ( min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y))), :) = [];
 l1 = fit(P01(:,2), P01(:,1), 'poly1');
 
     yf1 = [min(P01(:,2)) max(P01(:,2))];
@@ -2959,8 +2969,10 @@ hl1 = line(xf1, yf1, 'Color', 'r', 'LineWidth', 1.5);
 set(handles.basalDrawingFig, 'Name', 'Draw the second basal membrane...');
 M2 = imfreehand('Closed', false);
 P02 = M2.getPosition;
+P02(P02(:,2) > ( max(rot_cut_y) + 0.1 * (max(rot_cut_y) - min(rot_cut_y))), :) = [];
+P02(P02(:,2) < ( min(rot_cut_y) - 0.1 * (max(rot_cut_y) - min(rot_cut_y))), :) = [];
 l2 = fit(P02(:,2), P02(:,1), 'poly1');
-
+    
     yf2 = [min(P02(:,2)) max(P02(:,2))];
     xf2 = l2.p1.*yf2 + l2.p2;
 
@@ -2986,6 +2998,9 @@ hp = patch(X, Y, 'r', 'EdgeColor', 'r', 'FaceAlpha', 0.05);
 origin = [size(handles.rotationI)/2 0];
 ax = [0 0 1];
 rotate(hp, ax, -handles.rotationAngle, origin);
+
+delete(tempLine1);
+delete(tempLine2);
 
 guidata(handles.figure1, handles);
 
@@ -3083,6 +3098,11 @@ set(handles.hAx, 'XTick', [], 'YTick', []);
 axis equal tight; 
 colormap gray; 
 handles.rotationAngle = 0;
+rotCutLine = line(handles.cut_line_x, handles.cut_line_y, 'Parent', handles.hAx, ...
+    'MarkerEdgeColor', 'g', 'LineWidth', 2, 'LineStyle', 'none', ...
+    'MarkerSize', 10, 'Marker', '+');
+vertLine = line([size(handles.rotationI,2)/2 size(handles.rotationI,2)/2], ...
+    [1 size(handles.rotationI,1)], 'Color', 'r', 'LineStyle', '--');
 guidata(gcf, handles);  
 
 function geoMidlineRotationButton(hObject, eventdata, handles)
@@ -3108,6 +3128,14 @@ try
     set(handles.hAx, 'XTick', [], 'YTick', []);
     axis equal tight; 
     colormap gray;
+    rotCutLine = line(handles.cut_line_x, handles.cut_line_y, 'Parent', handles.hAx, ...
+    'MarkerEdgeColor', 'g', 'LineWidth', 2, 'LineStyle', 'none', ...
+        'MarkerSize', 10, 'Marker', '+');
+    origin = [size(handles.rotationI)/2 0];
+    ax = [0 0 1];
+    rotate(rotCutLine, ax, -handles.rotationAngle, origin);
+    vertLine = line([size(handles.rotationI,2)/2 size(handles.rotationI,2)/2], ...
+    [1 size(handles.rotationI,1)], 'Color', 'r', 'LineStyle', '--');
 catch
     set(hObject, 'String', num2str(handles.rotationAngle));
 end
@@ -3123,6 +3151,15 @@ imagesc(imrotate(handles.rotationI, handles.rotationAngle, 'crop'), 'Parent', ha
 set(handles.hAx, 'XTick', [], 'YTick', []);
 axis equal tight; 
 colormap gray; 
+rotCutLine = line(handles.cut_line_x, handles.cut_line_y, 'Parent', handles.hAx, ...
+    'MarkerEdgeColor', 'g', 'LineWidth', 2, 'LineStyle', 'none', ...
+    'MarkerSize', 10, 'Marker', '+');
+origin = [size(handles.rotationI)/2 0];
+ax = [0 0 1];
+rotate(rotCutLine, ax, -handles.rotationAngle, origin);
+vertLine = line([size(handles.rotationI,2)/2 size(handles.rotationI,2)/2], ...
+    [1 size(handles.rotationI,1)], 'Color', 'r', 'LineStyle', '--');
+
 guidata(gcf, handles);
 
 
@@ -3160,8 +3197,16 @@ cutLine = get(kids(end-1));
 xs = round(cutLine.XData);
 ys = round(cutLine.YData);
 set(handles.hAx, 'XLim', [1 size(handles.rotationI, 2)], ...
-    'YLim', [(min(ys) - 0.1 * (max(ys) - min(ys))) ...
-    (max(ys) +  0.1 * (max(ys) - min(ys)))]);
+    'YLim', [(min(ys) - 0.2 * (max(ys) - min(ys))) ...
+    (max(ys) +  0.2 * (max(ys) - min(ys)))]);
+tempLine1 = line([1 size(handles.rotationI, 2)], ...
+    [max(ys) + 0.1 * (max(ys) - min(ys)) ...
+    max(ys) + 0.1 * (max(ys) - min(ys))], 'Color', 'r', ...
+    'LineStyle', '--');
+tempLine2 = line([1 size(handles.rotationI, 2)], ...
+    [min(ys) - 0.1 * (max(ys) - min(ys)) ...
+    min(ys) - 0.1 * (max(ys) - min(ys))], 'Color', 'r', ...
+    'LineStyle', '--');
 
 % draw the actual midline
 set(handles.basalDrawingFig, 'Name', 'Draw actual midline...');
@@ -3178,23 +3223,27 @@ geoMidlineY = get(kids(2), 'YData');
 m = (geoMidlineY(1) - geoMidlineY(2))/(geoMidlineX(1) - geoMidlineX(2));
 c = geoMidlineY(1) - m * geoMidlineX(1);
 
-% first, trim any overhang on the line that extends furtherst up...
-if max(realMidlineY) > max(geoMidlineY)
-    realMidlineX(realMidlineY > max(geoMidlineY)) = [];
-    realMidlineY(realMidlineY > max(geoMidlineY)) = [];
-else
-    geoMidlineX(geoMidlineY == max(geoMidlineY)) = (max(realMidlineY) - c) / m;
-    geoMidlineY(geoMidlineY == max(geoMidlineY)) = max(realMidlineY);
-end 
+% % first, trim any overhang on the line that extends furtherst up...
+% if max(realMidlineY) > max(geoMidlineY)
+%     realMidlineX(realMidlineY > max(geoMidlineY)) = [];
+%     realMidlineY(realMidlineY > max(geoMidlineY)) = [];
+% else
+%     geoMidlineX(geoMidlineY == max(geoMidlineY)) = (max(realMidlineY) - c) / m;
+%     geoMidlineY(geoMidlineY == max(geoMidlineY)) = max(realMidlineY);
+% end 
+% 
+% % then trim the any overhang from the line that extends furthest down...
+% if min(realMidlineY) < min(geoMidlineY)
+%     realMidlineX(realMidlineY < min(geoMidlineY)) = [];
+%     realMidlineY(realMidlineY < min(geoMidlineY)) = [];
+% else
+%     geoMidlineX(geoMidlineY == min(geoMidlineY)) = (min(realMidlineY) - c) / m;
+%     geoMidlineY(geoMidlineY == min(geoMidlineY)) = min(realMidlineY);
+% end
 
-% then trim the any overhang from the line that extends furthest down...
-if min(realMidlineY) < min(geoMidlineY)
-    realMidlineX(realMidlineY < min(geoMidlineY)) = [];
-    realMidlineY(realMidlineY < min(geoMidlineY)) = [];
-else
-    geoMidlineX(geoMidlineY == min(geoMidlineY)) = (min(realMidlineY) - c) / m;
-    geoMidlineY(geoMidlineY == min(geoMidlineY)) = min(realMidlineY);
-end
+% trim the real midline to the same y extent as the geometrical midline
+realMidlineY(realMidlineY > ( max(ys) + 0.1 * (max(ys) - min(ys)))) = [];
+realMidlineY(realMidlineY < ( min(ys) - 0.1 * (max(ys) - min(ys)))) = [];
 
 % then interpolate the drawn line to give 100 points between the new limits
 geoMidlineY = linspace(min(geoMidlineY), max(geoMidlineY), 100);
@@ -3220,6 +3269,9 @@ for ind = find(filt)
     handles.includedData(ind).sdDifferenceGeometricalActualMidline = ...
         handles.sdDifferenceGeometricalActualMidline;
 end
+
+delete(tempLine1);
+delete(tempLine2);
 
 guidata(handles.figure1, handles);
 % close(hFig);
