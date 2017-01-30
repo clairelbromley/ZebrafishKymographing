@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 16-Nov-2016 17:11:16
+% Last Modified by GUIDE v2.5 30-Jan-2017 21:25:03
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -385,6 +385,7 @@ if ischar(new_image_path{1})
                 omeMeta = handles.reader.getMetadataStore();
             end
             
+            handles.omeMeta = omeMeta;
             handles.currentDispFrame = 1;
             im = bfGetPlane(handles.reader, 1);
             padim = zeros(size(im, 1)+200, size(im, 2)+200);
@@ -986,6 +987,14 @@ set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (
     new_first_frame, handles.params.frameTime * (handles.params.lastFrame - new_first_frame), handles.params.analysisTime));
 % uistack(handles.cutLine, 'top');
 
+if strcmp(handles.menuShowROI, 'checked', 'on')
+%     delete(handles.roiOverlay);
+    handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
+        100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
+        handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
+        'EdgeColor', 'r');
+end
+
 guidata(hObject, handles);
 
 function updateDisplayImage(currentDisplayFrame, hObject, handles)
@@ -1083,6 +1092,14 @@ updateUIParams(handles.params)
 set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
     new_last_frame, handles.params.frameTime * (new_last_frame - handles.params.firstFrame), handles.params.analysisTime));
 
+if strcmp(handles.menuShowROI, 'checked', 'on')
+%     delete(handles.roiOverlay);
+    handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
+        100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
+        handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
+        'EdgeColor', 'r');
+end
+
 guidata(hObject, handles);
 
 
@@ -1152,6 +1169,14 @@ updateUIParams(handles.params)
 
 set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last analysis frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
     handles.params.firstFrame + (new_anal_time / handles.params.frameTime), handles.params.frameTime * (handles.params.lastFrame - handles.params.firstFrame), handles.params.analysisTime));
+
+if strcmp(handles.menuShowROI, 'checked', 'on')
+%     delete(handles.roiOverlay);
+    handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
+        100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
+        handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
+        'EdgeColor', 'r');
+end
 
 guidata(hObject, handles);
 
@@ -1418,3 +1443,29 @@ function scrollZPlane_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
+
+
+% --------------------------------------------------------------------
+function menuShowROI_Callback(hObject, eventdata, handles)
+% hObject    handle to menuShowROI (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles = guidata(gcf);
+
+if strcmp(get(hObject, 'checked'), 'off')
+    
+    set(hObject, 'checked', 'on');
+    handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
+        100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
+        handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
+        'EdgeColor', 'r');
+else
+    set(hObject, 'checked', 'off');
+    if isfield(handles, 'roiOverlay')
+        set(handles.roiOverlay, 'Visible', 'off');
+    end
+end
+
+guidata(hObject, handles);
+
