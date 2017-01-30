@@ -942,7 +942,7 @@ handles = guidata(gcf);
 
 new_first_frame = round(get(hObject, 'Value'));
 
-if new_first_frame > handles.params.lastFrame
+if new_first_frame >= handles.params.lastFrame
     new_first_frame = handles.params.lastFrame - 1;
     set(hObject, 'Value', new_first_frame);
 end
@@ -1041,7 +1041,7 @@ handles = guidata(gcf);
 
 new_last_frame = round(get(hObject, 'Value'));
 
-if new_last_frame < handles.params.firstFrame
+if new_last_frame <= handles.params.firstFrame
     new_last_frame = handles.params.firstFrame + 1;
     set(hObject, 'Value', new_last_frame);
 end
