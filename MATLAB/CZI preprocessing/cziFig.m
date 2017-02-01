@@ -89,7 +89,7 @@ handles.params.kernelSize = 9;
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
 
-updateUIParams(handles.params)
+updateUIParams(handles.params);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -981,13 +981,13 @@ if ( get(handles.chkExclusionMask, 'Value') == 1 )
     
 end
 
-updateUIParams(handles.params)
+updateUIParams(handles.params);
 
 set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
     new_first_frame, handles.params.frameTime * (handles.params.lastFrame - new_first_frame), handles.params.analysisTime));
 % uistack(handles.cutLine, 'top');
 
-if strcmp(handles.menuShowROI, 'checked', 'on')
+if strcmp(get(handles.menuShowROI, 'checked'), 'on')
 %     delete(handles.roiOverlay);
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
@@ -1087,12 +1087,12 @@ if ( get(handles.chkExclusionMask, 'Value') == 1 )
     
 end
 
-updateUIParams(handles.params)
+updateUIParams(handles.params);
 
 set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
     new_last_frame, handles.params.frameTime * (new_last_frame - handles.params.firstFrame), handles.params.analysisTime));
 
-if strcmp(handles.menuShowROI, 'checked', 'on')
+if strcmp(get(handles.menuShowROI, 'checked'), 'on')
 %     delete(handles.roiOverlay);
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
@@ -1165,12 +1165,12 @@ if ( get(handles.chkExclusionMask, 'Value') == 1 )
     
 end
 
-updateUIParams(handles.params)
+updateUIParams(handles.params);
 
 set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last analysis frame (%d); time span of kymographs is %0.2f s; quantitative analysis over %0.2f s. ',...
     handles.params.firstFrame + (new_anal_time / handles.params.frameTime), handles.params.frameTime * (handles.params.lastFrame - handles.params.firstFrame), handles.params.analysisTime));
 
-if strcmp(handles.menuShowROI, 'checked', 'on')
+if strcmp(get(handles.menuShowROI, 'checked'), 'on')
 %     delete(handles.roiOverlay);
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
