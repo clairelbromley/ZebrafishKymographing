@@ -1,8 +1,7 @@
 classdef UserOptions
     
     properties
-         speedInUmPerMinute = false;         % if false, speeds in um/s
-        
+         
          forcedSpeedRange = [-1.5 1.5];          % speed [min max]
          forcedPositionRange = [-5 20];      % position um [min max]
 
@@ -18,9 +17,12 @@ classdef UserOptions
          kym_width = 5;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
          kym_length = 50;                    % Length of region kymograph calculated over, pix.                                          Default = 50
 
+         scatterComparisonOnly = false;      % Perform comparison of manual v automatic scatter removal without rest of processing.      Default = false;
          loadPreprocessedImages = false;
          scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
+         
          outputFolder = 'C:\Users\Doug\Desktop\cross test';
+         
          saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
          firstFigureTitleAppend = '' ;       % Text to append to the title of the first figure.                                          Default = ''
          saveCutPositioningFigs = true;     % Toggle saving of helper images for checking cut positioning.                              Default = false
@@ -33,13 +35,15 @@ classdef UserOptions
          preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
          showKymographOverlapOverlay = true;
 
-         lumenOpening = false;              % is data of physiological lumen opening?
          basalMembraneKym = false;          % is data looking at movement of basal membranes?
          usePreviouslySavedBasalPos = false;
          manualOrAutoApicalSurfaceFinder = 'manual';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual' or 'off'   Default = 'off'
          usePreviouslySavedApicalSurfacePos = false;
          flip90DegForShortCuts = false;      % Rotate "cut axis" 90 degrees
          
+         lumenOpening = false;              % is data of physiological lumen opening?
+         speedInUmPerMinute = false;        % if false, speeds in um/s
+
          crossSize = 7;                     % cross size for indicating ends of cuts in multipage tiffs
         
          nonBeepSound = load('train');
