@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 30-Jan-2017 21:25:03
+% Last Modified by GUIDE v2.5 26-Feb-2017 19:27:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1468,4 +1468,77 @@ else
 end
 
 guidata(hObject, handles);
+
+
+
+% --------------------------------------------------------------------
+function menuSaveBleachTiff_Callback(hObject, eventdata, handles)
+% hObject    handle to menuSaveBleachTiff (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+handles = guidata(gcf);
+
+defPath = get(handles.txtImagePath, 'String');
+defPath = defPath{1};
+[defPath, ~, ~] = fileparts(defPath);
+[fname, pname, ~] = uiputfile('*.tif', 'Choose where to save the output tiff...', [defPath filesep 'bleach tiff.tif']);
+
+if pname ~= 0 
+
+    % work out what the bleach frame # is...
+    if handles.reader.getGlobalMetadata.containsKey('Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1')
+        bleachFrame = str2num(handles.reader.getGlobalMetadata.get('Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1'));
+    else
+        msgbox('No bleach frame detected in metadata!');
+        return;
+    end
+
+    % for now, save frames 30 s before and 30 s after bleach frame - work out
+    % how many frames 30 s corresponds to...
+    framesEachSide = ceil(30/handles.params.frameTime);
+
+    RGBim = uint8(zeros(handles.reader.getSizeX+200, handles.reader.getSizeY+200, 3));
+    gScale = uint8(zeros(handles.reader.getSizeX+200, handles.reader.getSizeY+200));
+
+    for ind = 1:(2*framesEachSide+1)
+
+        gScale(100:99 + handles.reader.getSizeX, 100:99 + handles.reader.getSizeY) = ...
+            uint8(bfGetPlane(handles.reader, bleachFrame - framesEachSide + ind - 1));
+
+
+        % convert ROI to mask; set these pixels to 1 on first plane of RGBim
+        % and 0 on second and third planes. 
+        if strcmp(get(handles.menuShowROI, 'checked'), 'on')
+
+            pos = get(handles.roiOverlay, 'Position');
+            xs = [pos(1) pos(1)+pos(3) pos(1)+pos(3) pos(1)];
+            ys = [pos(2) pos(2) pos(2)+pos(4) pos(2)+pos(4)];
+            xs2 = [pos(1)+1 pos(1)+pos(3)-1 pos(1)+pos(3)-1 pos(1)+1];
+            ys2 = [pos(2)+1 pos(2)+1 pos(2)+pos(4)-1 pos(2)+pos(4)-1];
+            bw1 = poly2mask(xs, ys, handles.reader.getSizeX+200, handles.reader.getSizeY+200);
+            bw2 = poly2mask(xs2, ys2, handles.reader.getSizeX+200, handles.reader.getSizeY+200);
+            bw = logical(bw1 - bw2);
+            gScale(bw) = max(gScale(:));
+%             gScale(bw) = 255;
+            RGBim(:,:,1) = gScale;
+            gScale(bw) = 0;
+            RGBim(:,:,2) = gScale;
+            RGBim(:,:,3) = gScale;
+        else
+            RGBim(:,:,1) = gScale;
+            RGBim(:,:,2) = gScale;
+            RGBim(:,:,3) = gScale;
+        end
+
+        if ind == 1
+            imwrite(RGBim, [pname fname])
+        else
+            imwrite(RGBim, [pname fname], 'WriteMode','append');
+        end
+
+    end
+
+end
+
 
