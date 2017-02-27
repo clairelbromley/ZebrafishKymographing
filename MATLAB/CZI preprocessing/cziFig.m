@@ -91,6 +91,9 @@ set(handles.axImage, 'YTick', []);
 
 updateUIParams(handles.params);
 
+[y, Fs] = audioread([currdir filesep 'finished.wav']);
+handles.player = audioplayer(y, Fs);
+
 % Update handles structure
 guidata(hObject, handles);
 
@@ -262,6 +265,10 @@ for dind = handles.params.dir
 
 end
 
+% play completion sound
+play(handles.player);
+msgbox('I''m done!x');
+stop(handles.player);
 
 set(hObject, 'String', initialString);
 set(hObject, 'Enable', 'on');
