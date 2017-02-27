@@ -190,41 +190,43 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
             print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
             
-            fitmodelexp = fittype('A*(1 - exp(-B*t)) + C', 'independent', 't');            
-            [expf.res, expf.gof] = fit(t, d, fitmodelexp, 'Startpoint', [mean(d(end-3:end)) 1 mean(d(1:3))], 'Lower', [0 0 0]);
-            subplot(1,3,3);
-            scatter(t,d);
-            set(gca, 'YDir', 'reverse');
-            ylim([0 size(kym_segment,1) * md.umperpixel])
-            hold on
-            plot(t, expf.res.A * (1 - exp(- expf.res.B * t)) + expf.res.C, 'r');
-            hold off
-%             axis equal
-            xlabel('Time after cut, s');
-            ylabel('Membrane position relative to cut, \mum');
-            result.expspeed = expf.res.B * expf.res.A;
             
-            if uO.speedInUmPerMinute
-                s = [result.expspeed * 60; kp.pos_along_cut(kpos)];
-            else
-                s = [result.expspeed; kp.pos_along_cut(kpos)];
+            if uO.calculateExpSpeeds
+                fitmodelexp = fittype('A*(1 - exp(-B*t)) + C', 'independent', 't');            
+                [expf.res, expf.gof] = fit(t, d, fitmodelexp, 'Startpoint', [mean(d(end-3:end)) 1 mean(d(1:3))], 'Lower', [0 0 0]);
+                subplot(1,3,3);
+                scatter(t,d);
+                set(gca, 'YDir', 'reverse');
+                ylim([0 size(kym_segment,1) * md.umperpixel])
+                hold on
+                plot(t, expf.res.A * (1 - exp(- expf.res.B * t)) + expf.res.C, 'r');
+                hold off
+    %             axis equal
+                xlabel('Time after cut, s');
+                ylabel('Membrane position relative to cut, \mum');
+                result.expspeed = expf.res.B * expf.res.A;
+
+                if uO.speedInUmPerMinute
+                    s = [result.expspeed * 60; kp.pos_along_cut(kpos)];
+                else
+                    s = [result.expspeed; kp.pos_along_cut(kpos)];
+                end
+
+                expspeeds = [expspeeds s];
+
+                if uO.speedInUmPerMinute
+                    title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum min^{-1}'])
+                else
+                    title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum s^{-1}'])
+                end
+
+                set(h, 'UserData', expf);
+
+                %TODO: overlay line automatically on kymographs
+                out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt ' exponential fit'];
+                print(h, out_file, '-dpng', '-r300');
+                savefig(h, [out_file '.fig']);
             end
-            
-            expspeeds = [expspeeds s];
-            
-            if uO.speedInUmPerMinute
-                title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum min^{-1}'])
-            else
-                title([sprintf('Membrane speed = %0.2f ', result.expspeed) '\mum s^{-1}'])
-            end
-            
-            set(h, 'UserData', expf);
-            
-            %TODO: overlay line automatically on kymographs
-            out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt ' exponential fit'];
-            print(h, out_file, '-dpng', '-r300');
-            savefig(h, [out_file '.fig']);
-            
 
         else
             err_string = sprintf('Couldn''t find a membrane front for %s, cut %d kymograph position %d - no quantitative kymograph data generated', dir_txt, md.cutNumber, kpos);

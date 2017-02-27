@@ -34,6 +34,7 @@ classdef UserOptions
          medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
          preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
          showKymographOverlapOverlay = true;
+         calculateExpSpeeds = false;         % Toggle whether or not to calculate and save speeds from exponential fits
 
          basalMembraneKym = false;          % is data looking at movement of basal membranes?
          usePreviouslySavedBasalPos = false;

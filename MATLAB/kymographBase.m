@@ -49,6 +49,7 @@ userOptions.erosionDilation = true;             % Toggle erosion/dilation denois
 userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
 userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
 userOptions.showKymographOverlapOverlay = true;
+userOptions.calculateExpSpeeds = false;         % Toggle whether or not to calculate and save speeds from exponential fits
 
 userOptions.basalMembraneKym = false;
 userOptions.usePreviouslySavedBasalPos = false;
