@@ -84,7 +84,7 @@ handles.params.analysisTime = 20 * handles.params.frameTime;
 handles.params.dir = [0 1]; % up
 
 handles.params.speedInUmPerMinute = false;
-handles.params.kernelSize = 9;
+handles.params.kernelSize = 1;
 
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
@@ -1244,7 +1244,7 @@ handles = guidata(gcf);
 
 kstr = inputdlg({'Choose median filter kernel size'}, 'Median filter kernel size', 1, {num2str(handles.params.kernelSize)});
 if isempty(kstr)
-    handles.params.kernelSize = 9;
+    handles.params.kernelSize = 1;
 else
     handles.params.kernelSize = round(str2double(kstr{1}));
 end
