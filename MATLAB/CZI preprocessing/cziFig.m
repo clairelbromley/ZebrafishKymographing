@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 26-Feb-2017 19:27:41
+% Last Modified by GUIDE v2.5 16-Mar-2017 19:14:21
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1575,3 +1575,19 @@ end
 
 guidata(gcf, handles);
 
+
+
+% --------------------------------------------------------------------
+function menuBleachPower_Callback(hObject, eventdata, handles)
+% hObject    handle to menuBleachPower (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+bleachPowerKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|Attenuator|Transmission #1';
+if handles.reader.getGlobalMetadata.containsKey(bleachPowerKey)
+    bleachPower = str2num(handles.reader.getGlobalMetadata.get(bleachPowerKey));
+    msgbox(sprintf('The bleach laser attenuator is set to %0.2f', bleachPower), 'Bleach laser power');
+else
+    msgbox('No bleach frame detected in metadata!');
+    return;
+end
