@@ -971,6 +971,9 @@ channel = 1;
 handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
     (handles.params.channels)*(handles.params.currZPlane - 1) + ...
     (handles.params.channels)*(channel - 1) + 1;
+
+% updateDisplayImage(handles.currentDispFrame, hObject, handles);
+
 im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
@@ -998,10 +1001,11 @@ set(handles.txtWhichFrame, 'String', sprintf('Currently displaying first frame (
 
 if strcmp(get(handles.menuShowROI, 'checked'), 'on')
 %     delete(handles.roiOverlay);
+    roiColor = checkRoiColor(handles.currentDispFrame);
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
         handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
-        'EdgeColor', 'r');
+        'EdgeColor', roiColor);
 end
 
 guidata(hObject, handles);
@@ -1103,10 +1107,11 @@ set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last frame (%
 
 if strcmp(get(handles.menuShowROI, 'checked'), 'on')
 %     delete(handles.roiOverlay);
+    roiColor = checkRoiColor(handles.currentDispFrame);
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
         handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
-        'EdgeColor', 'r');
+        'EdgeColor', roiColor);
 end
 
 guidata(hObject, handles);
@@ -1181,10 +1186,11 @@ set(handles.txtWhichFrame, 'String', sprintf('Currently displaying last analysis
 
 if strcmp(get(handles.menuShowROI, 'checked'), 'on')
 %     delete(handles.roiOverlay);
+    roiColor = checkRoiColor(handles.currentDispFrame);
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
         handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
-        'EdgeColor', 'r');
+        'EdgeColor', roiColor);
 end
 
 guidata(hObject, handles);
@@ -1465,10 +1471,13 @@ handles = guidata(gcf);
 if strcmp(get(hObject, 'checked'), 'off')
     
     set(hObject, 'checked', 'on');
+
+    roiColor = checkRoiColor(handles.params.currTPlane);
+
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
         handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
-        'EdgeColor', 'r');
+        'EdgeColor', roiColor);
 else
     set(hObject, 'checked', 'off');
     if isfield(handles, 'roiOverlay')
@@ -1478,6 +1487,22 @@ end
 
 guidata(hObject, handles);
 
+function roiColor = checkRoiColor(tPlane)
+
+handles = guidata(gcf);
+
+% check if before or after bleaching frame, and apply colour
+% accordingly
+bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
+if handles.reader.getGlobalMetadata.containsKey(bleachStartKey)
+    if (tPlane >= str2double(handles.reader.getGlobalMetadata.get(bleachStartKey)))
+        roiColor = 'g';
+    else
+        roiColor = 'r';
+    end
+else
+    roiColor = 'r';
+end
 
 
 % --------------------------------------------------------------------
@@ -1500,7 +1525,7 @@ end
 
 % work out what the bleach frame # is...
 if handles.reader.getGlobalMetadata.containsKey('Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1')
-    bleachFrame = str2num(handles.reader.getGlobalMetadata.get('Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1'));
+    bleachFrame = str2double(handles.reader.getGlobalMetadata.get('Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1'));
 else
     msgbox('No bleach frame detected in metadata!');
     return;
@@ -1550,12 +1575,23 @@ if ~isempty(qans)
                 bw1 = poly2mask(xs, ys, handles.reader.getSizeX+200, handles.reader.getSizeY+200);
                 bw2 = poly2mask(xs2, ys2, handles.reader.getSizeX+200, handles.reader.getSizeY+200);
                 bw = logical(bw1 - bw2);
-                gScale(bw) = max(gScale(:));
-    %             gScale(bw) = 255;
-                RGBim(:,:,1) = gScale;
-                gScale(bw) = 0;
-                RGBim(:,:,2) = gScale;
-                RGBim(:,:,3) = gScale;
+                
+                % show ROI in red before bleach, green after bleach
+                if ind < (framesBefore + 1)
+                    gScale(bw) = max(gScale(:));
+        %             gScale(bw) = 255;
+                    RGBim(:,:,1) = gScale;
+                    gScale(bw) = 0;
+                    RGBim(:,:,2) = gScale;
+                    RGBim(:,:,3) = gScale;
+                else
+                    gScale(bw) = max(gScale(:));
+        %             gScale(bw) = 255;
+                    RGBim(:,:,2) = gScale;
+                    gScale(bw) = 0;
+                    RGBim(:,:,1) = gScale;
+                    RGBim(:,:,3) = gScale;
+                end
             else
                 RGBim(:,:,1) = gScale;
                 RGBim(:,:,2) = gScale;
