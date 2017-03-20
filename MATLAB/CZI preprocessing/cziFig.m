@@ -1583,11 +1583,66 @@ function menuBleachPower_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+nope = 'NOT FOUND IN METADATA!';
 bleachPowerKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|Attenuator|Transmission #1';
+zoomKey = 'Experiment|AcquisitionBlock|AcquisitionModeSetup|ZoomY #1';
+bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
+repeatAfterFramesKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|Repeat #1';
+noBleachesKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|Cycles #1';
+pixelDwellKey = 'Information|Image|Channel|LaserScanInfo|PixelTime #1';
+ROIXKey = 'Layer|Rectangle|Geometry|Width #1';
+ROIYKey = 'Layer|Rectangle|Geometry|Height #1';
+
+str = '';
+str = [str sprintf('The bleach power attenuator is set to ')];
 if handles.reader.getGlobalMetadata.containsKey(bleachPowerKey)
-    bleachPower = str2num(handles.reader.getGlobalMetadata.get(bleachPowerKey));
-    msgbox(sprintf('The bleach laser attenuator is set to %0.2f', bleachPower), 'Bleach laser power');
+    str = [str sprintf('%s\n\r', handles.reader.getGlobalMetadata.get(bleachPowerKey))];
 else
-    msgbox('No bleach frame detected in metadata!');
-    return;
+    str = [str sprintf('%s\n\r', nope)];
 end
+
+str = [str 'Zoom is set to '];
+if handles.reader.getGlobalMetadata.containsKey(zoomKey)
+    str = [str sprintf('%s x\n\r', handles.reader.getGlobalMetadata.get(zoomKey))];
+else
+    str = [str sprintf('%s\n\r', nope)];
+end
+
+str = [str 'Bleach starts at frame '];
+if handles.reader.getGlobalMetadata.containsKey(bleachStartKey)
+    str = [str sprintf('%s\n\r', handles.reader.getGlobalMetadata.get(bleachStartKey))];
+else
+    str = [str sprintf('%s\n\r', nope)];
+end
+
+str = [str 'Repeat after '];
+if handles.reader.getGlobalMetadata.containsKey(repeatAfterFramesKey)
+    str = [str sprintf('%s frames\n\r', handles.reader.getGlobalMetadata.get(repeatAfterFramesKey))];
+else
+    str = [str sprintf('%s\n\r', nope)];
+end
+
+str = [str 'Bleach iterations: '];
+if handles.reader.getGlobalMetadata.containsKey(noBleachesKey)
+    str = [str sprintf('%s\n\r', handles.reader.getGlobalMetadata.get(noBleachesKey))];
+else
+    str = [str sprintf('%s\n\r', nope)];
+end
+
+str = [str 'Pixel dwell time: '];
+if handles.reader.getGlobalMetadata.containsKey(pixelDwellKey)
+    str = [str sprintf('%0.2f us\n\r', (10^6)*str2double(handles.reader.getGlobalMetadata.get(pixelDwellKey)))];
+else
+    str = [str sprintf('%s\n\r', nope)];
+end
+
+str = [str 'ROI size: '];
+if ((handles.reader.getGlobalMetadata.containsKey(ROIXKey)) && (handles.reader.getGlobalMetadata.containsKey(ROIYKey)))
+    str = [str sprintf('%0.2fx%0.2f\n\r', str2double(handles.reader.getGlobalMetadata.get(ROIXKey)), str2double(handles.reader.getGlobalMetadata.get(ROIYKey)))];
+else
+    str = [str sprintf('%s\n\r', nope)];
+end
+
+    msgbox(str, 'Selected metadata');
+
+
