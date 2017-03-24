@@ -1496,12 +1496,12 @@ handles = guidata(gcf);
 bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
 if handles.reader.getGlobalMetadata.containsKey(bleachStartKey)
     if (tPlane >= str2double(handles.reader.getGlobalMetadata.get(bleachStartKey)))
-        roiColor = 'g';
+        roiColor = 'c';
     else
-        roiColor = 'r';
+        roiColor = 'm';
     end
 else
-    roiColor = 'r';
+    roiColor = 'm';
 end
 
 
@@ -1576,21 +1576,24 @@ if ~isempty(qans)
                 bw2 = poly2mask(xs2, ys2, handles.reader.getSizeX+200, handles.reader.getSizeY+200);
                 bw = logical(bw1 - bw2);
                 
-                % show ROI in red before bleach, green after bleach
+                % show ROI in magenta before bleach, cyan after bleach
+                % TODO - vectorise so can be more easily broken out into a
+                % function...
                 if ind < (framesBefore + 1)
                     gScale(bw) = max(gScale(:));
         %             gScale(bw) = 255;
                     RGBim(:,:,1) = gScale;
+                    RGBim(:,:,3) = gScale;
                     gScale(bw) = 0;
                     RGBim(:,:,2) = gScale;
-                    RGBim(:,:,3) = gScale;
                 else
                     gScale(bw) = max(gScale(:));
         %             gScale(bw) = 255;
                     RGBim(:,:,2) = gScale;
+                    RGBim(:,:,3) = gScale;
                     gScale(bw) = 0;
                     RGBim(:,:,1) = gScale;
-                    RGBim(:,:,3) = gScale;
+                    
                 end
             else
                 RGBim(:,:,1) = gScale;
