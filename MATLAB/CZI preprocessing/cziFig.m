@@ -448,7 +448,11 @@ if ischar(new_image_path{1})
                 handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
             end
             handles.params.analysisTime = handles.params.frameTime * 20;
-            
+            if handles.reader.getGlobalMetadata.containsKey('Information|Document|CreationDate #1')
+                handles.params.date = handles.reader.getGlobalMetadata.get('Information|Document|CreationDate #1');
+                A = sscanf(handles.params.date, '%d-%d-%dT%s');
+                handles.params.date = sprintf('%02d%02d%02d', A(3), A(2), A(1)-2000);   % assumes images taken this century - seems reasonable :)
+            end
 %             guidata(hObject, handles);
             handles.params = updateUIParams(handles.params);
             
