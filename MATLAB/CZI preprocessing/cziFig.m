@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 23-Apr-2017 18:18:14
+% Last Modified by GUIDE v2.5 23-Apr-2017 20:56:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -88,6 +88,7 @@ handles.params.dir = [0 1]; % up
 handles.params.speedInUmPerMinute = false;
 handles.params.kernelSize = 0;
 handles.params.kymWidth = 5;
+handles.params.kymLength = 50;
 
 set(handles.axImage, 'XTick', []);
 set(handles.axImage, 'YTick', []);
@@ -255,6 +256,7 @@ userOptions = getUserOptions(handles);
 %DEBUG w/SMALL MEDIAN FILTER
 userOptions.medianFiltKernelSize = handles.params.kernelSize;
 userOptions.kym_width = handles.params.kymWidth;
+userOptions.kym_length = handles.params.kymLength;
 userOptions.showKymographOverlapOverlay = true;
 userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
 userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
@@ -322,6 +324,7 @@ params.kymSpacingUm = str2num(get(handles.txtKymSpacingUm, 'String'));
 params.speedInUmPerMinute = strcmp(get(handles.menuUmPerMin, 'Checked'), 'on');
 params.kernelSize = handles.params.kernelSize;
 params.kymWidth = handles.params.kymWidth;
+params.kymLength = handles.params.kymLength;
 params.zPlanes = handles.params.zPlanes;
 params.channels = handles.params.channels;
 params.CZTOrder = handles.params.CZTOrder;
@@ -1723,6 +1726,23 @@ if isempty(kstr)
     handles.params.kymWidth = 1;
 else
     handles.params.kymWidth = round(str2double(kstr{1}));
+end
+
+guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuKymAxisLength_Callback(hObject, eventdata, handles)
+% hObject    handle to menuKymAxisLength (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+kstr = inputdlg({'Choose kymograph length in pixels'}, 'Kymograph length', 1, {num2str(handles.params.kymLength)});
+if isempty(kstr)
+    handles.params.kymLength = 50;
+else
+    handles.params.kymLength = round(str2double(kstr{1}));
 end
 
 guidata(hObject, handles);
