@@ -73,7 +73,7 @@ if (redoPreprocess) || ~uO.loadPreprocessedImages || (exist(output_path, 'file')
 %     end
     
     %% Then perform median filtering
-    if uO.preProcess
+    if uO.preProcess && (uO.medianFiltKernelSize > 0)
         tic
         disp('Median filtering...')
         for ind = 1:size(stack, 3)
