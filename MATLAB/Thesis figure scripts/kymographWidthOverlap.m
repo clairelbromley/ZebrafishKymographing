@@ -5,7 +5,7 @@ dumhs = get(dumax, 'Children');
 processedIm = get(dumhs(strcmp(get(dumhs, 'Type'), 'image')), 'CData');
 close(dumfig);
 
-kw = [1 5 9];
+kw = [9 5 1];
 idx = 2;
 patchToKeep = 4;
 lineWidth = 3;
@@ -41,25 +41,30 @@ for kwidx = 1:length(kw)
     set(hs(linMask), 'LineWidth', lineWidth);
 
     % get minimum/maximum x/y pos
-    xs = [];
-    ys = [];
-    for idx = 1:length(hs)
+    if kwidx == 1
+        xs = [];
+        ys = [];
+        for idx = 1:length(hs)
 
-        x = get(hs(idx), 'XData');
-        xs = [xs; x(:)];
-        y = get(hs(idx), 'YData');
-        ys = [ys; y(:)];
+            x = get(hs(idx), 'XData');
+            xs = [xs; x(:)];
+            y = get(hs(idx), 'YData');
+            ys = [ys; y(:)];
 
+        end
+
+        rx = max(xs) - min(xs);
+        ry = max(ys) - min(ys);
+
+        xlims = [(min(xs) - rx/10) (max(xs) + rx/10)];
+        ylims = [(min(ys) - ry/10) (max(ys) + ry/10)];
     end
-
-    rx = max(xs) - min(xs);
-    ry = max(ys) - min(ys);
-
+    
     im = imrotate(processedIm, -37.3667, 'bilinear', 'crop');
     set(hcmap, 'CData', im);
 
-    xlim([(min(xs) - rx/10) (max(xs) + rx/10)]);
-    ylim([(min(ys) - ry/10) (max(ys) + ry/10)]);
+    xlim(xlims);
+    ylim(ylims);
     
     title([num2str(kw(kwidx)) ' pixel - ' sprintf('%0.2f', 0.218 * kw(kwidx)) ' \mum'])
 
