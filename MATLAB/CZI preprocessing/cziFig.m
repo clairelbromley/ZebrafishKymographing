@@ -410,17 +410,25 @@ if ischar(new_image_path{1})
             set(gca, 'YTick', []);
             axis equal tight;
 
-            % figure out and populate default parameters
+             % figure out and populate default parameters
             handles.params.pixelSize = double(omeMeta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
-            handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
             handles.params.sequenceLength = double(omeMeta.getPixelsSizeT(0).getValue());
             handles.params.firstFrame = 1;
             handles.params.lastFrame = handles.params.sequenceLength;
-            handles.params.analysisTime = handles.params.frameTime * 20;
             handles.params.zPlanes = double(omeMeta.getPixelsSizeZ(0).getValue());
             handles.params.channels = double(omeMeta.getPixelsSizeC(0).getValue());
             dimOrder = char(omeMeta.getPixelsDimensionOrder(0).getValue());
             handles.params.CZTOrder = [regexp(dimOrder, 'C'); regexp(dimOrder, 'Z'); regexp(dimOrder, 'T')];
+            if strcmp(dimOrder(end), 'T')
+                handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.zPlanes - 1) + (handles.params.channels - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+            elseif (strcmp(dimOrder(2), 'T') && strcmp(dimOrder(1), 'C'))
+                handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.channels - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+            elseif (strcmp(dimOrder(2), 'T') && strcmp(dimOrder(1), 'Z'))
+                handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.zPlanes - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+            else
+                handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+            end
+            handles.params.analysisTime = handles.params.frameTime * 20;
             
 %             guidata(hObject, handles);
             handles.params = updateUIParams(handles.params);
