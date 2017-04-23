@@ -22,20 +22,20 @@ userOptions.forcedPositionRange = [-5 20];      % position um [min max]
 userOptions.fixedNumberOrFixedSpacing = true;   % false = fixed number of kym; true = fixed spacing between kym in um.                      Default = true;
 userOptions.kymSpacingUm = 1;                   % Kymograph spacing in um.                                                                  Default = 1;
 userOptions.number_kym = 10;                    % Number of kymographs calculated per cut.                                                  Default = 10
-userOptions.kymDownOrUp = false;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
+userOptions.kymDownOrUp = true;                % false = investigate movement below cut; true = investigate movement above cut.            Default = false;
 
 userOptions.timeBeforeCut = 5;                  % Time in seconds before cut for kymograph to start.                                        Default = 5
 userOptions.timeAfterCut = 10;                  % Time in seconds after cut for kymograph to end.                                           Default = 10
 userOptions.quantAnalysisTime = 4;              % Time over which quantitative data is fitted.
 
-userOptions.kym_width = 5;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
+userOptions.kym_width = 1;                      % Width of region kymograph calculated over, pix. Must be odd.                              Default = 9
 userOptions.kym_length = 75;                    % Length of region kymograph calculated over, pix.                                          Default = 50
 
 userOptions.scatterComparisonOnly = false;      % Perform comparison of manual v automatic scatter removal without rest of processing.      Default = false;
-userOptions.loadPreprocessedImages = false;
+userOptions.loadPreprocessedImages = true;
 userOptions.scale_bar_length = 20;              % Length of scale bar in images, um.                                                        Default = 20
 
-userOptions.outputFolder = '/Volumes/Arthur/DATA etc/CUTS/Vienna 1/DATA Vienna 1/Cut data/USE raw SORT/untitled folder/processed';
+userOptions.outputFolder = 'D:\REDO FIG\out';
 % userOptions.outputFolder = 'C:\Users\d.kelly\Downloads\error test out';
 
 userOptions.saveFirstFrameFigure = true;        % Save first figure?                                                                        Default = true
@@ -47,11 +47,11 @@ userOptions.savePreprocessed = true;            % Save stack of images following
 userOptions.avgOrMax = 1;                       % Choose between averaging (1) or taking max over (2) the kym_width per kym.                Default = 1
 userOptions.erosionDilation = true;             % Toggle erosion/dilation denoising (1 pixel) on or off.                                    Default = true;
 userOptions.medianFiltKernelSize = 50;           % Size of median filter kernel in pixels - reduce for increased speed...                   Default = 50
-userOptions.preProcess = true;                  % Toggle pre-processing on or off                                                           Default = true
+userOptions.preProcess = false;                  % Toggle pre-processing on or off                                                           Default = true
 userOptions.showKymographOverlapOverlay = true;
 userOptions.calculateExpSpeeds = false;         % Toggle whether or not to calculate and save speeds from exponential fits
 
-userOptions.basalMembraneKym = false;
+userOptions.basalMembraneKym = true;
 userOptions.usePreviouslySavedBasalPos = false;
 userOptions.manualOrAutoApicalSurfaceFinder = 'off';     % Find apical surface automatically by intensity or manually - 'auto' or 'manual' or 'off'   Default = 'manual'
 userOptions.usePreviouslySavedApicalSurfacePos = false;

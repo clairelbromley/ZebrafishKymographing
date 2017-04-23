@@ -134,7 +134,9 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
             print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
-
+            if uO.lumenOpening
+                imwrite(uint16(kymim), [out_file '_timePerPixel=' num2str(md.acqMetadata.cycleTime) '_umPerPixel=' num2str(md.umperpixel) '.tif']); 
+            end
             if ~isfield(uO, 'figHandle')
                 close(h);
             end

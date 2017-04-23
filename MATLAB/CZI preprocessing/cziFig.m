@@ -86,7 +86,7 @@ handles.params.multipageTiffAfterTimeS = 30;
 handles.params.dir = [0 1]; % up
 
 handles.params.speedInUmPerMinute = false;
-handles.params.kernelSize = 1;
+handles.params.kernelSize = 0;
 handles.params.kymWidth = 5;
 
 set(handles.axImage, 'XTick', []);
@@ -224,8 +224,19 @@ data = cell2mat(data);
 data = reshape(data, newshape);
 stack = permute(data, [1 3 2]);
 
-% trim according to user selection...
-stack = stack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
+% trim according to user selection, and forcing a single channel, single z
+% plane
+if (handles.params.CZTOrder(end) == 5)
+    substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
+elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(1) == 3)
+%     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.channels - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(2) == 3)
+%     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.zPlanes - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+else
+%     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+end
+
+stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
 
 % pad 100 pixels on each side...
 newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
@@ -311,7 +322,9 @@ params.kymSpacingUm = str2num(get(handles.txtKymSpacingUm, 'String'));
 params.speedInUmPerMinute = strcmp(get(handles.menuUmPerMin, 'Checked'), 'on');
 params.kernelSize = handles.params.kernelSize;
 params.kymWidth = handles.params.kymWidth;
-
+params.zPlanes = handles.params.zPlanes;
+params.channels = handles.params.channels;
+params.CZTOrder = handles.params.CZTOrder;
 
 % --- Executes on button press in buttonBrowseImagePath.
 function buttonBrowseImagePath_Callback(hObject, eventdata, handles)
