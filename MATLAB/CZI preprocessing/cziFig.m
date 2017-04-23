@@ -284,7 +284,7 @@ end
 
 % play completion sound
 play(handles.player);
-msgbox('I''m done!x');
+uiwait(msgbox('I''m done!x'));
 stop(handles.player);
 
 set(hObject, 'String', initialString);
