@@ -285,7 +285,11 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     end
 
     % play completion sound
-    play(handles.player);
+    try
+        play(handles.player);
+    catch
+        beep;
+    end
     uiwait(msgbox('I''m done!x'));
     stop(handles.player);
 
