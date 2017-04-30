@@ -204,91 +204,96 @@ handles = guidata(gcf);
 % handles.params.cutEndY = round(xy(2,2));
 % handles.params.embryoNumber = str2double(get(handles.txtENumber, 'String'))
 
-handles.params = getParams();
+svRoot = get(handles.txtSaveRoot, 'String');
+if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
+
+    handles.params = getParams();
+
+    initialString = get(hObject, 'String');
+    set(hObject, 'String', 'Working...');
+    % set(hObject, 'Enable', 'off');
+    drawnow;
+
+    % check all fields are filled in sensibly...
+
+    % generate image data in expected format
+    fcell = get(handles.txtImagePath, 'String');
+    data = bfopen(fcell{1});
+    omeMeta = data{1,4};
+    % data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
+    data = data{1}(:,1);
+    newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
+    data = cell2mat(data);
+    data = reshape(data, newshape);
+    stack = permute(data, [1 3 2]);
+
+    % trim according to user selection, and forcing a single channel, single z
+    % plane
+    if (handles.params.CZTOrder(end) == 5)
+        substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
+    elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(1) == 3)
+    %     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.channels - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(2) == 3)
+    %     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.zPlanes - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    else
+    %     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    end
+
+    stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
+
+    % pad 100 pixels on each side...
+    newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
+    newstack(100:99 + size(stack, 1), 100:99 + size(stack, 2), :) = stack;
+    stack = newstack;
+    clear newstack;
+
+    % get (OME) metadata from data
+    curr_metadata = getMetadataFromOME(omeMeta, handles.params);
+    curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
+
+    clear data;
+
+    userOptions = getUserOptions(handles);
+
+    %DEBUG w/SMALL MEDIAN FILTER
+    userOptions.medianFiltKernelSize = handles.params.kernelSize;
+    userOptions.kym_width = handles.params.kymWidth;
+    userOptions.kym_length = handles.params.kymLength;
+    userOptions.showKymographOverlapOverlay = true;
+    userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
+    userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
 
 
-initialString = get(hObject, 'String');
-set(hObject, 'String', 'Working...');
-% set(hObject, 'Enable', 'off');
-drawnow;
 
-% check all fields are filled in sensibly...
+    userOptions.timeBeforeCut = 0;
+    userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
+    userOptions.quantAnalysisTime = handles.params.analysisTime;
 
-% generate image data in expected format
-fcell = get(handles.txtImagePath, 'String');
-data = bfopen(fcell{1});
-omeMeta = data{1,4};
-% data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
-data = data{1}(:,1);
-newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
-data = cell2mat(data);
-data = reshape(data, newshape);
-stack = permute(data, [1 3 2]);
 
-% trim according to user selection, and forcing a single channel, single z
-% plane
-if (handles.params.CZTOrder(end) == 5)
-    substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
-elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(1) == 3)
-%     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.channels - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(2) == 3)
-%     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.zPlanes - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    for dind = handles.params.dir
+
+        userOptions.kymDownOrUp = dind;
+
+        %% Pre-process images in stack
+        curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
+        [trim_stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+
+        %% Plot and save kymographs
+        kymographs = plotAndSaveKymographsSlow(trim_stack, curr_metadata, userOptions);
+        results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+
+    end
+
+    % play completion sound
+    play(handles.player);
+    uiwait(msgbox('I''m done!x'));
+    stop(handles.player);
+
+    set(hObject, 'String', initialString);
+    set(hObject, 'Enable', 'on');
 else
-%     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    msgbox('Please check save root!');
 end
-
-stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
-
-% pad 100 pixels on each side...
-newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
-newstack(100:99 + size(stack, 1), 100:99 + size(stack, 2), :) = stack;
-stack = newstack;
-clear newstack;
-
-% get (OME) metadata from data
-curr_metadata = getMetadataFromOME(omeMeta, handles.params);
-curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
-
-clear data;
-
-userOptions = getUserOptions(handles);
-
-%DEBUG w/SMALL MEDIAN FILTER
-userOptions.medianFiltKernelSize = handles.params.kernelSize;
-userOptions.kym_width = handles.params.kymWidth;
-userOptions.kym_length = handles.params.kymLength;
-userOptions.showKymographOverlapOverlay = true;
-userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
-userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
-
-
-
-userOptions.timeBeforeCut = 0;
-userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
-userOptions.quantAnalysisTime = handles.params.analysisTime;
-
-
-for dind = handles.params.dir
-    
-    userOptions.kymDownOrUp = dind;
-    
-    %% Pre-process images in stack
-    curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-    [trim_stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
-
-    %% Plot and save kymographs
-    kymographs = plotAndSaveKymographsSlow(trim_stack, curr_metadata, userOptions);
-    results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
-
-end
-
-% play completion sound
-play(handles.player);
-uiwait(msgbox('I''m done!x'));
-stop(handles.player);
-
-set(hObject, 'String', initialString);
-set(hObject, 'Enable', 'on');
 
 function userOptions = getUserOptions(handles)
 
