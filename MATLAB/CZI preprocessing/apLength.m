@@ -5,13 +5,11 @@
 
 function [imStats, outStats] = apLength(im, pix2um, hfig)
 
-%     im = imread(filename);
     imf = medfilt2(im, [15 15]); % arbitrary smoothing kernel - think through how to choose better. % implement with GPU where supported?
     thr = 4 * quantile(imf(:), 0.75); % also arbitrary threshold scaliing...
     binim = imf > thr;
     
     binim =  imfill(binim, 'holes'); % do some processing
-%     binim = imclose(binim, strel('disk', 25)); % AGAIN arbitary strel size...do we need this if we use convex hull?
     
     imStats = regionprops(binim, 'Orientation', 'ConvexHull', ...
         'MajorAxisLength', 'MinorAxisLength', 'Area');
@@ -57,6 +55,12 @@ function [imStats, outStats] = apLength(im, pix2um, hfig)
     outStats.meanD = mean(apLengths)*pix2um;
     outStats.medianD = median(apLengths)*pix2um;
     outStats.maxD = max(apLengths)*pix2um;
+    a = imcrop(binim, imStats2(1).BoundingBox);
+    outStats.stainedR1Length = mean(sum(a, 1))*pix2um;
+    outStats.stainedR1Width = mean(sum(a,2))*pix2um;
+    a = imcrop(binim, imStats2(2).BoundingBox);
+    outStats.stainedR2Length = mean(sum(a, 1))*pix2um;
+    outStats.stainedR2Width = mean(sum(a,2))*pix2um;
 
     % display original image and line showing minimum length
 %     imagesc(im); 
