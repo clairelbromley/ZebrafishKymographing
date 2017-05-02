@@ -47,7 +47,7 @@ function outStatses = apLengthCZIHandler(rootPath)
        C = 2;
        iPlane = reader.getIndex(zidx - 1, C - 1, 0) + 1;
        im = bfGetPlane(reader, iPlane);
-       [imStats, outStats] = apLength(im, pix2um, hfig);
+       [imStats, outStats, lastBinIm] = apLength(im, pix2um, hfig, []);
        
        if saveFigures
             savefig(hfig, [outpath filesep sprintf('Zplane = %d', zidx)]);
