@@ -3,7 +3,7 @@
 %TODO: deal with case when lumen opening is occuring and rhombomeres aren't
 %contiguous across the midline
 
-function [imStats, outStats] = apLength(im, pix2um, hfig)
+function [imStats, outStats, binim] = apLength(im, pix2um, hfig, lastBinIm)
 
     imf = medfilt2(im, [15 15]); % arbitrary smoothing kernel - think through how to choose better. % implement with GPU where supported?
     thr = 4 * quantile(imf(:), 0.75); % also arbitrary threshold scaliing...
@@ -19,7 +19,26 @@ function [imStats, outStats] = apLength(im, pix2um, hfig)
     imStats = [imStats(sidx(1)); imStats(sidx(2))];
     
     bwl = bwlabel(binim);
-    binim((bwl ~= sidx(1)) & (bwl ~= sidx(2))) = 0;
+    
+    if ~isempty(lastBinIm)
+        % if previous mask is provided, check for overlap with 3rd largest
+        % mask region: if overlap > 90%, say this is part of rhombomere
+        % that is separated from 2nd largest mask region by lumen
+        % opening...
+        imStats = [imStats(sidx(1)); imStats(sidx(2));...
+            imStats(sidx(3))];
+        binim((bwl ~= sidx(1)) & (bwl ~= sidx(2)) & ...
+            (bwl ~= sidx(3))) = 0;
+        thrd = binim(bwl == sidx(3));
+        if sum(sum(thrd & lastBinIm)) < 0.9 * sum(thrd(:))
+            imStats = imStats(1:2);
+            imStats = [imStats(sidx(1)); imStats(sidx(2))];
+            binim((bwl ~= sidx(1)) & (bwl ~= sidx(2))) = 0;
+        else
+            imStats = [imStats(sidx(1)); imStats(sidx(2))];
+            binim((bwl ~= sidx(1)) & (bwl ~= sidx(2))) = 0;
+        end
+    
     
     if ~isempty(hfig)
         set(0, 'currentfigure', hfig)
@@ -35,7 +54,14 @@ function [imStats, outStats] = apLength(im, pix2um, hfig)
         edge2 = edges{2};
         hp2 = patch(edge2(:,2), edge2(:,1), 'r', 'FaceAlpha', 0.2, ...
             'EdgeColor', 'r', 'LineWidth', 2);
+        if length(imStats) > 2
+            edge3 = edges{3};
+            hp3 = patch(edge3(:,2), edge2(:,1), 'r', 'FaceAlpha', 0.2, ...
+            'EdgeColor', 'r', 'LineWidth', 2);
+        end
     end
+    
+    % loop next part twice if length(imStats) > 3...
     
     angleToMeasureAlong = mean([imStats.Orientation]);
     binim = imrotate(binim, -angleToMeasureAlong, 'bilinear'); % implement with GPU where supported?
