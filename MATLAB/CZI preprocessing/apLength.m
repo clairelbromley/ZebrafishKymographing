@@ -54,6 +54,8 @@ function [imStats, outStats] = apLength(im, pix2um, hfig)
     outStats.minD = mn*pix2um;
     outStats.meanD = mean(apLengths)*pix2um;
     outStats.medianD = median(apLengths)*pix2um;
+    outStats.q25D = quantile(apLengths, 0.25) * pix2um;
+    outStats.q75D = quantile(apLengths, 0.75) * pix2um;
     outStats.maxD = max(apLengths)*pix2um;
     a = imcrop(binim, imStats2(1).BoundingBox);
     outStats.stainedR1Length = mean(sum(a, 1))*pix2um;
@@ -61,6 +63,7 @@ function [imStats, outStats] = apLength(im, pix2um, hfig)
     a = imcrop(binim, imStats2(2).BoundingBox);
     outStats.stainedR2Length = mean(sum(a, 1))*pix2um;
     outStats.stainedR2Width = mean(sum(a,2))*pix2um;
+    
 
     % display original image and line showing minimum length
 %     imagesc(im); 
