@@ -415,9 +415,17 @@ if ischar(new_image_path{1})
             handles.reader = bfGetReader(new_image_path{1});
             
             if strcmp(ext, '.tif')
-                [metaFName, metaPName, ~] = uigetfile('*.czi', 'Locate the original .czi file for metadata...', pathstr);
-                metareader = bfGetReader([metaPName filesep metaFName]);
-                omeMeta = metareader.getMetadataStore();
+                answer = questdlg('Extract metadata from CZI or populate manually?', 'Select metadata location...', 'CZI', 'Manual entry', 'CZI');
+                if strcmp(answer, 'CZI')
+                    [metaFName, metaPName, ~] = uigetfile('*.czi', 'Locate the original .czi file for metadata...', pathstr);
+                    metareader = bfGetReader([metaPName filesep metaFName]);
+                    omeMeta = metareader.getMetadataStore();
+                else
+                    % generate figure for input of metadata
+                    metaOut = uiMetaInput(new_image_path{1}, handles.reader);
+                    omeMeta = metaOut.omeMeta;
+                    handles.reader.setGlobalMetadata(metaOut.globalMeta);
+                end
             else
                 omeMeta = handles.reader.getMetadataStore();
             end
@@ -461,6 +469,8 @@ if ischar(new_image_path{1})
                 handles.params.date = handles.reader.getGlobalMetadata.get('Information|Document|CreationDate #1');
                 A = sscanf(handles.params.date, '%d-%d-%dT%s');
                 handles.params.date = sprintf('%02d%02d%02d', A(3), A(2), A(1)-2000);   % assumes images taken this century - seems reasonable :)
+            else
+                handles.params.date = datestr(now, 'dddmmyy');
             end
 %             guidata(hObject, handles);
             handles.params = updateUIParams(handles.params);
