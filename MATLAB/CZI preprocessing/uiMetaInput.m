@@ -33,8 +33,9 @@ function metaOut = uiMetaInput(filepath, reader)
                      'Position', [0.05 0.05 0.5 0.8], ...
                      'MenuBar', 'none', ...
                      'Name', ['Enter metadata for data in ' filename], ...
-                     'NumberTitle', 'off', ...
-                     'CloseRequestFcn', @myCloseReqFcn);
+                     'NumberTitle', 'off');
+%                  , ...
+%                      'CloseRequestFcn', @myCloseReqFcn);
         hs.okbtn = uicontrol(hs.fig,...
                         'Units', 'normalized', ...
                         'Position',[0.8 0.05 0.1 0.05],...
@@ -121,23 +122,17 @@ function metaOut = uiMetaInput(filepath, reader)
     end
 
     function finish(hObject,event)
-        close(hs.fig);
-    end
-
-    function iout = toInt(x)
-        iout = javaObject('ome.xml.model.primitives.PositiveInteger', ...
-                        javaObject('java.lang.Integer', x));
-    end
-
-    function myCloseReqFcn(hObject,event)
-        
-        try
+%         try
             sz = ome.units.quantity.Length(java.lang.Double(str2double(get(hs.PixelsPhysicalSizeX, 'String'))), ...
-                ome.units.UNITS.MICROMETER);
+                ome.units.UNITS.MICROM);
             omeMeta.setPixelsPhysicalSizeX(sz, 0);
             omeMeta.setPixelsSizeT(toInt(str2double(get(hs.PixelsSizeT, 'String'))),0);
             omeMeta.setPixelsSizeZ(toInt(str2double(get(hs.PixelsSizeZ, 'String'))),0);
             omeMeta.setPixelsSizeC(toInt(str2double(get(hs.PixelsSizeC, 'String'))),0);
+            t0 = ome.units.quantity.Time(java.lang.Double(0), ome.units.UNITS.S);
+            t1 = ome.units.quantity.Time(java.lang.Double(str2double(get(hs.PlaneDeltaT, 'String'))), ome.units.UNITS.S);
+            omeMeta.setPlaneDeltaT(t0, 0, 0);
+            omeMeta.setPlaneDeltaT(t1, 0, 1);
             dimensionOrderEnumHandler = javaObject('ome.xml.model.enums.handlers.DimensionOrderEnumHandler');
             dimensionOrder = dimensionOrderEnumHandler.getEnumeration(upper(get(hs.PixelsDimensionOrder, 'String')));
             omeMeta.setPixelsDimensionOrder(dimensionOrder, 0);
@@ -148,12 +143,26 @@ function metaOut = uiMetaInput(filepath, reader)
 
             metaOut.omeMeta = omeMeta;
             metaOut.globalMeta = globalMeta;
-        catch
-            msgbox('Error trying to assign manaul metadata!');
-        end
+%         catch ME
+%             disp(ME);
+%             msgbox('Error trying to assign manaul metadata!');
+%         end
         
         delete(hs.fig);
     end
+
+    function iout = toInt(x)
+        iout = javaObject('ome.xml.model.primitives.PositiveInteger', ...
+                        javaObject('java.lang.Integer', x));
+    end
+
+%     function myCloseReqFcn(hObject,event)
+%         
+%         print('closing');
+%         
+% %         t
+%         delete(hs.fig);
+%     end
     
 
 end
