@@ -424,7 +424,6 @@ if ischar(new_image_path{1})
                     % generate figure for input of metadata
                     metaOut = uiMetaInput(new_image_path{1}, handles.reader);
                     omeMeta = metaOut.omeMeta;
-                    handles.reader.setGlobalMetadata(metaOut.globalMeta);
                 end
             else
                 omeMeta = handles.reader.getMetadataStore();

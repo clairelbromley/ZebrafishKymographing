@@ -8,11 +8,11 @@ function metaOut = uiMetaInput(filepath, reader)
     [~,filename,~] = fileparts(filepath);
     
     % define default values
-    PixelsPhysicalSizeX = 0.21;
+    PixelsPhysicalSizeX = 0.218;
     PixelsSizeT = length(info);
     PixelsSizeZ = 1;
     PixelsSizeC = 1;
-    PlaneDeltaT = 1;
+    PlaneDeltaT = 0.2;
     PixelsDimensionOrder = 'XYTZC';
     CreationDate = datestr(now, 'ddmmyy');
     
