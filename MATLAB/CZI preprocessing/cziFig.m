@@ -425,6 +425,7 @@ if ischar(new_image_path{1})
                     [metaFName, metaPName, ~] = uigetfile('*.czi', 'Locate the original .czi file for metadata...', pathstr);
                     metareader = bfGetReader([metaPName filesep metaFName]);
                     omeMeta = metareader.getMetadataStore();
+                    set(handles.menuBleachPower, 'Enable', 'on');
                 else
                     % generate figure for input of metadata
                     metaOut = uiMetaInput(new_image_path{1}, handles.reader);
@@ -432,6 +433,7 @@ if ischar(new_image_path{1})
                 end
             else
                 omeMeta = handles.reader.getMetadataStore();
+                set(handles.menuBleachPower, 'Enable', 'on');
             end
             
             handles.omeMeta = omeMeta;
