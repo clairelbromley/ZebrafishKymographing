@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 23-Apr-2017 20:56:29
+% Last Modified by GUIDE v2.5 15-May-2017 22:17:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -305,7 +305,9 @@ function userOptions = getUserOptions(handles)
 
     userOptions = UserOptions();
     userOptions.outputFolder = get(handles.txtSaveRoot, 'String');
-    userOptions.lumenOpening = true;        % allow edges of duration >0.33 quant analysis time to be identified as real. 
+    if strcmp(get(handles.menuLumenOpening, 'Checked'), 'on')
+        userOptions.lumenOpening = true;        % allow edges of duration >0.33 quant analysis time to be identified as real. 
+    end
 
 function params = getParams()
 
@@ -1771,3 +1773,16 @@ else
 end
 
 guidata(hObject, handles);
+
+
+% --------------------------------------------------------------------
+function menuLumenOpening_Callback(hObject, eventdata, handles)
+% hObject    handle to menuLumenOpening (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if strcmp(get(handles.menuLumenOpening, 'Checked'), 'on')
+    set(handles.menuLumenOpening, 'Checked', 'off');
+else
+    set(handles.menuLumenOpening, 'Checked', 'on');
+end
