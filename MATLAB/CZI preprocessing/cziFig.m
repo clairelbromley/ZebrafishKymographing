@@ -281,6 +281,8 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
         %% Plot and save kymographs
         kymographs = plotAndSaveKymographsSlow(trim_stack, curr_metadata, userOptions);
         results = extractQuantitativeKymographData(kymographs, curr_metadata, userOptions);
+        
+        close(userOptions.figHandle);
 
     end
 
