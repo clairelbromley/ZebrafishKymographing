@@ -219,7 +219,7 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     % generate image data in expected format
     fcell = get(handles.txtImagePath, 'String');
     data = bfopen(fcell{1});
-    omeMeta = data{1,4};
+    omeMeta = handles.omeMeta;
     % data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
     data = data{1}(:,1);
     newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
@@ -229,14 +229,14 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
 
     % trim according to user selection, and forcing a single channel, single z
     % plane
-    if (handles.params.CZTOrder(end) == 5)
+    if (handles.params.CZTOrder(end) == 5) % CZT or ZTC
         substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
-    elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(1) == 3)
-    %     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.channels - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-    elseif (handles.params.CZTOrder(end) == 4) && (handles.params.CZTOrder(2) == 3)
-    %     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1 + (handles.params.zPlanes - 1)).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
-    else
-    %     handles.params.frameTime = double(omeMeta.getPlaneDeltaT(0, 1).value()) - double(omeMeta.getPlaneDeltaT(0, 0).value());
+    elseif  ((sum(handles.params.CZTOrder == [3 5 4]') / 3) == 1) % CTZ
+        substack = stack(:, :, 1:handles.params.channels:(handles.params.channels * handles.params.sequenceLength));
+    elseif  ((sum(handles.params.CZTOrder == [4 5 3]') / 3) == 1) % ZTC
+        substack = stack(:, :, 1:handles.params.zPlanes:(handles.params.zPlanes * handles.params.sequenceLength));
+    else % TCZ or TZC
+        substack = stack(:, :, 1:handles.params.sequenceLength);
     end
 
     stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
@@ -335,6 +335,7 @@ params.kernelSize = handles.params.kernelSize;
 params.kymWidth = handles.params.kymWidth;
 params.kymLength = handles.params.kymLength;
 params.zPlanes = handles.params.zPlanes;
+params.sequenceLength = handles.params.sequenceLength;
 params.channels = handles.params.channels;
 params.CZTOrder = handles.params.CZTOrder;
 

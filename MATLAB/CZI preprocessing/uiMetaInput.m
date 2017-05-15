@@ -14,7 +14,11 @@ function metaOut = uiMetaInput(filepath, reader)
     PixelsSizeC = 1;
     PlaneDeltaT = 0.2;
     PixelsDimensionOrder = 'XYTZC';
-    CreationDate = datestr(now, 'ddmmyy');
+    if ~isnan(str2double(filename(1:6)))
+        CreationDate = filename(1:6);
+    else
+        CreationDate = datestr(now, 'ddmmyy');
+    end
     
     % render ui
     hs = addcomponents();
@@ -138,7 +142,7 @@ function metaOut = uiMetaInput(filepath, reader)
             omeMeta.setPixelsDimensionOrder(dimensionOrder, 0);
 
             dStr = get(hs.CreationDate, 'String');
-            globalMeta.put('Information|Document|CreationDate #1', [dStr(1:2) '-' dStr(3:4) '-' dStr(5:6) datestr(now, 'Thh:MM:ss')]);
+            globalMeta.put('Information|Document|CreationDate #1', ['20' dStr(5:6) '-' dStr(3:4) '-' dStr(1:2) datestr(now, 'Thh:MM:ss')]);
 
 
             metaOut.omeMeta = omeMeta;
