@@ -1804,18 +1804,53 @@ else
     set(handles.menuLumenBasal, 'Checked', 'on');
     
     dum = get(handles.txtImagePath, 'String');
-    [basepath, ~, ~] = fileparts(dum{1});
+    [basepath, filename, ~] = fileparts(dum{1});
     % get relevant data from the spreadsheet from analysis of apical
     % movements
-    [f,p,~] = uigetfile({'*.xlsx'; '*.xls'; '*.csv'}, 'Choose spreadsheet with previous apical analysis...', ...
-        basepath);
+    
 %     [~, sh, ~] = xlsfinfo([p f]);
 %     answer = questdlg('Choose the appropriate sheet to use:', ...
 %         'Which sheet?', sh)
     
-    [~, ~, dum] = xlsread([p f], 2);
-    % filter data based on file name and save in sensbile structure
+    if isfield(handles, 'lumenOpeningXLFile')
+        answer = questdlg('Use previous lumen opening analysis spreadsheet?', 'Yes', 'No');
+        if strcmp(answer, 'No')
+            [f,p,~] = uigetfile({'*.xlsx'; '*.xls'; '*.csv'}, 'Choose spreadsheet with previous apical analysis...', ...
+        basepath);
+            handles.lumenOpeningXLFile = [p f];
+        end
+        [~, ~, dum] = xlsread(handles.lumenOpeningXLFile, 2);
+    else
+        [f,p,~] = uigetfile({'*.xlsx'; '*.xls'; '*.csv'}, 'Choose spreadsheet with previous apical analysis...', ...
+            basepath);
+        handles.lumenOpeningXLFile = [p f];
+        [~, ~, dum] = xlsread(handles.lumenOpeningXLFile, 2);
+    end
     
+    
+    expTime = regexp(filename, '__', 'split');
+    expTime = expTime{2};
+    expTimeStr = [expTime(1:2) expTime(4:5)];
+    fileRef = dum(:,2);
+    k = cell(length(fileRef), 1);
+    k(:) = {expTimeStr};
+    indices = find(~cellfun(@isempty,cellfun(@strfind, fileRef, k, 'UniformOutput', false)));
+    
+    % get relevant cut positions - need to figure out which experiment
+    % folder, and which  subfolder to look in for trimmed_cut_info
+    
+    % get relevant frames to generate kymographs for based on xstart, end
+    
+    % get user input on basal membrane position c.f. basal membrane work in
+    % cut cells, recessing 2.5 microns from basal edge drawn parallel to
+    % the "cut"
+    
+    % potentially pass some padded form of the image to account for
+    % possibly running off the edge of the current frame
+            
+            
+    % filter data based on file name and save in sensbile structure
+    disp(dum);
 end
 
 guidata(hObject, handles);
