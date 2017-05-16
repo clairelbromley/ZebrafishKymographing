@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 15-May-2017 22:17:48
+% Last Modified by GUIDE v2.5 16-May-2017 05:51:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -1785,6 +1785,37 @@ function menuLumenOpening_Callback(hObject, eventdata, handles)
 
 if strcmp(get(handles.menuLumenOpening, 'Checked'), 'on')
     set(handles.menuLumenOpening, 'Checked', 'off');
+    set(handles.menuLumenBasal, 'Enable', 'off');
 else
     set(handles.menuLumenOpening, 'Checked', 'on');
+    set(handles.menuLumenBasal, 'Enable', 'on');
 end
+
+
+% --------------------------------------------------------------------
+function menuLumenBasal_Callback(hObject, eventdata, handles)
+% hObject    handle to menuLumenBasal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if strcmp(get(handles.menuLumenBasal, 'Checked'), 'on')
+    set(handles.menuLumenBasal, 'Checked', 'off');
+else
+    set(handles.menuLumenBasal, 'Checked', 'on');
+    
+    dum = get(handles.txtImagePath, 'String');
+    [basepath, ~, ~] = fileparts(dum{1});
+    % get relevant data from the spreadsheet from analysis of apical
+    % movements
+    [f,p,~] = uigetfile({'*.xlsx'; '*.xls'; '*.csv'}, 'Choose spreadsheet with previous apical analysis...', ...
+        basepath);
+%     [~, sh, ~] = xlsfinfo([p f]);
+%     answer = questdlg('Choose the appropriate sheet to use:', ...
+%         'Which sheet?', sh)
+    
+    [~, ~, dum] = xlsread([p f], 2);
+    % filter data based on file name and save in sensbile structure
+    
+end
+
+guidata(hObject, handles);
