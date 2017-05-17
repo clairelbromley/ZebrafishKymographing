@@ -59,7 +59,7 @@ dummy = [mfilename('fullpath') '.m'];
 currdir = fileparts(dummy);
 funcPath = [currdir filesep '..'];
 addpath(genpath(currdir));
-addpath(funcPath);
+addpath(genpath(funcPath));
 
 handles.lowMemMask = [];
 handles.lastLowMemMask = [];
@@ -1831,15 +1831,26 @@ else
     expTime = regexp(filename, '__', 'split');
     expTime = expTime{2};
     expTimeStr = [expTime(1:2) expTime(4:5)];
-    fileRef = dum(:,2);
+    fileRef = dum(2:end, strcmp(dum(1, :), 'File ref'));
     k = cell(length(fileRef), 1);
     k(:) = {expTimeStr};
     indices = find(~cellfun(@isempty,cellfun(@strfind, fileRef, k, 'UniformOutput', false)));
     
     % get relevant cut positions - need to figure out which experiment
-    % folder, and which  subfolder to look in for trimmed_cut_info
+    % folder (GET THIS FROM DATA LOCATION - ENSURE THAT ALL DATA IS PLACED
+    % CONSISTENTLY WRT ANALYSIS and which  subfolder to look in for 
+    % trimmed_cut_info
+    fldr = dir([basepath filesep expTimeStr filesep get(handles.txtDate, 'String') '*']);
+    fldr = fldr([fldr.isdir]);
+    tcinffile = [basepath filesep expTimeStr filesep fldr.name filesep 'trimmed_cutinfo_cut_1.txt'];
+    padxcut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.xcut') + 50;
+    padycut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.ycut') + 50;
     
     % get relevant frames to generate kymographs for based on xstart, end
+    % CHECK WHETHER START AND END FRAMES ARE CONSISTENT WHEN GENERATING
+    % KYMOGRAPHS - should save this as metadata output from cziFig
+    kym_indices_to_keep = dum(indices, strcmp(dum(1, :), 'Kymo index'));
+    kym_indices_to_keep = unique([kym_indices_to_keep{:}]);
     
     % get user input on basal membrane position c.f. basal membrane work in
     % cut cells, recessing 2.5 microns from basal edge drawn parallel to
@@ -1849,7 +1860,18 @@ else
     % possibly running off the edge of the current frame
             
             
-    % filter data based on file name and save in sensbile structure
+    % re-import tiff output for relvant indices and trim to correct size
+    % for easy matching of timebase
+    for idx = kym_indices_to_keep
+        % get relevant analysis spreadsheet line
+        ssline = dum(indices ,:);
+        ssline = ssline(cell2mat(ssline(:,strcmp(dum(1,:), 'Kymo index'))) == k, :);
+        ssline = ssline(strcmp(ssline(:, strcmp(dum(1,:), 'T long')), 'long'));
+        ssline = ssline(1,:);
+        t_start = ssline(strcmp(dum(1,:), 'x start'));
+        t_end = ssline(strcmp(dum(1,:), 'x end'));
+        
+    end
     disp(dum);
 end
 
