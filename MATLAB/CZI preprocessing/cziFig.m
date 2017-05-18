@@ -1847,148 +1847,165 @@ else
         % folder (GET THIS FROM DATA LOCATION - ENSURE THAT ALL DATA IS PLACED
         % CONSISTENTLY WRT ANALYSIS and which  subfolder to look in for 
         % trimmed_cut_info
-        fldr = dir([basepath filesep expTimeStr filesep get(handles.txtDate, 'String') '*']);
-        fldr = fldr([fldr.isdir]);
-        tcinffile = [basepath filesep expTimeStr filesep fldr.name filesep 'trimmed_cutinfo_cut_1.txt'];
-        padxcut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.xcut'); %+ 100; % account for padding
-        padycut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.ycut'); %+ 100; % account for padding
+        subfldrs = dir([basepath filesep expTimeStr filesep '*']);
+        subfldrs = subfldrs([subfldrs.isdir]);
+        subfldrs = subfldrs(3:end);
+        
+        for subfldr = subfldrs
+            userOptions.outputFolder = get(handles.txtSaveRoot, 'String');
+            fldr = dir([basepath filesep expTimeStr filesep subfldr.name filesep get(handles.txtDate, 'String') '*']);
+            fldr = fldr([fldr.isdir]);
+            tcinffile = [basepath filesep expTimeStr filesep subfldr.name filesep fldr.name filesep 'trimmed_cutinfo_cut_1.txt'];
+            padxcut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.xcut'); %+ 100; % account for padding
+            padycut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.ycut'); %+ 100; % account for padding
 
-        % get relevant frames to generate kymographs for based on xstart, end
-        % CHECK WHETHER START AND END FRAMES ARE CONSISTENT WHEN GENERATING
-        % KYMOGRAPHS - should save this as metadata output from cziFig
-        kym_indices_to_keep = dum(indices, strcmp(dum(1, :), 'Kymo index'));
-        kym_indices_to_keep = unique([kym_indices_to_keep{:}]);
+            % get relevant frames to generate kymographs for based on xstart, end
+            % CHECK WHETHER START AND END FRAMES ARE CONSISTENT WHEN GENERATING
+            % KYMOGRAPHS - should save this as metadata output from cziFig
+            kym_indices_to_keep = dum(indices, strcmp(dum(1, :), 'Kymo index'));
+            kym_indices_to_keep = unique([kym_indices_to_keep{:}]);
 
-        hs = get(handles.axImage, 'Children');
-        im = get(hs(strcmp(get(hs, 'Type'), 'image')), 'CData');
+            hs = get(handles.axImage, 'Children');
+            im = get(hs(strcmp(get(hs, 'Type'), 'image')), 'CData');
 
-        curr_metadata = getMetadataFromOME(handles.omeMeta, handles.params);
+            curr_metadata = getMetadataFromOME(handles.omeMeta, handles.params);
 
-        userOptions = getUserOptions(handles);
-        set(userOptions.figHandle, 'Visible', 'off')
-        userOptions.medianFiltKernelSize = handles.params.kernelSize;
-        userOptions.kym_width = handles.params.kymWidth;
-        userOptions.kym_length = handles.params.kymLength;
-        userOptions.showKymographOverlapOverlay = true;
-        userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
-        userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
+            userOptions = getUserOptions(handles);
+            set(userOptions.figHandle, 'Visible', 'off')
+            userOptions.medianFiltKernelSize = handles.params.kernelSize;
+            userOptions.kym_width = handles.params.kymWidth;
+            userOptions.kym_length = handles.params.kymLength;
+            userOptions.showKymographOverlapOverlay = true;
+            userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
+            userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
 
-        userOptions.timeBeforeCut = 0;
-        userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
-        userOptions.quantAnalysisTime = handles.params.analysisTime;
-        userOptions.basalMembraneKym = true;
+            userOptions.timeBeforeCut = 0;
+            userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
+            userOptions.quantAnalysisTime = handles.params.analysisTime;
+            userOptions.basalMembraneKym = true;
 
 
-        directions = {true false};
-        for direction = directions
-            userOptions.kymDownOrUp = direction{1};
-            curr_metadata.kym_region.xcut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.xcut');
-            curr_metadata.kym_region.ycut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.ycut');
-            curr_metadata.kym_region.kym_startx = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_startx');
-            curr_metadata.kym_region.kym_endx = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_endx');
-            curr_metadata.kym_region.kym_starty = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_starty');
-            curr_metadata.kym_region.kym_endy = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_endy');
-            curr_metadata.kym_region.deltax = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.deltax');
-            curr_metadata.kym_region.deltay = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.deltay');
-            curr_metadata.kym_region.pos_along_cut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.pos_along_cut');
-            
-            curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
-
-%             beep;
-            curr_metadata = manualBasalMembraneKymographPositioning(im, userOptions, curr_metadata);    
-
-            xy = [curr_metadata.kym_region.xcut' curr_metadata.kym_region.ycut'];
-            handles.cutLine.setPosition(xy);
-
-            % generate image data in expected format
-            fcell = get(handles.txtImagePath, 'String');
-            data = bfopen(fcell{1});
-            omeMeta = handles.omeMeta;
-            % data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
-            data = data{1}(:,1);
-            newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
-            data = cell2mat(data);
-            data = reshape(data, newshape);
-            stack = permute(data, [1 3 2]);
-            clear data;
-
-            % trim according to user selection, and forcing a single channel, single z
-            % plane
-            if (handles.params.CZTOrder(end) == 5) % CZT or ZTC
-                substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
-            elseif  ((sum(handles.params.CZTOrder == [3 5 4]') / 3) == 1) % CTZ
-                substack = stack(:, :, 1:handles.params.channels:(handles.params.channels * handles.params.sequenceLength));
-            elseif  ((sum(handles.params.CZTOrder == [4 5 3]') / 3) == 1) % ZTC
-                substack = stack(:, :, 1:handles.params.zPlanes:(handles.params.zPlanes * handles.params.sequenceLength));
-            else % TCZ or TZC
-                substack = stack(:, :, 1:handles.params.sequenceLength);
-            end
-
-            stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
-
-            % pad 100 pixels on each side...
-            newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
-            newstack(100:99 + size(stack, 1), 100:99 + size(stack, 2), :) = stack;
-            stack = newstack;
-            clear newstack;
-
-%             userOptions.kymDownOrUp = ~userOptions.kymDownOrUp;
-            
-            % get (OME) metadata from data
-%             curr_metadata = getMetadataFromOME(omeMeta, handles.params);
-%             curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
-
-%             curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-
-            for direction2 = directions
-                if direction2{1}
-                    dr2 = 'upwards';
-                else
-                    dr2 = 'downwards';
-                end
+            directions = {true false};
+            for direction = directions
                 
-                strDir = fldr.name;
-                strDir = regexp(strDir,' ','split');
-                strDir = strDir{end};
-                
-                if ~strcmp(dr2, strDir)
-                    % then flip kymograph axes ends to other side of the
-                    % cut axis
-                    dx = curr_metadata.kym_region.kym_endx - curr_metadata.kym_region.kym_startx;
-                    dy = curr_metadata.kym_region.kym_endy - curr_metadata.kym_region.kym_starty;
-                    curr_metadata.kym_region.kym_endx = curr_metadata.kym_region.kym_startx  - dx;
-                    curr_metadata.kym_region.kym_endy = curr_metadata.kym_region.kym_starty  - dy;
-                end
-
-                [trim_stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
-
-                %% Plot and save kymographs
-                kymographs = plotAndSaveKymographsSlow(trim_stack, curr_metadata, userOptions);
-
-                % Trim kymographs tifs to fit previous timebase and save kymographs with indices matching previous analysis 
                 if direction{1}
-                    dr = 'upwards';
+                        dr = 'upwards';
                 else
                     dr = 'downwards';
                 end
-                dir_txt = sprintf('%s, Embryo %s %s basal membrane, %s kymographs, trimmed basal kymograph tiffs', curr_metadata.acquisitionDate, curr_metadata.embryoNumber, dr, dr2);
-                pth_txt = [basepath filesep expTimeStr filesep dir_txt];
-                mkdir(pth_txt);
+                
+                userOptions.kymDownOrUp = direction{1};
+                curr_metadata.kym_region.xcut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.xcut');
+                curr_metadata.kym_region.ycut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.ycut');
+                curr_metadata.kym_region.kym_startx = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_startx');
+                curr_metadata.kym_region.kym_endx = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_endx');
+                curr_metadata.kym_region.kym_starty = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_starty');
+                curr_metadata.kym_region.kym_endy = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.kym_endy');
+                curr_metadata.kym_region.deltax = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.deltax');
+                curr_metadata.kym_region.deltay = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.deltay');
+                curr_metadata.kym_region.pos_along_cut = getNumericMetadataFromText(tcinffile, 'metadata.kym_region.pos_along_cut');
 
-                for kym_ind = 1:size(kymographs, 3)
-                    if sum(kym_indices_to_keep == kym_ind) > 0
-                        ssline = dum(indices, :);
-                        ssline = ssline(cell2mat(ssline(:, strcmp(dum(1,:), 'Kymo index'))) == kym_ind, :);
-                        ssline = ssline(strcmp(ssline(:, strcmp(dum(1,:), 'T long')), 'long'), :);
-                        ssline = ssline(1,:);
-                        t_start = ssline(strcmp(dum(1,:), 'x start'));
-                        t_end = ssline(strcmp(dum(1,:), 'x end'));
-                        kym_im = squeeze(kymographs(t_start{1}:t_end{1},:,kym_ind));
-                        imwrite(uint16(kym_im), [pth_txt filesep sprintf('%s-facing basal membrane, %s kymograph index %d.tif', dr, dr2, kym_ind)]);
+                curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
+
+    %             beep;
+                curr_metadata = manualBasalMembraneKymographPositioning(im, userOptions, curr_metadata);    
+
+                xy = [curr_metadata.kym_region.xcut' curr_metadata.kym_region.ycut'];
+                handles.cutLine.setPosition(xy);
+                guidata(hObject, handles);
+                
+                % generate image data in expected format
+                fcell = get(handles.txtImagePath, 'String');
+                data = bfopen(fcell{1});
+                omeMeta = handles.omeMeta;
+                % data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
+                data = data{1}(:,1);
+                newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
+                data = cell2mat(data);
+                data = reshape(data, newshape);
+                stack = permute(data, [1 3 2]);
+                clear data;
+
+                % trim according to user selection, and forcing a single channel, single z
+                % plane
+                if (handles.params.CZTOrder(end) == 5) % CZT or ZTC
+                    substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
+                elseif  ((sum(handles.params.CZTOrder == [3 5 4]') / 3) == 1) % CTZ
+                    substack = stack(:, :, 1:handles.params.channels:(handles.params.channels * handles.params.sequenceLength));
+                elseif  ((sum(handles.params.CZTOrder == [4 5 3]') / 3) == 1) % ZTC
+                    substack = stack(:, :, 1:handles.params.zPlanes:(handles.params.zPlanes * handles.params.sequenceLength));
+                else % TCZ or TZC
+                    substack = stack(:, :, 1:handles.params.sequenceLength);
+                end
+
+                stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
+
+                % pad 100 pixels on each side...
+                newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
+                newstack(100:99 + size(stack, 1), 100:99 + size(stack, 2), :) = stack;
+                stack = newstack;
+                clear newstack;
+
+    %             userOptions.kymDownOrUp = ~userOptions.kymDownOrUp;
+
+                % get (OME) metadata from data
+    %             curr_metadata = getMetadataFromOME(omeMeta, handles.params);
+    %             curr_metadata.acqMetadata.cycleTime = str2num(get(handles.txtFrameTime, 'String'));
+
+    %             curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
+
+                userOptions.outputFolder = [userOptions.outputFolder filesep expTimeStr ' ' subfldr.name ' membrane edge ' dr];
+                for direction2 = directions
+                    if (direction2{1})
+                        dr2 = 'upwards';
+                    else
+                        dr2 = 'downwards';
+                    end
+
+                    userOptions.kymDownOrUp = direction2{1};
+%                     strDir = fldr.name;
+%                     strDir = regexp(strDir,' ','split');
+%                     strDir = strDir{end};
+                    apicalDir = logical(getNumericMetadataFromText(tcinffile, 'userOptions.kymDownOrUp'))
+
+%                     if (direction2{1} ~= apicalDir)
+%                         % then flip kymograph axes ends to other side of the
+%                         % cut axis
+%                         dx = curr_metadata.kym_region.kym_endx - curr_metadata.kym_region.kym_startx;
+% %                         dy = curr_metadata.kym_region.kym_endy - curr_metadata.kym_region.kym_starty
+%                         curr_metadata.kym_region.kym_endx = curr_metadata.kym_region.kym_startx  - dx;
+%                         curr_metadata.kym_region.kym_endy = curr_metadata.kym_region.kym_starty  - dy
+%                     end
+
+                    [trim_stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
+
+                    %% Plot and save kymographs
+                    kymographs = plotAndSaveKymographsSlow(trim_stack, curr_metadata, userOptions);
+
+                    % Trim kymographs tifs to fit previous timebase and save kymographs with indices matching previous analysis 
+                    
+                    dir_txt = sprintf('%s, Embryo %s %s basal membrane, %s %s kymographs, trimmed basal kymograph tiffs', ...
+                        curr_metadata.acquisitionDate, curr_metadata.embryoNumber, dr, subfldr.name, dr2);
+                    pth_txt = [userOptions.outputFolder filesep dir_txt];
+                    mkdir(pth_txt);
+
+                    for kym_ind = 1:size(kymographs, 3)
+                        if sum(kym_indices_to_keep == kym_ind) > 0
+                            ssline = dum(indices, :);
+                            ssline = ssline(cell2mat(ssline(:, strcmp(dum(1,:), 'Kymo index'))) == kym_ind, :);
+                            ssline = ssline(strcmp(ssline(:, strcmp(dum(1,:), 'T long')), 'long'), :);
+                            ssline = ssline(1,:);
+                            t_start = ssline(strcmp(dum(1,:), 'x start'));
+                            t_end = ssline(strcmp(dum(1,:), 'x end'));
+                            kym_im = squeeze(kymographs(t_start{1}:t_end{1},:,kym_ind));
+                            imwrite(uint16(kym_im), [pth_txt filesep sprintf('%s-facing basal membrane, %s kymograph index %d.tif', dr, dr2, kym_ind)]);
+                        end
                     end
                 end
-            end
+            % CLOSE ALL FIGURES APART FROM CZI FIG TO TRY TO ENSURE THAT
+            % HANDLES TO CUT LINE WORK ON NEXT ITERATION
             
+            end
         end
 
         disp(dum);
