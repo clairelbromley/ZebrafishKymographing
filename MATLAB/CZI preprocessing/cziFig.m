@@ -1802,6 +1802,8 @@ function menuLumenBasal_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+thisFigH = gcf;
+
 if strcmp(get(handles.menuLumenBasal, 'Checked'), 'on')
     set(handles.menuLumenBasal, 'Checked', 'off');
 else
@@ -2004,6 +2006,8 @@ else
                 end
             % CLOSE ALL FIGURES APART FROM CZI FIG TO TRY TO ENSURE THAT
             % HANDLES TO CUT LINE WORK ON NEXT ITERATION
+            fhs = get(0, 'Children');
+            close(fhs ~= thisFigH);
             
             end
         end
