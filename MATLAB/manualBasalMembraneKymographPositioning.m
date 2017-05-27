@@ -74,6 +74,7 @@ end
 
 function proceedFcn(hObject, eventdata, handles)
 
+    set(gcf, 'Visible', 'off');
     uiresume(gcf);
 
 end
@@ -123,18 +124,27 @@ function metadata = reconfigureKymographRegion(data_in, metadata, userOptions)
 
     kp = metadata.kym_region;
     uO = userOptions;
-    offset_x = data_in.offset_x - kp.deltax/4 + 50;
-    offset_y = data_in.offset_y - kp.deltay/4 + 50;
+    if sign(data_in.new_cut_x - kp.xcut) ~= sign(kp.deltax)
+        kp.deltax = -kp.deltax;
+    end
+    if sign(data_in.new_cut_y - kp.ycut) ~= sign(kp.deltay)
+        kp.deltay = -kp.deltay;
+    end
+    offset_x = data_in.new_cut_x - kp.xcut - kp.deltax/4;
+    offset_x = offset_x(1);
+    offset_y = data_in.new_cut_y - kp.ycut - kp.deltay/4;
+    offset_y = offset_y(1);
     kp.xcut = kp.xcut + offset_x;
     kp.ycut = kp.ycut + offset_y;
     
     kp.kym_startx = kp.kym_startx + offset_x;
-    kp.kym_endx = kp.kym_endx + offset_x;
+    kp.kym_endx = kp.kym_startx + kp.deltax;
+    
 %     kp.kym_endx(kp.kym_endx < 1) = 1;
 %     kp.kym_endx(kp.kym_endx > size(data_in.frame,2)) = size(data_in.frame,2);
     
     kp.kym_starty = kp.kym_starty + offset_y;
-    kp.kym_endy = kp.kym_endy + offset_y;
+    kp.kym_endy = kp.kym_starty + kp.deltay;
 %     kp.kym_endy(kp.kym_endy < 1) = 1;
 %     kp.kym_endy(kp.kym_endy > size(data_in.frame,1)) = size(data_in.frame,1);
     

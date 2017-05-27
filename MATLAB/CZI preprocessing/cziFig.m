@@ -1888,6 +1888,7 @@ else
 
 
             directions = {true false};
+            tempOutputFldr = userOptions.outputFolder;
             for direction = directions
                 
                 if direction{1}
@@ -1912,9 +1913,9 @@ else
     %             beep;
                 curr_metadata = manualBasalMembraneKymographPositioning(im, userOptions, curr_metadata);    
 
-                xy = [curr_metadata.kym_region.xcut' curr_metadata.kym_region.ycut'];
-                handles.cutLine.setPosition(xy);
-                guidata(hObject, handles);
+%                 xy = [curr_metadata.kym_region.xcut' curr_metadata.kym_region.ycut'];
+%                 handles.cutLine.setPosition(xy);
+%                 guidata(hObject, handles);
                 
                 % generate image data in expected format
                 fcell = get(handles.txtImagePath, 'String');
@@ -1957,14 +1958,14 @@ else
     %             curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
 
                 userOptions.outputFolder = [userOptions.outputFolder filesep expTimeStr ' ' subfldr.name ' membrane edge ' dr];
-                for direction2 = directions
-                    if (direction2{1})
-                        dr2 = 'upwards';
-                    else
-                        dr2 = 'downwards';
-                    end
+%                 for direction2 = directions
+%                     if (direction2{1})
+%                         dr2 = 'upwards';
+%                     else
+%                         dr2 = 'downwards';
+%                     end
 
-                    userOptions.kymDownOrUp = direction2{1};
+%                     userOptions.kymDownOrUp = direction2{1};
 %                     strDir = fldr.name;
 %                     strDir = regexp(strDir,' ','split');
 %                     strDir = strDir{end};
@@ -1986,12 +1987,12 @@ else
 
                     % Trim kymographs tifs to fit previous timebase and save kymographs with indices matching previous analysis 
                     
-                    dir_txt = sprintf('%s, Embryo %s %s basal membrane, %s %s kymographs, trimmed basal kymograph tiffs', ...
-                        curr_metadata.acquisitionDate, curr_metadata.embryoNumber, dr, subfldr.name, dr2);
+                    dir_txt = sprintf('%s, Embryo %s %s basal membrane, %s kymographs, trimmed basal kymograph tiffs', ...
+                        curr_metadata.acquisitionDate, curr_metadata.embryoNumber, dr, subfldr.name);
                     pth_txt = [userOptions.outputFolder filesep dir_txt];
                     mkdir(pth_txt);
 
-                    for kym_ind = 1:size(kymographs, 3)
+                    for kym_ind = -1:size(kymographs, 3)-2
                         if sum(kym_indices_to_keep == kym_ind) > 0
                             ssline = dum(indices, :);
                             ssline = ssline(cell2mat(ssline(:, strcmp(dum(1,:), 'Kymo index'))) == kym_ind, :);
@@ -1999,16 +2000,23 @@ else
                             ssline = ssline(1,:);
                             t_start = ssline(strcmp(dum(1,:), 'x start'));
                             t_end = ssline(strcmp(dum(1,:), 'x end'));
-                            kym_im = squeeze(kymographs(t_start{1}:t_end{1},:,kym_ind));
-                            imwrite(uint16(kym_im), [pth_txt filesep sprintf('%s-facing basal membrane, %s kymograph index %d.tif', dr, dr2, kym_ind)]);
+                            kym_im = squeeze(kymographs(t_start{1}:t_end{1},:,kym_ind+2));
+                            imwrite(uint16(kym_im'), [pth_txt filesep sprintf('%s-facing basal membrane, kymograph index %d.tif', dr, kym_ind)]);
                         end
                     end
-                end
-            % CLOSE ALL FIGURES APART FROM CZI FIG TO TRY TO ENSURE THAT
-            % HANDLES TO CUT LINE WORK ON NEXT ITERATION
-            fhs = get(0, 'Children');
-            close(fhs ~= thisFigH);
+%                 end
+%             % CLOSE ALL FIGURES APART FROM CZI FIG TO TRY TO ENSURE THAT
+%             % HANDLES TO CUT LINE WORK ON NEXT ITERATION
+%             fhs = get(0, 'Children');
+%             for fh  = fhs
+%                 try
+%                     close(fh)
+%                 end
+%             end
+%             close(fhs ~= thisFigH);
             
+            userOptions.outputFolder = tempOutputFldr;
+
             end
         end
 
