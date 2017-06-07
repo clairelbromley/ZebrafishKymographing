@@ -7,26 +7,38 @@ function [imStats, outStats, thisBinIm] = apLength(im, pix2um, hfig, prevBinIm)
 
     %% process image to find krox20-labelled rhombomeres
     imf = medfilt2(im, [15 15]); % maximum kernel that would allow GPU operation. Empirically looks OK. 
-    thr = 4 * quantile(imf(:), 0.75); % Emprically determined threshold
+    thr = 3 * quantile(imf(:), 0.75); % Emprically determined threshold
     binim = imf > thr;
     binim =  imfill(binim, 'holes'); % aim for contiguous regions
     
     % assume two largest contiguous regions are two stained rhombomeres -
     % unless previous mask has been passed, in which case check whether
     % next largest region corresponds >90% with previous rhombomere region,
+    % AND is greater than 40% of the area of the largest region, 
     % suggesting that it's one rhombomere split by lumen opening
+    
+    %TODO: deal with case when BOTH rhombomeres split to give 4 relevant
+    %areas
     imStats = regionprops(binim, 'Orientation', 'ConvexHull', ...
         'MajorAxisLength', 'MinorAxisLength', 'Area');
     [~,sidx] = sort([imStats.Area], 'descend');
     bwl = bwlabel(binim);
     
     % TODO: error checking for case when too few regions are found
-    lumenOpening = false
-    thirdLargestA = binim;
-    thirdLargestA( (bwl ~= sidx(3)) ) = 0;
+    lumenOpening = false;
+    if length(sidx) > 2
+        thirdLargestA = binim;
+        thirdLargestA( (bwl ~= sidx(3)) ) = 0;
+        areaCheck = (imStats(sidx(3)).Area > 0.4 * imStats(sidx(1)).Area);
+    else
+        thirdLargestA = zeros(size(binim));
+        areaCheck = false;
+    end
+    
     if ~isempty(prevBinIm)
-        if (sum(thirdLargestA & prevBin) > 0.9 * sum(thirdLargestA))
-            lumenOpening = true
+        if areaCheck && (sum(thirdLargestA(:) & prevBinIm(:)) > 0.7 * sum(thirdLargestA(:)))
+%             beep;
+            lumenOpening = true;
             imStats = [imStats(sidx(1)); imStats(sidx(2)); imStats(sidx(3))];
             binim((bwl ~= sidx(1)) & (bwl ~= sidx(2)) & (bwl ~= sidx(3))) = 0;
         else
@@ -40,6 +52,7 @@ function [imStats, outStats, thisBinIm] = apLength(im, pix2um, hfig, prevBinIm)
     
     %% if figure handle passed, update display - useful for debug/demo
     if ~isempty(hfig)
+        % TODO: make edges/patches more general, for >2 regions
         set(0, 'currentfigure', hfig)
         imagesc(im);
         colormap gray;
@@ -47,27 +60,30 @@ function [imStats, outStats, thisBinIm] = apLength(im, pix2um, hfig, prevBinIm)
         set(gca, 'XTick', []);
         set(gca, 'YTick', []);
         edges = bwboundaries(binim, 'noholes');
-        edge1 = edges{1};
-        hp1 = patch(edge1(:,2), edge1(:,1), 'r', 'FaceAlpha', 0.2, ...
-            'EdgeColor', 'r', 'LineWidth', 2);
-        edge2 = edges{2};
-        hp2 = patch(edge2(:,2), edge2(:,1), 'r', 'FaceAlpha', 0.2, ...
-            'EdgeColor', 'r', 'LineWidth', 2);
+        hps = [];
+        for ridx = 1:length(imStats)
+            edge = edges{ridx};
+            hp = patch(edge(:,2), edge(:,1), 'r', 'FaceAlpha', 0.2, ...
+                'EdgeColor', 'r', 'LineWidth', 2);
+            hps = [hps; hp];
+        end
     end
     
     %% define axis ~perpendicular to edges and get distance between actual
     % edges of mask (i.e. don't fit an edge)
     apLengths = [];
-    for regidx = 2:(length(imStats) - 1)
+    for regidx = 2:(length(imStats))
         angleToMeasureAlong = mean([imStats(1).Orientation imStats(regidx).Orientation]);
-        binim = imrotate(binim, -angleToMeasureAlong, 'bilinear'); % implement with GPU where supported?
-        imStats2 = regionprops(binim); 
-        bboxes = round([imStats2(1).BoundingBox; imStats2(regidx).BoundingBox]);
+        rbinim = imrotate(binim, -angleToMeasureAlong, 'bilinear'); % implement with GPU where supported?
+        imStats2 = regionprops(rbinim); 
+        % sort by area
+        [~,sidx] = sort([imStats2.Area], 'descend');
+        bboxes = round([imStats2(sidx(1)).BoundingBox; imStats2(sidx(regidx)).BoundingBox]);
         oAX = [max([bboxes(1) bboxes(5)]) min([(bboxes(1)+bboxes(3)) (bboxes(5)+bboxes(7))])];
         oAY = round(sort([imStats2(1).Centroid(2) imStats2(regidx).Centroid(2)]));
-        outArray =  binim(oAY(1):oAY(2), oAX(1):oAX(2));
+        outArray =  rbinim(oAY(1):oAY(2), oAX(1):oAX(2));
         outArray = imclose(outArray, strel('disk', 10)); % fill gaps
-        apLengths = [apLengths; size(outArray, 1) - sum(outArray, 1)];
+        apLengths = [apLengths (size(outArray, 1) - sum(outArray, 1))];
     end
     
     %% calculate summary stats to describe distances between edges

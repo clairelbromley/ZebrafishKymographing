@@ -1,7 +1,7 @@
-function outStatses = apLengthCZIHandler(rootPath)
+function outStatses = apLengthCZIHandler(rootPath, outPath)
     
-    outpath = 'C:\Users\d.kelly\Desktop\TestImagesOut';
-    saveFigures = false;
+%     outPath = 'C:\Users\d.kelly\Desktop\TestImagesOut';
+    saveFigures = true;
     
 
     % ensure that bioformats functions are on search path
@@ -40,7 +40,8 @@ function outStatses = apLengthCZIHandler(rootPath)
         hfig = [];
     end
     
-    for zidx = 1:nZPlanes
+    for zidx = [1:5, 90:nZPlanes]
+%     for zidx = 1:nZPlanes
         
        % use krox20 channel
        fprintf('Current z plane = %d\n\n', zidx);
@@ -54,15 +55,19 @@ function outStatses = apLengthCZIHandler(rootPath)
        end
        
        if saveFigures
-            savefig(hfig, [outpath filesep sprintf('Zplane = %d', zidx)]);
-            print(hfig, [outpath filesep sprintf('Zplane = %d', zidx)], '-dpng', '-r300');
+            savefig(hfig, [outPath filesep sprintf('Zplane = %d', zidx)]);
+            print(hfig, [outPath filesep sprintf('Zplane = %d', zidx)], '-dpng', '-r300');
        end
        
        
        % check whether sizes of "rhombomeres" are appropriate, and thus
        % whether z plane is suitable. Assume correct id of rhombomeres in
        % first (deepest) z plane
-       smallestArea = imStats(2).Area;
+       if length(imStats) > 2
+           smallestArea = min(imStats(1).Area, (imStats(2).Area + imStats(3).Area));
+       else
+           smallestArea = imStats(2).Area;
+       end
        smallestAreas = [smallestAreas; smallestArea];
        if length(smallestAreas) > 5
            threshArea = 0.75 * mean(smallestAreas(1:5));
@@ -85,19 +90,21 @@ function outStatses = apLengthCZIHandler(rootPath)
     res = [zs' [(idxToZeroDepth - zs)*zPlaneDepth]' [outStatses.minD]' ...
         [outStatses.maxD]' [outStatses.meanD]' [outStatses.medianD]' ...
         [outStatses.q25D]' [outStatses.q75D]' ...
-        [outStases.stainedR1Length]' [outStases.stainedR1Width]' ...
-        [outStases.stainedR2Length]' [outStases.stainedR2Width]'];
+%         [outStases.stainedR1Length]' [outStases.stainedR1Width]' ...
+%         [outStases.stainedR2Length]' [outStases.stainedR2Width]'
+        ];
     try
         xlsres = num2cell(res);
         hdr = {'Z index', 'Z depth, um', 'Minimum AP length, um', ...
             'Maximum AP length, um', 'Mean AP length, um', ...
             'Median AP length, um', ...
-            '25th percentile AP length, um', '75th percentile AP length, um', ...
-            'Mean AP length, stained rhombomere 1, um', ...
-            'Mean AP width, stained rhombomere 1, um', ...
-            'Mean AP length, stained rhombomere 2, um', ...
-            'Mean AP width, stained rhombomere 2, um'};
-        xlswrite([outpath filesep strpname ' results.xls'], [hdr; xlsres]);
+            '25th percentile AP length, um', '75th percentile AP length, um' ...
+%             'Mean AP length, stained rhombomere 1, um', ...
+%             'Mean AP width, stained rhombomere 1, um', ...
+%             'Mean AP length, stained rhombomere 2, um', ...
+%             'Mean AP width, stained rhombomere 2, um'
+            };
+        xlswrite([outPath filesep strpname ' results.xls'], [hdr; xlsres]);
     catch
-        csvwrite([outpath filesep strpname ' results.csv'], res);
+        csvwrite([outPath filesep strpname ' results.csv'], res);
     end
