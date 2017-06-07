@@ -22,7 +22,7 @@ function varargout = cziFig(varargin)
 
 % Edit the above text to modify the response to help cziFig
 
-% Last Modified by GUIDE v2.5 16-May-2017 05:51:12
+% Last Modified by GUIDE v2.5 07-Jun-2017 20:42:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -78,7 +78,9 @@ handles.params.pixelSize = 1;
 handles.params.frameTime = 1;
 handles.params.kymSpacing = 1;
 handles.params.currZPlane = 1;
+handles.params.currCPlane = 1;
 handles.params.zPlanes = 10;
+handles.params.channels = 2;
 handles.params.firstFrame = 1;
 handles.params.lastFrame = 50;
 handles.params.sequenceLength = 50;
@@ -132,35 +134,51 @@ set(handles.txtFrameTime, 'String', num2str(params.frameTime));
 % set(handles.txtStartY, 'String', num2str(params.cutStartY));
 % set(handles.txtEndY, 'String', num2str(params.cutEndY));
 % set(handles.txtKymSpacingUm, 'String', num2str(params.kymSpacing));
+set(handles.txtCPlaneDisplay, 'String', sprintf('(%d/%d)', params.currCPlane, params.channels));
 set(handles.txtZPlaneDisplay, 'String', sprintf('(%d/%d)', params.currZPlane, params.zPlanes));
 set(handles.txtFirstFrameDisplay, 'String', sprintf('(%d/%d)', params.firstFrame, params.sequenceLength));
 set(handles.txtLastFrameDisplay, 'String', sprintf('(%d/%d)', params.lastFrame, params.sequenceLength));
 set(handles.txtAnalysisTimeDisplay, 'String', sprintf('(%0.2f)', params.analysisTime))
-% set(handles.scrollFirstFrame, 'Max', params.lastFrame);
-% set(handles.scrollFirstFrame, 'Value', params.firstFrame);
-% set(handles.scrollFirstFrame, 'Min', 1);
-% set(handles.scrollLastFrame, 'Max', params.sequenceLength);
-% set(handles.scrollLastFrame, 'Value', params.lastFrame);
-% set(handles.scrollLastFrame, 'Min', params.firstFrame);
 
 set(handles.scrollZPlane, 'Max', params.zPlanes);
-% set(handles.scrollZPlane, 'Max', params.zPlanes*params.sequenceLength*2);
 set(handles.scrollZPlane, 'Min', 1);
 set(handles.scrollZPlane, 'Value', params.currZPlane);
-% set(handles.scrollZPlane, 'SliderStep', [(1/(params.zPlanes*params.sequenceLength*2)) (1/(params.zPlanes*params.sequenceLength*2))]);
-set(handles.scrollZPlane, 'SliderStep', [(1/(params.zPlanes)) (1/(params.zPlanes))]);
+if params.zPlanes > 1
+    sstep = params.zPlanes - 1;
+else
+    sstep = 1;
+end
+set(handles.scrollZPlane, 'SliderStep', [(1/sstep) (1/sstep)]);
+
 set(handles.scrollFirstFrame, 'Max', params.sequenceLength);
 set(handles.scrollFirstFrame, 'Value', params.firstFrame);
 set(handles.scrollFirstFrame, 'Min', 1);
-set(handles.scrollFirstFrame, 'SliderStep', [(1/(params.sequenceLength)) (1/(params.sequenceLength))]);
+if params.sequenceLength > 1
+    sstep = params.sequenceLength - 1;
+else
+    sstep = 1;
+end
+set(handles.scrollFirstFrame, 'SliderStep', [(1/sstep) (1/sstep)]);
+
 set(handles.scrollLastFrame, 'Max', params.sequenceLength);
 set(handles.scrollLastFrame, 'Value', params.lastFrame);
 set(handles.scrollLastFrame, 'Min', 1);
-set(handles.scrollLastFrame, 'SliderStep', [(1/(params.sequenceLength)) (1/(params.sequenceLength))]);
+set(handles.scrollLastFrame, 'SliderStep', [(1/sstep) (1/sstep)]);
+
 set(handles.scrollAnalysisTime, 'Min', params.frameTime);
 set(handles.scrollAnalysisTime, 'Max', params.sequenceLength * params.frameTime);
 set(handles.scrollAnalysisTime, 'Value', params.analysisTime);
-set(handles.scrollAnalysisTime, 'SliderStep', [(1/(params.sequenceLength)) (1/(params.sequenceLength))]);
+set(handles.scrollAnalysisTime, 'SliderStep', [(1/sstep) (1/sstep)]);
+
+set(handles.scrollCPlane, 'Min', 1);
+set(handles.scrollCPlane, 'Max', params.channels);
+set(handles.scrollCPlane, 'Value', params.currCPlane);
+if params.channels > 1
+    sstep = params.channels - 1;
+else
+    sstep = 1;
+end
+set(handles.scrollCPlane, 'SliderStep', [(1/sstep) (1/sstep)]);
 
 guidata(gcf, handles);
  
@@ -1002,9 +1020,6 @@ function scrollFirstFrame_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
 % Coerce values here to prevent seeing disconcerting behaviour associated
 % with changing slider min and max dynamically. 
 
@@ -1027,10 +1042,8 @@ handles.params.currTPlane = new_first_frame;
 handles.params = updateUIParams(handles.params);
 
 % handles.currentDispFrame = new_first_frame * handles.params.channels;
-channel = 1;
-handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
-    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
-    (handles.params.channels)*(channel - 1) + 1;
+handles.currentDispFrame = handles.reader.getIndex(handles.params.currZPlane - 1, ...
+    handles.params.currCPlane - 1, handles.params.currTPlane - 1) + 1;
 
 % updateDisplayImage(handles.currentDispFrame, hObject, handles);
 
@@ -1138,9 +1151,8 @@ handles.params.currTPlane = new_last_frame;
 handles.params = updateUIParams(handles.params);
 
 channel = 1;
-handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
-    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
-    (handles.params.channels)*(channel - 1) + 1;
+handles.currentDispFrame = handles.reader.getIndex(handles.params.currZPlane - 1, ...
+    handles.params.currCPlane - 1, handles.params.currTPlane - 1) + 1;
 im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
@@ -1215,10 +1227,8 @@ handles.params.currTPlane = round(get(hObject, 'Value') / handles.params.frameTi
 handles.params = updateUIParams(handles.params);
 
 
-channel = 1;
-handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
-    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
-    (handles.params.channels)*(channel - 1) + 1;
+handles.currentDispFrame = handles.reader.getIndex(handles.params.currZPlane - 1, ...
+    handles.params.currCPlane - 1, handles.params.currTPlane - 1) + 1;
 im = bfGetPlane(handles.reader, handles.currentDispFrame);
 padim = zeros(size(im, 1)+200, size(im, 2)+200);
 padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
@@ -1473,11 +1483,9 @@ handles.params.currZPlane = round(get(hObject, 'Value'));
 handles.params = updateUIParams(handles.params);
 disp(handles.params.currZPlane);
 
-%display frame - always choosing the fluorscence (first) channel
-channel = 1;
-handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
-    (handles.params.channels)*(handles.params.currZPlane - 1) + ...
-    (handles.params.channels)*(channel - 1) + 1;
+% display frame
+handles.currentDispFrame = handles.reader.getIndex(handles.params.currZPlane - 1, ...
+    handles.params.currCPlane - 1, handles.params.currTPlane - 1) + 1;
 % handles.currentDispFrame = handles.params.currZPlane;
 disp(handles.currentDispFrame);
 
@@ -1504,8 +1512,7 @@ updateUIParams(handles.params);
 
 guidata(hObject, handles);
 
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -2026,3 +2033,58 @@ else
     end
 end
 guidata(hObject, handles);
+
+
+% --- Executes on slider movement.
+function scrollCPlane_Callback(hObject, eventdata, handles)
+% hObject    handle to scrollCPlane (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles = guidata(gcf);
+
+handles.params.currCPlane = round(get(hObject, 'Value'));
+handles.params = updateUIParams(handles.params);
+disp(handles.params.currCPlane);
+
+% handles.currentDispFrame = (handles.params.zPlanes)*(handles.params.channels)*(handles.params.currTPlane - 1) + ...
+%     (handles.params.channels)*(handles.params.currZPlane - 1) + ...
+%     (handles.params.channels)*(handles.params.currCPlane - 1) + 1;
+handles.currentDispFrame = handles.reader.getIndex(handles.params.currZPlane - 1, ...
+    handles.params.currCPlane - 1, handles.params.currTPlane - 1) + 1;
+% handles.currentDispFrame = handles.params.currZPlane;
+disp(handles.currentDispFrame);
+
+im = bfGetPlane(handles.reader, handles.currentDispFrame);
+padim = zeros(size(im, 1)+200, size(im, 2)+200);
+padim(100:99+size(im, 1), 100:99+size(im, 2)) = im;
+im = padim;
+clear padim; 
+handles.currentIm = im;
+im(logical(squeeze(handles.currentMask(:, :,...
+ handles.params.currZPlane)))) = 0;
+
+curr_im_obj = findobj('Type', 'image', 'Parent', handles.axImage);
+set(curr_im_obj, 'CData', im);
+
+if ( get(handles.chkExclusionMask, 'Value') == 1 )
+
+    set(curr_im_obj, 'HitTest', 'off', 'ButtonDownFcn', {@axImage_ButtonDownFcn, hObject, eventdata, handles});
+    set(handles.axImage, 'ButtonDownFcn', {@axImage_ButtonDownFcn, handles});
+    
+end
+
+updateUIParams(handles.params);
+
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function scrollCPlane_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to scrollCPlane (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
