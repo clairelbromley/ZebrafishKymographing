@@ -239,29 +239,19 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     % check all fields are filled in sensibly...
 
     % generate image data in expected format
-    fcell = get(handles.txtImagePath, 'String');
-    data = bfopen(fcell{1});
+
     omeMeta = handles.omeMeta;
-    % data = data{1}(1:2:end,1);  % figure out why this line takes only every second frame: doesn't work for midline dynamics stuff...
-    data = data{1}(:,1);
-    newshape = [size(data{1}, 1), length(data), size(data{1}, 2)];
-    data = cell2mat(data);
-    data = reshape(data, newshape);
-    stack = permute(data, [1 3 2]);
 
-    % trim according to user selection, and forcing a single channel, single z
-    % plane
-    if (handles.params.CZTOrder(end) == 5) % CZT or ZTC
-        substack = stack(:,:, 1:(handles.params.channels * handles.params.zPlanes):(end - ((handles.params.channels * handles.params.zPlanes) - 1)));
-    elseif  ((sum(handles.params.CZTOrder == [3 5 4]') / 3) == 1) % CTZ
-        substack = stack(:, :, 1:handles.params.channels:(handles.params.channels * handles.params.sequenceLength));
-    elseif  ((sum(handles.params.CZTOrder == [4 5 3]') / 3) == 1) % ZTC
-        substack = stack(:, :, 1:handles.params.zPlanes:(handles.params.zPlanes * handles.params.sequenceLength));
-    else % TCZ or TZC
-        substack = stack(:, :, 1:handles.params.sequenceLength);
+    % TRY COMPLETELY DIFFERENT APPROACH USING READER...
+    stack = zeros(handles.reader.getSizeY, handles.reader.getSizeX, ...
+        handles.params.lastFrame - handles.params.firstFrame + 1);
+    for tind = (handles.params.firstFrame:handles.params.lastFrame)
+        pln = handles.reader.getIndex(handles.params.currZPlane - 1, ...
+            handles.params.currCPlane - 1, tind - 1) + 1;
+        stack(:, :, tind) = bfGetPlane(handles.reader, pln);
+        fprintf('Loading frame %d of %d\n', tind, ...
+            handles.params.lastFrame - handles.params.firstFrame + 1);
     end
-
-    stack = substack(:,:,(handles.params.firstFrame : handles.params.lastFrame));
 
     % pad 100 pixels on each side...
     newstack = zeros(size(stack, 1) + 200, size(stack, 2) + 200, size(stack, 3));
@@ -364,6 +354,13 @@ params.zPlanes = handles.params.zPlanes;
 params.sequenceLength = handles.params.sequenceLength;
 params.channels = handles.params.channels;
 params.CZTOrder = handles.params.CZTOrder;
+params.multipageTiffBeforeTimeS = handles.params.multipageTiffBeforeTimeS;
+params.multipageTiffAfterTimeS = handles.params.multipageTiffAfterTimeS;
+params.currCPlane = handles.params.currCPlane;
+params.currTPlane = handles.params.currTPlane;
+params.currZPlane = handles.params.currZPlane;
+
+
 
 % --- Executes on button press in buttonBrowseImagePath.
 function buttonBrowseImagePath_Callback(hObject, eventdata, handles)
