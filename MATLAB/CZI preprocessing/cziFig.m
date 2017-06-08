@@ -1623,8 +1623,10 @@ if ~isempty(qans)
 
         for ind = 1:(framesBefore + framesAfter + 1)
 
+            frind = getIndex(handles.params.currZPlane - 1, ...
+            handles.params.currCPlane - 1, bleachFrame - framesBefore + ind - 1) + 1;
             gScale(100:99 + handles.reader.getSizeX, 100:99 + handles.reader.getSizeY) = ...
-                uint8(bfGetPlane(handles.reader, bleachFrame - framesBefore + ind - 1));
+                uint8(bfGetPlane(handles.reader, frind));
 
 
             % convert ROI to mask; set these pixels to 1 on first plane of RGBim
