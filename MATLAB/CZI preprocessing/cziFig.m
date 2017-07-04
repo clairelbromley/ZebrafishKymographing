@@ -63,7 +63,7 @@ out=regexp(currdir,'\','split');
 c = cell(1, length(out));
 c(:) = {filesep};
 addpath(genpath(strjoin(strcat(out(1:end-1), c(1:end-1)), '')));
-% addpath(genpath(funcPath));
+addpath(genpath(funcPath));
 
 handles.lowMemMask = [];
 handles.lastLowMemMask = [];
@@ -1623,7 +1623,7 @@ if ~isempty(qans)
 
         for ind = 1:(framesBefore + framesAfter + 1)
 
-            frind = getIndex(handles.params.currZPlane - 1, ...
+            frind = handles.reader.getIndex(handles.params.currZPlane - 1, ...
             handles.params.currCPlane - 1, bleachFrame - framesBefore + ind - 1) + 1;
             gScale(100:99 + handles.reader.getSizeX, 100:99 + handles.reader.getSizeY) = ...
                 uint8(bfGetPlane(handles.reader, frind));
