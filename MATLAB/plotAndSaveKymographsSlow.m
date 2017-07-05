@@ -50,7 +50,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     subk_x = round(subk_x);
                     subk_y = round(subk_y);
                     
-                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length);
+                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length, 'bilinear');
                     l = length(a);
                     subk(1:l, subkpos+1) = a;
                     
