@@ -275,12 +275,21 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
     userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
 
-
-
     userOptions.timeBeforeCut = 0;
     userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
     userOptions.quantAnalysisTime = handles.params.analysisTime;
 
+    if handles.isBleach
+        curr_metadata.cutMetadata.time = str2double(handles.reader.getGlobalMetadata.get(handles.bleachStartKey));
+        curr_metadata.isBleach = 1;
+        userOptions.timeBeforeCut = curr_metadata.cutMetadata.time - handles.params.firstFrame * handles.params.frameTime;
+        userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
+        if userOptions.quantAnalysisTime > userOptions.timeAfterCut
+            userOptions.quantAnalysisTime = userOptions.timeAfterCut;
+        end
+    else
+        curr_metadata.isBleach = 0;
+    end
 
     for dind = handles.params.dir
 
@@ -502,6 +511,12 @@ if ischar(new_image_path{1})
             
             handles.currentMask = zeros([size(im) handles.params.zPlanes]);
             handles.lastMask = handles.currentMask;
+            
+            handles.isBleach = 0;
+            handles.bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
+            if handles.reader.getGlobalMetadata.containsKey(handles.bleachStartKey)
+                handles.isBleach = 1;
+            end
 
         catch ME
             errorHandler(ME);
@@ -1557,9 +1572,8 @@ handles = guidata(gcf);
 
 % check if before or after bleaching frame, and apply colour
 % accordingly
-bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
-if handles.reader.getGlobalMetadata.containsKey(bleachStartKey)
-    if (tPlane >= str2double(handles.reader.getGlobalMetadata.get(bleachStartKey)))
+if handles.isBleach
+    if (tPlane >= str2double(handles.reader.getGlobalMetadata.get(handles.bleachStartKey)))
         roiColor = 'c';
     else
         roiColor = 'm';
