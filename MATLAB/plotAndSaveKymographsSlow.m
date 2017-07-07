@@ -50,7 +50,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     subk_x = round(subk_x);
                     subk_y = round(subk_y);
                     
-                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length);
+                    a = improfile(squeeze(stack(:,:,ind)), subk_x, subk_y, uO.kym_length, 'bilinear');
                     l = length(a);
                     subk(1:l, subkpos+1) = a;
                     
@@ -119,6 +119,16 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             a = -round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
             b = size(kymographs,1)-round(uO.timeBeforeCut/md.acqMetadata.cycleTime)-1;
             xt = md.acqMetadata.cycleTime*(a:b);
+            if isfield(md, 'isBleach')
+                if md.isBleach
+                    [~, midx] = min(abs(xt));
+                    if midx > 1
+                        temp_kymim = kymim;
+                        temp_kymim(:,midx-1) = 0;
+                        kymographs(:,:,kpos) = temp_kymim'; % for saving tiffs
+                    end
+                end
+            end
             yt = md.umperpixel*(1:size(kymographs,2));
             temp_for_scale = squeeze(kymographs(:,:,kpos));
             temp_for_scale(temp_for_scale == 0) = [];
@@ -128,6 +138,13 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
     %         axis equal tight;
             axis tight;
             xlabel('Time relative to cut, s')
+            if isfield(md, 'isBleach')
+                if md.isBleach
+                    xlabel('Time relative to bleach, s')
+                    dyt = abs(yt(2)  - yt(1));
+                    hl = line([0 0], [(min(yt) - dyt)  (max(yt) + dyt)], 'Color', 'c', 'LineWidth', 3);
+                end
+            end
             ylabel('Position relative to cut, \mum')
             title([title_txt direction]);
 

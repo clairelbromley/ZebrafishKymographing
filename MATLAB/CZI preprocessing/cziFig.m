@@ -63,7 +63,7 @@ out=regexp(currdir,'\','split');
 c = cell(1, length(out));
 c(:) = {filesep};
 addpath(genpath(strjoin(strcat(out(1:end-1), c(1:end-1)), '')));
-% addpath(genpath(funcPath));
+addpath(genpath(funcPath));
 
 handles.lowMemMask = [];
 handles.lastLowMemMask = [];
@@ -275,12 +275,21 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     userOptions.kymSpacingUm = str2double(get(handles.txtKymSpacingUm, 'String'));
     userOptions.speedInUmPerMinute = handles.params.speedInUmPerMinute;
 
-
-
     userOptions.timeBeforeCut = 0;
     userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
     userOptions.quantAnalysisTime = handles.params.analysisTime;
 
+    if handles.isBleach
+        curr_metadata.cutMetadata.time = str2double(handles.reader.getGlobalMetadata.get(handles.bleachStartKey));
+        curr_metadata.isBleach = 1;
+        userOptions.timeBeforeCut = curr_metadata.cutMetadata.time - handles.params.firstFrame * handles.params.frameTime;
+        userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
+        if userOptions.quantAnalysisTime > userOptions.timeAfterCut
+            userOptions.quantAnalysisTime = userOptions.timeAfterCut;
+        end
+    else
+        curr_metadata.isBleach = 0;
+    end
 
     for dind = handles.params.dir
 
@@ -502,6 +511,12 @@ if ischar(new_image_path{1})
             
             handles.currentMask = zeros([size(im) handles.params.zPlanes]);
             handles.lastMask = handles.currentMask;
+            
+            handles.isBleach = 0;
+            handles.bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
+            if handles.reader.getGlobalMetadata.containsKey(handles.bleachStartKey)
+                handles.isBleach = 1;
+            end
 
         catch ME
             errorHandler(ME);
@@ -1557,9 +1572,8 @@ handles = guidata(gcf);
 
 % check if before or after bleaching frame, and apply colour
 % accordingly
-bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
-if handles.reader.getGlobalMetadata.containsKey(bleachStartKey)
-    if (tPlane >= str2double(handles.reader.getGlobalMetadata.get(bleachStartKey)))
+if handles.isBleach
+    if (tPlane >= str2double(handles.reader.getGlobalMetadata.get(handles.bleachStartKey)))
         roiColor = 'c';
     else
         roiColor = 'm';
@@ -1623,7 +1637,7 @@ if ~isempty(qans)
 
         for ind = 1:(framesBefore + framesAfter + 1)
 
-            frind = getIndex(handles.params.currZPlane - 1, ...
+            frind = handles.reader.getIndex(handles.params.currZPlane - 1, ...
             handles.params.currCPlane - 1, bleachFrame - framesBefore + ind - 1) + 1;
             gScale(100:99 + handles.reader.getSizeX, 100:99 + handles.reader.getSizeY) = ...
                 uint8(bfGetPlane(handles.reader, frind));
