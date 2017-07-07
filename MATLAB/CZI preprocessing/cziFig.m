@@ -248,7 +248,7 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     for tind = (handles.params.firstFrame:handles.params.lastFrame)
         pln = handles.reader.getIndex(handles.params.currZPlane - 1, ...
             handles.params.currCPlane - 1, tind - 1) + 1;
-        stack(:, :, tind) = bfGetPlane(handles.reader, pln);
+        stack(:, :, tind - handles.params.firstFrame + 1) = bfGetPlane(handles.reader, pln);
         fprintf('Loading frame %d of %d\n', tind, ...
             handles.params.lastFrame - handles.params.firstFrame + 1);
     end
