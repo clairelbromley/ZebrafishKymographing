@@ -3024,6 +3024,7 @@ if ~isempty(answer)
 
     if (fname ~= 0) 
         print(handles.basalDrawingFig, [pname fname], '-dpng', '-r300');
+        savefig(gcf, [pname fname '.fig']);
     end
 
     % Fill in inclusion data accordingly
