@@ -20,8 +20,8 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
 
         result.kym_number = kpos
 
-        cut_frame = round(uO.timeBeforeCut/md.acqMetadata.cycleTime) + 1;
-        x = find(sum(squeeze(kyms(cut_frame:cut_frame+5,:,kpos))',1)==0);
+        cut_frame = round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
+        x = find(sum(squeeze(kyms(cut_frame:cut_frame+5,:,kpos))',1)==0) + 1;
         first_frame = max(x) + cut_frame;
         if isempty(x)
             first_frame = 2;

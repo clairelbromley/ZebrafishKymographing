@@ -280,7 +280,7 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     userOptions.quantAnalysisTime = handles.params.analysisTime;
 
     if handles.isBleach
-        curr_metadata.cutMetadata.time = str2double(handles.reader.getGlobalMetadata.get(handles.bleachStartKey));
+        curr_metadata.cutMetadata.time = omeMeta.getPlaneTheT(0,str2double(handles.reader.getGlobalMetadata.get(handles.bleachStartKey))).getValue() * handles.params.frameTime;
         curr_metadata.isBleach = 1;
         userOptions.timeBeforeCut = curr_metadata.cutMetadata.time - handles.params.firstFrame * handles.params.frameTime;
         userOptions.timeAfterCut = (handles.params.lastFrame - handles.params.firstFrame) * handles.params.frameTime;
