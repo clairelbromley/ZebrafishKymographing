@@ -32,7 +32,7 @@ function krox_20_base_script()
     data.current_z_ind = 1;
     data.current_c_ind = 1;
     data.im = bfGetPlane(data.czi_reader, ...
-        data.czi_reader.getIndex(data.current_z_ind, data.current_c_ind, 0) + 1);
+        data.czi_reader.getIndex(data.current_z_ind - 1, data.current_c_ind - 1, 0) + 1);
     data.ome_meta = data.czi_reader.getMetadataStore();
     data.z_offsets = z_offsets;
     controls = setup_ui(data);
