@@ -134,19 +134,30 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             temp_for_scale(temp_for_scale == 0) = [];
             colormap gray;
             clims = [min(temp_for_scale(:)) max(temp_for_scale(:))];
-            imagesc(xt, yt, kymim, clims);
+            hax1 = subplot(1,2,1);
+                xtt = md.acqMetadata.cycleTime * (a:0);
+                imagesc(xtt, yt, kymim(:, 1:length(xtt)), clims);
+                xlabel('Time relative to bleach start, s')
+                ylabel('Position relative to cut, \mum')
+            hax2 = subplot(1,2,2);
+                xtt = md.acqMetadata.cycleTime * (1:b);
+                imagesc(xtt, yt, kymim(:, 1:length(xtt)), clims);
+                xlabel('Time relative to bleach end, s')
+                set(gca, 'YTick', []);
+            % fix x axis lengths...
+            axes
+%                 ylabel('Position relative to cut, \mum')
     %         axis equal tight;
-            axis tight;
-            xlabel('Time relative to cut, s')
-            if isfield(md, 'isBleach')
-                if md.isBleach
-                    xlabel('Time relative to bleach, s')
-                    dyt = abs(yt(2)  - yt(1));
-                    hl = line([0 0], [(min(yt) - dyt)  (max(yt) + dyt)], 'Color', 'c', 'LineWidth', 3);
-                end
-            end
-            ylabel('Position relative to cut, \mum')
-            title([title_txt direction]);
+            axis xy;
+%             xlabel('Time relative to cut, s')
+%             if isfield(md, 'isBleach')
+%                 if md.isBleach
+% %                     xlabel('Time relative to bleach, s')
+%                     dyt = abs(yt(2)  - yt(1));
+%                     hl = line([0 0], [(min(yt) - dyt)  (max(yt) + dyt)], 'Color', 'c', 'LineWidth', 3);
+%                 end
+%             end
+%             title([title_txt direction]);
 
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
             print(h, out_file, '-dpng', '-r300');
