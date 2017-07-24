@@ -1,5 +1,7 @@
-function update_image(data, controls)
+function update_image(controls)
 
+    data = getappdata(controls.hfig, 'data');
+    
     current_z_ind = get(controls.hzsl, 'Value');
     current_c_ind = get(controls.hcsl, 'Value');
     
@@ -10,5 +12,8 @@ function update_image(data, controls)
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);
     axis equal tight;
+    
+    setappdata(controls.hfig, 'data', data);
 
 end
+

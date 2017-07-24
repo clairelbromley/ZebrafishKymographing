@@ -1,5 +1,6 @@
-function initialise_sliders(controls, data)
+function initialise_sliders(controls)
 %% set range for sliders based on contents of metadata
+    data = getappdata(controls.hfig, 'data');
 
     zPlanes = double(data.ome_meta.getPixelsSizeZ(0).getValue());
     cPlanes = double(data.ome_meta.getPixelsSizeC(0).getValue());
@@ -24,5 +25,6 @@ function initialise_sliders(controls, data)
     end
     set(controls.hcsl, 'SliderStep', [(1/sstep) (1/sstep)]);
 
+    setappdata(controls.hfig, 'data', data);
 
 end

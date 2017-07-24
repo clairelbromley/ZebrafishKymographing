@@ -1,6 +1,8 @@
-function on_z_pos_changed(hObject, eventdata, handles, data, controls)
+function on_z_pos_changed(hObject, eventdata, handles, controls)
 
-    new_z_plane = round(get(hObject, 'Value'));
-    disp(new_z_plane);
-    update_image(data, controls)
+    data = getappdata(controls.hfig, 'data');
     
+    data.curr_z_plane = round(get(hObject, 'Value'));
+    update_image(controls)
+    
+    setappdata(controls.hfig, 'data', data);

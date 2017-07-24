@@ -36,8 +36,10 @@ function krox_20_base_script()
     data.ome_meta = data.czi_reader.getMetadataStore();
     data.z_offsets = z_offsets;
     controls = setup_ui(data);
-    initialise_sliders(controls, data);
-    attach_callbacks(controls, data)
+    setappdata(controls.hfig, 'data', data);
+    
+    initialise_sliders(controls);
+    attach_callbacks(controls)
     imagesc(data.im, 'Parent', controls.hax);
     colormap gray;
     set(gca, 'XTick', []);
