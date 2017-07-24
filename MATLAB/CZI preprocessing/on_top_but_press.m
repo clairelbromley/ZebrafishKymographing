@@ -22,7 +22,7 @@ function on_top_but_press(hObject, eventdata, handles, controls)
         set(zr, 'Enable', 'on');
     end
     
-    data.top_slice_index = current_z_ind;
+    data.top_slice_index = round(current_z_ind);
 
     setappdata(controls.hfig, 'data', data);
     

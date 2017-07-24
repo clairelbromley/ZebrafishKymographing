@@ -4,6 +4,6 @@ function on_c_pos_changed(hObject, eventdata, handles, controls)
     
     data.curr_c_plane = round(get(hObject, 'Value'));
     disp(data.curr_c_plane);
-    update_image(data, controls)
+    update_image(controls)
 
     setappdata(controls.hfig, 'data', data);
