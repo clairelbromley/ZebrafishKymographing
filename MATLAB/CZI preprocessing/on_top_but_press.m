@@ -23,6 +23,11 @@ function on_top_but_press(hObject, eventdata, handles, controls)
     end
     
     data.top_slice_index = round(current_z_ind);
+    setappdata(controls.hfig, 'data', data);
+    
+    set(controls.hzradios(1), 'Value', 1);
+    eventdata.NewValue = controls.hzradios(1);
+    on_z_slice_selection_changed(hObject, eventdata, [], controls);
 
     setappdata(controls.hfig, 'data', data);
     
