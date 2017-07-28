@@ -28,6 +28,8 @@ function on_top_but_press(hObject, eventdata, handles, controls)
     set(controls.hzradios(1), 'Value', 1);
     eventdata.NewValue = controls.hzradios(1);
     on_z_slice_selection_changed(hObject, eventdata, [], controls);
+    
+%     data.edges = [data.edges; Edges()];
 
     setappdata(controls.hfig, 'data', data);
     

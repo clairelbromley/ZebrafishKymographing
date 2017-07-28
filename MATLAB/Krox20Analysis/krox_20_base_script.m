@@ -24,10 +24,10 @@ function krox_20_base_script()
         return;
     end
     
-    %% Loop over timepoints
     files = dir([folder filesep '*.czi']);
-
+    
     data.filename = files(1).name;
+    data.timepoint = 1; % find proper timestamp from omeMeta
     data.czi_reader = bfGetReader([folder filesep files(1).name]);
     data.current_z_ind = 1;
     data.current_c_ind = 1;
