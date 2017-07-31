@@ -19,9 +19,7 @@ function on_edge_button_press(hObject, eventdata, handles, controls)
         if any(ts == t)
             if any(zs(ts == t) == z)
                 data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
-                try
-                    delete( data.edges(end).(['hl' edg]));
-                end
+                delete( data.edges(end).(['hl' edg]));
                  data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
                     data.current_edge(:,2), ...
                     'Color', 'r', ...
