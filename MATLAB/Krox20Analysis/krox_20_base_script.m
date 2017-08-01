@@ -29,6 +29,7 @@ function krox_20_base_script()
     out_folder = [out_folder filesep tstamp ' Ncad Krox Analysis'];
     mkdir(out_folder)
     data.out_folder = out_folder;
+    data.in_folder = folder;
     
     % get files and display first plane of first timepoint
     files = dir([folder filesep '*.czi']);

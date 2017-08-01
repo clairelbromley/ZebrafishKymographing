@@ -1,6 +1,7 @@
 function on_next_button_press(hObject, eventdata, handles, controls)
 
     data = getappdata(controls.hfig, 'data');
+    busyOutput = busy_dlg();
     
     %% save .mat file containing all data for recovery, just in case
     save([data.out_folder filesep 'backup.m'], 'data');
@@ -15,6 +16,26 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     %% calculate output stats and append to a .csv (for Mac compatibility)
     
     
+    
+    
+    %% update timepoint and display accordingly
+    data.timepoint = data.timepoint + 1;
+    data.czi_reader = bfGetReader([data.in_folder filesep data.files(data.timepoint).name]);
+    set(controls.hfig, 'Name', data.files(data.timepoint).name)
+    
+    %% go to approximate top of tissue based on previous timepoint?
+    set(controls.hzsl, 'Value', (data.top_slice_index));
+    on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
+    update_image(controls);
+    
+    %% reaet checkboxes and disable controls 
+    set(controls.hffchecks(:), 'Value', 0)
+    set(controls.hzradios, 'Enable', 'off')
+    edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
+    set(edge_buts, 'Enable', 'off');
+    
+    
+    busy_dlg(busyOutput);
     setappdata(controls.hfig, 'data', data);
 
 end

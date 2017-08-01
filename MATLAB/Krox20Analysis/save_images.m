@@ -14,33 +14,52 @@ function save_images(controls, data)
     scale_bar_length_pix = round(data.scale_bar_length_um / pix2micron);
     
     for z_pos = data.z_offsets
-        z_fldr = sprintf('z = %0.2f um', z_pos);
-        of = [data.out_folder filesep z_fldr];
-        mkdir(of);
+        for chidx = 1:length(data.channel_names)
+            z_fldr = sprintf('z = %0.2f um', z_pos);
+            of = [data.out_folder filesep z_fldr];
+            mkdir(of);
 
-        ch1im = bfGetPlane(data.czi_reader, ...
-            data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, 0, 0) + 1);
-        ch2im = bfGetPlane(data.czi_reader, ...
-            data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, 1, 0) + 1);
-        
-        % save tiffs, for now without edges
-        imwrite(ch1im, [of filesep sprintf('%s, t = %0.2f.tif', ...
-            data.channel_names{1}, data.timepoint)]);
-        imwrite(ch2im, [of filesep sprintf('%s, t = %0.2f.tif', ...
-            data.channel_names{2}, data.timepoint)]);
-        
-        % save png with edges and scale bar
-        hfig_temp = figure('Visible', 'off');
-        imagesc(ch1im);
-        edges = data.edges((ts == data.timepoint) & (zs == z_pos));
-        % loop through and draw edges
-        colormap gray;
-        set(gca, 'XTick', []);
-        set(gca, 'YTick', []);
-        axis equal tight;
-        
-        close(hfig_temp);
-        
+            im = bfGetPlane(data.czi_reader, ...
+                data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, chidx - 1, 0) + 1);
+
+            % save tiffs, for now without edges
+            imwrite(im, [of filesep sprintf('%s, t = %0.2f.tif', ...
+                data.channel_names{chidx}, data.timepoint)]);
+
+            % save png with edges and scale bar
+            hfig_temp = figure('Visible', 'off');
+            hax_temp = axes;
+            imagesc(im);
+            edges = data.edges((ts == data.timepoint) & (zs == z_pos));
+            edgstr = {'L', 'M', 'R'};
+            colormap gray;
+            set(gca, 'XTick', []);
+            set(gca, 'YTick', []);
+            axis equal tight;
+
+            % loop through and draw edges
+            for edg = edgstr
+                line(edges.(edg{1})(:,1), ...
+                    edges.(edg{1})(:,2), ...
+                    'Color', 'r', ...
+                    'Parent', hax_temp);
+            end
+
+            % add scale bar
+            hscl = line([0.95 * size(im, 2) - scale_bar_length_pix, 0.95 * size(im, 2)], ...
+            [0.95 * size(im, 1), 0.95 * size(im, 1)], ...
+            'Color', 'w', ...
+            'LineWidth', 3, ...
+            'Parent', hax_temp);
+
+            savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f.fig', ...
+                data.channel_names{chidx}, data.timepoint)]);
+            print(hfig_temp, [of filesep sprintf('%s, t = %0.2f.png', ...
+                data.channel_names{chidx}, data.timepoint)], '-dpng', '-r300');
+
+            close(hfig_temp);
+
+        end
     end
   
 end
