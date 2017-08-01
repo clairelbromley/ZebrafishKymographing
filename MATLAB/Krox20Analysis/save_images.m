@@ -10,16 +10,18 @@ function save_images(controls, data)
     zs = [data.edges.z];
     
     % get XY scaling
+    pix2micron = double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
+    scale_bar_length_pix = round(data.scale_bar_length_um / pix2micron);
     
     for z_pos = data.z_offsets
         z_fldr = sprintf('z = %0.2f um', z_pos);
-        of = [data.output_folder filesep z_fldr];
+        of = [data.out_folder filesep z_fldr];
         mkdir(of);
 
         ch1im = bfGetPlane(data.czi_reader, ...
-            data.czi_reader.getIndex((z_panes(data.z_offsets == z_pos)) - 1, 0, 0) + 1);
+            data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, 0, 0) + 1);
         ch2im = bfGetPlane(data.czi_reader, ...
-            data.czi_reader.getIndex((z_panes(data.z_offsets == z_pos)) - 1, 1, 0) + 1);
+            data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, 1, 0) + 1);
         
         % save tiffs, for now without edges
         imwrite(ch1im, [of filesep sprintf('%s, t = %0.2f.tif', ...
@@ -30,7 +32,7 @@ function save_images(controls, data)
         % save png with edges and scale bar
         hfig_temp = figure('Visible', 'off');
         imagesc(ch1im);
-        edges = data.edges((ts == t) & (zs == z));
+        edges = data.edges((ts == data.timepoint) & (zs == z_pos));
         % loop through and draw edges
         colormap gray;
         set(gca, 'XTick', []);
@@ -40,8 +42,5 @@ function save_images(controls, data)
         close(hfig_temp);
         
     end
-    
-    
-    
-
+  
 end

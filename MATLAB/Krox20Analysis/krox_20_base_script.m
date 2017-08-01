@@ -6,7 +6,8 @@ function krox_20_base_script()
     
     %% Parameters
     z_offsets = [35, 40, 45];
-    channel_names = ['Ncad', 'Krox20'];
+    channel_names = {'Ncad', 'Krox20'};
+    scale_bar_length_um = 20;
 
     %% Choose base folder
     folder = uigetdir([], ...
@@ -44,6 +45,7 @@ function krox_20_base_script()
     data.ome_meta = data.czi_reader.getMetadataStore();
     data.z_offsets = z_offsets;
     data.channel_names = channel_names;
+    data.scale_bar_length_um = scale_bar_length_um;
     controls = setup_ui(data);
     setappdata(controls.hfig, 'data', data);
     
