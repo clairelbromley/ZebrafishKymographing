@@ -24,15 +24,15 @@ function show_edges(controls, data)
             ts = [data.edges.timepoint];
             zs = [data.edges.z];
             if any(ts == t)
-                if any(zs(ts == t) == z)
+                if any(((zs == z) & (ts == t)))
                     for edg = edgs
-                        if ~isempty(data.edges(zs(ts == t) == z).(['hl' edg{1}]))
-                            if isgraphics(data.edges(zs(ts == t) == z).(['hl' edg{1}]))
-                                set(data.edges(zs(ts == t) == z).(['hl' edg{1}]), 'Visible', 'on');
+                        if ~isempty(data.edges((zs == z) & (ts == t)).(['hl' edg{1}]))
+                            if isgraphics(data.edges((zs == z) & (ts == t)).(['hl' edg{1}]))
+                                set(data.edges((zs == z) & (ts == t)).(['hl' edg{1}]), 'Visible', 'on');
                             else
-                                data.edges(zs(ts == t) == z).(['hl' edg{1}]) = ...
-                                    line(data.edges(zs(ts == t) == z).(edg{1})(:,1), ...
-                                    data.edges(zs(ts == t) == z).(edg{1})(:,2), ...
+                                data.edges((zs == z) & (ts == t)).(['hl' edg{1}]) = ...
+                                    line(data.edges((zs == z) & (ts == t)).(edg{1})(:,1), ...
+                                    data.edges((zs == z) & (ts == t)).(edg{1})(:,2), ...
                                     'Color', 'r', 'Visible', 'on');
                             end
                         end

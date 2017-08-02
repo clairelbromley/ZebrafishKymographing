@@ -19,23 +19,31 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     
     
     %% update timepoint and display accordingly
-    data.timepoint = data.timepoint + 1;
-    data.czi_reader = bfGetReader([data.in_folder filesep data.files(data.timepoint).name]);
-    set(controls.hfig, 'Name', data.files(data.timepoint).name)
+    if (data.timepoint < length(data.files))
+        data.timepoint = data.timepoint + 1;
+        data.czi_reader = bfGetReader([data.in_folder filesep data.files(data.timepoint).name]);
+        set(controls.hfig, 'Name', data.files(data.timepoint).name)
+
+        %% go to approximate top of tissue based on previous timepoint?
+        set(controls.hzsl, 'Value', (data.top_slice_index));
+        on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
+        update_image(controls);
+
+        %% reset checkboxes and disable controls 
+        set(controls.hffchecks(:), 'Value', 0)
+        set(controls.hzradios, 'Enable', 'off')
+        edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
+        set(edge_buts, 'Enable', 'off');
+
+        busy_dlg(busyOutput);
+        setappdata(controls.hfig, 'data', data);
     
-    %% go to approximate top of tissue based on previous timepoint?
-    set(controls.hzsl, 'Value', (data.top_slice_index));
-    on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
-    update_image(controls);
-    
-    %% reaet checkboxes and disable controls 
-    set(controls.hffchecks(:), 'Value', 0)
-    set(controls.hzradios, 'Enable', 'off')
-    edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
-    set(edge_buts, 'Enable', 'off');
+    else
+        busy_dlg(busyOutput);
+        msgbox('Reached the end of the current timecourse!');
+        close(controls.hfig);
+        
     
     
-    busy_dlg(busyOutput);
-    setappdata(controls.hfig, 'data', data);
 
 end
