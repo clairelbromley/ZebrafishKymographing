@@ -39,10 +39,10 @@ function krox_20_base_script()
     data.filename = files(1).name;
     data.timepoint = 1; % find proper timestamp from omeMeta
     data.czi_reader = bfGetReader([folder filesep files(1).name]);
-    data.current_z_ind = 1;
-    data.current_c_ind = 1;
+%     data.current_z_ind = 1;
+%     data.current_c_ind = 1;
     data.im = bfGetPlane(data.czi_reader, ...
-        data.czi_reader.getIndex(data.current_z_ind - 1, data.current_c_ind - 1, 0) + 1);
+        data.czi_reader.getIndex(0, 0, 0) + 1);
     data.ome_meta = data.czi_reader.getMetadataStore();
     data.z_offsets = z_offsets;
     data.channel_names = channel_names;

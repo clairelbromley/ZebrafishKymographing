@@ -18,14 +18,22 @@ function on_edge_button_press(hObject, eventdata, handles, controls)
         zs = [data.edges.z];
         if any(ts == t)
             if any(zs(ts == t) == z)
-                data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
+                if ~strcmp(data.channel_names{data.curr_c_plane}, 'Krox20');
+                    data.edges((ts == t) & (zs == z)).(edg) = data.current_edge.getPosition;
+                else
+                    data.edges((ts == t) & (zs == z)).(edg) = data.current_edge.createMask();
+                end
                 if isgraphics(data.edges(end).(['hl' edg]))
                     delete(data.edges(end).(['hl' edg]));
                 end
-                data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
-                    data.current_edge(:,2), ...
-                    'Color', 'r', ...
-                    'Visible', vis);
+                if ~strcmp(data.channel_names{data.curr_c_plane}, 'Krox20');
+                    data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
+                        data.current_edge(:,2), ...
+                        'Color', 'r', ...
+                        'Visible', vis);
+                else
+                    data.edges(end).(['hl' edg]) = % create overlay patch from binary mask
+                end
             else
                 data.edges = [data.edges; Edges()];
                 data.edges(end).timepoint = t;

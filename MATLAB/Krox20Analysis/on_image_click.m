@@ -5,8 +5,9 @@ function on_image_click(hObject, eventdata, handles, controls)
     kids = get(controls.hax, 'Children');
     delete(kids(strcmp(get(kids, 'Type'), 'hggroup')))
 
-    M1 = imfreehand(controls.hax, 'Closed', false);
-    data.current_edge = M1.getPosition;
+    closed = strcmp(data.channel_names{data.curr_c_plane}, 'Krox20');
+    data.current_edge = imfreehand(controls.hax, 'Closed', closed);
+%     data.current_edge = M1.getPosition;
 
     setappdata(controls.hfig, 'data', data);
     
