@@ -14,9 +14,29 @@ function detect_rhombomeres(controls, data, im)
     binim((bwl ~= sidx(1)) & (bwl ~= sidx(2))) = 0;
     
     % figure out which rhombomere falls closest to the top of the image -
-    % call this Rh4
+    % call this Rh4    
     edges = bwboundaries(binim, 'noholes');
-%     if imStats(1).Centroid(2) > 
+    % inelegant - improve?
+    if isfield(data, 'current_edge')
+        data.current_edge = [];
+    end
+    if imStats(2).Centroid(2) > imStats(1).Centroid(2)
+        data.current_edge = fliplr(edges{1});
+        setappdata(controls.hfig, 'data', data);
+        on_edge_button_press(controls.hrh4but, [], [], controls)
+        data = getappdata(controls.hfig, 'data');
+        data.current_edge = fliplr(edges{2});
+        setappdata(controls.hfig, 'data', data);
+        on_edge_button_press(controls.hrh4but, [], [], controls)
+    else
+        data.current_edge = fliplr(edges{2});
+        setappdata(controls.hfig, 'data', data);
+        on_edge_button_press(controls.hrh4but, [], [], controls)
+        data = getappdata(controls.hfig, 'data');
+        data.current_edge = fliplr(edges{1});
+        setappdata(controls.hfig, 'data', data);
+        on_edge_button_press(controls.hrh6but, [], [], controls)
+    end
     
 
 end

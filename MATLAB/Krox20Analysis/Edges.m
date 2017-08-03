@@ -7,8 +7,8 @@ classdef Edges
         L = [];         % left edge xy array
         R = [];         % right edge xy array
         M = [];         % midline xy array
-        Rh4 = [];       % Mask defining rhombomere 4
-        Rh6 = [];       % Masks defining rhombomere 6
+        Rh4 = [];       % rhombomere 4 edge xy array
+        Rh6 = [];       % rhombomere 6 edge xy array
         
         hlL = [];       % handle for line overlaying left edge
         hlR = [];       % handle for line overlaying right edge
