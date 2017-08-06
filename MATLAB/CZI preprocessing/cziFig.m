@@ -294,9 +294,14 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
     for dind = handles.params.dir
 
         userOptions.kymDownOrUp = dind;
-
+        
         %% Pre-process images in stack
         curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
+        
+        userOptions.saveFirstFrameFigure = true;
+        userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', round(userOptions.timeBeforeCut));
+        firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
+        
         [trim_stack, curr_metadata] = kymographPreprocessing(stack, curr_metadata, userOptions);
 
         %% Plot and save kymographs
