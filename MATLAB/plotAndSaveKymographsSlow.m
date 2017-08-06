@@ -134,20 +134,48 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             temp_for_scale(temp_for_scale == 0) = [];
             colormap gray;
             clims = [min(temp_for_scale(:)) max(temp_for_scale(:))];
-            imagesc(xt, yt, kymim, clims);
-    %         axis equal tight;
-            axis tight;
-            xlabel('Time relative to cut, s')
+                        
             if isfield(md, 'isBleach')
                 if md.isBleach
-                    xlabel('Time relative to bleach, s')
-                    dyt = abs(yt(2)  - yt(1));
-                    hl = line([0 0], [(min(yt) - dyt)  (max(yt) + dyt)], 'Color', 'c', 'LineWidth', 3);
+                    hax1 = subplot(1,2,1);
+                    xtt1 = md.acqMetadata.cycleTime * (a:0);
+                    imagesc(xtt1, yt, kymim(:, 1:length(xtt1)), clims);
+                    xlabel('Time relative to bleach start, s')
+                    ylabel('Position relative to cut, \mum')
+                    hax2 = subplot(1,2,2);
+                    xtt2 = md.acqMetadata.cycleTime * (1:b);
+                    imagesc(xtt2, yt, kymim(:, (length(xtt1)+1):length(xtt2)), clims);
+                    xlabel('Time relative to bleach end, s')
+                    set(gca, 'YTick', []);
+                    % fix x axis lengths...
+                    ax1pos = get(hax1, 'Position');
+                    ax2pos = get(hax2, 'Position');
+                    x_ll = ax1pos(1);
+                    x_ul = ax2pos(1) + ax2pos(3);
+                    s = 0.5 * (x_ul-x_ll-ax1pos(3)-ax2pos(3));
+                    l = x_ul - x_ll;
+                    r = -a/b;
+                    w2 = (l-s)/(1+r);
+                    w1 = r * w2;
+                    new_ax1pos = [x_ll ax1pos(2) w1 ax1pos(4)];
+                    new_ax2pos = [(x_ul - w2) ax2pos(2) w2 ax2pos(4)];
+                    set(hax1, 'Position', new_ax1pos);
+                    set(hax2, 'Position', new_ax2pos);
+                else
+                    imagesc(xt, yt, kymim, clims);
+                    axis tight;
+                    xlabel('Time relative to cut, s')
+                    ylabel('Position relative to cut, \mum')
+                    title([title_txt direction]);
                 end
+            else
+                imagesc(xt, yt, kymim, clims);
+                axis tight;
+                xlabel('Time relative to cut, s')
+                ylabel('Position relative to cut, \mum')
+                title([title_txt direction]);
             end
-            ylabel('Position relative to cut, \mum')
-            title([title_txt direction]);
-
+ 
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
             print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
