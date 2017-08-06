@@ -10,6 +10,6 @@ function on_z_slice_selection_changed(hObject, eventdata, handles, controls)
     on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
     update_image(controls);
     
-    setappdata(controls.hfig, 'data', data);
+%     setappdata(controls.hfig, 'data', data);
 
 end

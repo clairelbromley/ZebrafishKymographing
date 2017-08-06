@@ -17,7 +17,7 @@ function on_z_pos_changed(hObject, eventdata, handles, controls)
             rhombomere_im = bfGetPlane(data.czi_reader, ...
                 data.czi_reader.getIndex(data.curr_z_plane - 1, ....
                 find(strcmp(data.channel_names, 'Krox20')) - 1, 0) + 1);
-            detect_rhombomeres(controls, data, rhombomere_im);
+            data = detect_rhombomeres(controls, data, rhombomere_im);
             if strcmp(data.channel_names{data.curr_c_plane}, 'Krox20')
                 set(rh_buts, 'Enable', 'on');
                 set(edge_buts, 'Enable', 'off');

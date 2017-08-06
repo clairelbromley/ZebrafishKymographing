@@ -66,7 +66,7 @@ function on_edge_button_press(hObject, eventdata, handles, controls)
     end
     
     % update UI
-    edg_let = {'L', 'R', 'M'};
+    edg_let = {'L', 'R', 'M', 'Rh4', 'Rh6'};
     set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
         'Value', 1);
     show_edges(controls, data);

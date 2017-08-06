@@ -1,4 +1,4 @@
-function detect_rhombomeres(controls, data, im)
+function data = detect_rhombomeres(controls, data, im)
 
     imf = medfilt2(im, [15 15]); % maximum kernel that would allow GPU operation. Empirically looks OK. 
     thr = 3 * quantile(imf(:), 0.75); % Emprically determined threshold
@@ -28,6 +28,7 @@ function detect_rhombomeres(controls, data, im)
         data.current_edge = fliplr(edges{2});
         setappdata(controls.hfig, 'data', data);
         on_edge_button_press(controls.hrh4but, [], [], controls)
+        data = getappdata(controls.hfig, 'data');
     else
         data.current_edge = fliplr(edges{2});
         setappdata(controls.hfig, 'data', data);
@@ -36,6 +37,7 @@ function detect_rhombomeres(controls, data, im)
         data.current_edge = fliplr(edges{1});
         setappdata(controls.hfig, 'data', data);
         on_edge_button_press(controls.hrh6but, [], [], controls)
+        data = getappdata(controls.hfig, 'data');
     end
     
 
