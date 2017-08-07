@@ -788,6 +788,7 @@ try
         set(handles.kymTitle{ax}, 'BackgroundColor', 'none');
     end
     
+    oldy = y;
     if sum(indices) > 0
         if strcmp(handles.includedData(indices).userQCLabel, 'Manual')
             [handles, x, y] = getQuantitativeKym(handles, folder, x, y, im, 'manual');
@@ -823,7 +824,7 @@ try
         set(handles.fitText(ax), 'Visible', 'off');
     end
     
-    axis(kym_ax, [-handles.timeBeforeCut handles.timeAfterCut 0 max(y)], 'tight');
+    axis(kym_ax, [-handles.timeBeforeCut handles.timeAfterCut 0 max(oldy)], 'tight');
 
     handles.edgeSide = upperOrLowerEdge(handles.paddedMembrane{ax}, im);
     if strcmp(handles.edgeSide(1), 'u')
@@ -2586,7 +2587,7 @@ upperEdge = 0;
 lowerEdge = 0;
 isEdge = sum(paddedMembrane,1);
 
-for j = 1:length(paddedMembrane)
+for j = 1:size(paddedMembrane, 2)
     
     if isEdge(j) > 0
         
