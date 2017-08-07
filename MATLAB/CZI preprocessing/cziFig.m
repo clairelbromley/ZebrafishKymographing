@@ -92,8 +92,8 @@ handles.params.multipageTiffAfterTimeS = 30;
 handles.params.dir = [0 1]; % up
 
 handles.params.speedInUmPerMinute = false;
-handles.params.kernelSize = 50;
-handles.params.kymWidth = 5;
+handles.params.kernelSize = 0;
+handles.params.kymWidth = 3;
 handles.params.kymLength = 75;
 
 set(handles.axImage, 'XTick', []);
