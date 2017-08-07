@@ -297,7 +297,7 @@ if ~strcmp(svRoot, 'Enter path...') && isdir(svRoot)
         
         %% Pre-process images in stack
         curr_metadata.kym_region = placeKymographs(curr_metadata, userOptions);
-        
+        curr_metadata.isCropped = false;
         userOptions.saveFirstFrameFigure = true;
         userOptions.firstFigureTitleAppend = sprintf(', %d s pre-cut', round(userOptions.timeBeforeCut));
         firstFigure(squeeze(stack(:,:,1)), curr_metadata, userOptions);
@@ -560,8 +560,13 @@ function txtDate_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of txtDate as text
-%        str2double(get(hObject,'String')) returns contents of txtDate as a double
+handles = guidata(gcf);
+handles.params.date = get(hObject, 'String');
+% Update handles structure
+guidata(hObject, handles);
+
+
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -583,8 +588,10 @@ function txtENumber_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of txtENumber as text
-%        str2double(get(hObject,'String')) returns contents of txtENumber as a double
+handles = guidata(gcf);
+handles.params.embryoNumber = str2double(get(hObject, 'String'));
+% Update handles structure
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -605,9 +612,10 @@ function txtFrameTime_Callback(hObject, eventdata, handles)
 % hObject    handle to txtFrameTime (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of txtFrameTime as text
-%        str2double(get(hObject,'String')) returns contents of txtFrameTime as a double
+handles = guidata(gcf);
+handles.params.frameTime = str2double(get(hObject, 'String'));
+% Update handles structure
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -628,9 +636,10 @@ function txtPixelSize_Callback(hObject, eventdata, handles)
 % hObject    handle to txtPixelSize (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of txtPixelSize as text
-%        str2double(get(hObject,'String')) returns contents of txtPixelSize as a double
+handles = guidata(gcf);
+handles.params.pixelSize = str2double(get(hObject, 'String'));
+% Update handles structure
+guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
