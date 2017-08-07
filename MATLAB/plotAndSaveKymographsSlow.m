@@ -108,7 +108,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             file_title_txt = sprintf('%s, Embryo %s, Cut %d, Kymograph index along cut = %d', md.acquisitionDate, ...
             md.embryoNumber, md.cutNumber, (kpos-2));
 
-            if ~isfield(uO, 'figHandle')
+            if ~(isfield(uO, 'figHandle') || any(strcmp(properties(uO), 'figHandle')))
                 h = figure('Name', title_txt,'NumberTitle','off');
             else
                 h = uO.figHandle;
@@ -172,6 +172,14 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
  
             kids = get(h, 'Children');
             delete(kids);
+            if isfield(md, 'isBleach')
+                if md.isBleach
+                    [~, midx] = min(abs(xt));
+                    if midx > 1
+                        kymim = temp_kymim;
+                    end
+                end
+            end
             imagesc(xt, yt, kymim, clims);
             axis tight;
             xlabel('Time relative to cut, s')
@@ -184,7 +192,7 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             if uO.lumenOpening
                 imwrite(uint16(kymim), [out_file '_timePerPixel=' num2str(md.acqMetadata.cycleTime) '_umPerPixel=' num2str(md.umperpixel) '.tif']); 
             end
-            if ~isfield(uO, 'figHandle')
+            if ~(isfield(uO, 'figHandle') || any(strcmp(properties(uO), 'figHandle')))
                 close(h);
             end
             
