@@ -19,7 +19,9 @@ function show_edges(controls, data)
     if get(controls.hshowchk, 'Value')
 
         % access the edges structure and draw the edges
-        edgs = {'L', 'M', 'R'};
+        edgs = {'L', 'M', 'R', 'Rh4', 'Rh6'};
+        kids = get(controls.hax, 'Children');
+        delete(kids(strcmp(get(kids, 'Type'), 'patch')));
         if ~isempty(data.edges)
             ts = [data.edges.timepoint];
             zs = [data.edges.z];
@@ -30,10 +32,20 @@ function show_edges(controls, data)
                             if isgraphics(data.edges((zs == z) & (ts == t)).(['hl' edg{1}]))
                                 set(data.edges((zs == z) & (ts == t)).(['hl' edg{1}]), 'Visible', 'on');
                             else
-                                data.edges((zs == z) & (ts == t)).(['hl' edg{1}]) = ...
-                                    line(data.edges((zs == z) & (ts == t)).(edg{1})(:,1), ...
-                                    data.edges((zs == z) & (ts == t)).(edg{1})(:,2), ...
-                                    'Color', 'r', 'Visible', 'on');
+                                if ~( strcmp(edg{1}, 'Rh4') || strcmp(edg{1}, 'Rh6') )
+                                    data.edges((zs == z) & (ts == t)).(['hl' edg{1}]) = ...
+                                        line(data.edges((zs == z) & (ts == t)).(edg{1})(:,1), ...
+                                        data.edges((zs == z) & (ts == t)).(edg{1})(:,2), ...
+                                        'Color', 'r', 'Visible', 'on');
+                                else
+                                    data.edges(end).(['hl' edg{1}]) = patch(data.edges((zs == z) & (ts == t)).(edg{1})(:,1), ...
+                                        data.edges((zs == z) & (ts == t)).(edg{1})(:,2), ...
+                                        'r', ...
+                                        'EdgeColor', 'r', ...
+                                        'LineWidth', 2, ...
+                                        'FaceAlpha', 0.25, ...
+                                        'Visible', 'on');
+                                end
                             end
                         end
                     end
@@ -43,7 +55,7 @@ function show_edges(controls, data)
         
     else    
         kids = get(controls.hax, 'Children');
-        delete(kids(strcmp(get(kids, 'Type'), 'line')));
+        delete(kids(strcmp(get(kids, 'Type'), 'line') | strcmp(get(kids, 'Type'), 'patch')));
     end
     
     setappdata(controls.hfig, 'data', data);
