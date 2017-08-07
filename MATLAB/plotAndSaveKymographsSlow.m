@@ -161,21 +161,23 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
                     new_ax2pos = [(x_ul - w2) ax2pos(2) w2 ax2pos(4)];
                     set(hax1, 'Position', new_ax1pos);
                     set(hax2, 'Position', new_ax2pos);
-                else
-                    imagesc(xt, yt, kymim, clims);
-                    axis tight;
-                    xlabel('Time relative to cut, s')
-                    ylabel('Position relative to cut, \mum')
-                    title([title_txt direction]);
+                    
+                    out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction ' separate axes'];
+                    print(h, out_file, '-dpng', '-r300');
+                    savefig(h, [out_file '.fig']);
+                    
                 end
-            else
-                imagesc(xt, yt, kymim, clims);
-                axis tight;
-                xlabel('Time relative to cut, s')
-                ylabel('Position relative to cut, \mum')
-                title([title_txt direction]);
+            
             end
  
+            kids = get(h, 'Children');
+            delete(kids);
+            imagesc(xt, yt, kymim, clims);
+            axis tight;
+            xlabel('Time relative to cut, s')
+            ylabel('Position relative to cut, \mum')
+            title([title_txt direction]);
+            
             out_file = [uO.outputFolder filesep dir_txt filesep file_title_txt direction];
             print(h, out_file, '-dpng', '-r300');
             savefig(h, [out_file '.fig']);
