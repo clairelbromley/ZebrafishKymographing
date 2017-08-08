@@ -29,7 +29,7 @@ if (uO.saveFirstFrameFigure)
         title_txt = [title_txt ' cropped'];
     end
         
-    if ~(isfield(uO, 'figHandle') || any(strcmp(properties(uO), 'figHandle')))
+    if ~isfield(uO, 'figHandle')
         h = figure('Name', title_txt,'NumberTitle','off');
     else
         h = uO.figHandle;
