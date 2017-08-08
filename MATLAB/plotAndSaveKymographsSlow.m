@@ -138,13 +138,13 @@ function kymographs = plotAndSaveKymographsSlow(stack, metadata, userOptions)
             if isfield(md, 'isBleach')
                 if md.isBleach
                     hax1 = subplot(1,2,1);
-                    xtt1 = md.acqMetadata.cycleTime * (a:0);
+                    xtt1 = md.acqMetadata.cycleTime * (a:-1);
                     imagesc(xtt1, yt, kymim(:, 1:length(xtt1)), clims);
                     xlabel('Time relative to bleach start, s')
                     ylabel('Position relative to cut, \mum')
                     hax2 = subplot(1,2,2);
                     xtt2 = md.acqMetadata.cycleTime * (1:b);
-                    imagesc(xtt2, yt, kymim(:, (length(xtt1)+1):length(xtt2)), clims);
+                    imagesc(xtt2, yt, kymim(:, (length(xtt1)+1):end), clims);
                     xlabel('Time relative to bleach end, s')
                     set(gca, 'YTick', []);
                     % fix x axis lengths...
