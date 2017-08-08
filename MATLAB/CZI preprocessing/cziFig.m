@@ -1561,11 +1561,11 @@ function menuShowROI_Callback(hObject, eventdata, handles)
 
 handles = guidata(gcf);
 
+roiColor = checkRoiColor(handles.params.currTPlane);
+
 if strcmp(get(hObject, 'checked'), 'off')
     
     set(hObject, 'checked', 'on');
-
-    roiColor = checkRoiColor(handles.params.currTPlane);
 
     handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
         100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
@@ -1574,7 +1574,19 @@ if strcmp(get(hObject, 'checked'), 'off')
 else
     set(hObject, 'checked', 'off');
     if isfield(handles, 'roiOverlay')
-        set(handles.roiOverlay, 'Visible', 'off');
+        if isgraphics(handles.roiOverlay)
+            set(handles.roiOverlay, 'Visible', 'off');
+        else
+            handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
+                100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
+                handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
+                'EdgeColor', roiColor, 'Visible', 'off');
+        end
+    else
+        handles.roiOverlay = rectangle('Position', [100 + handles.omeMeta.getRectangleX(0, 0).longValue(), ...
+            100 + handles.omeMeta.getRectangleY(0, 0).longValue(), handles.omeMeta.getRectangleWidth(0, 0).longValue(), ...
+            handles.omeMeta.getRectangleHeight(0, 0).longValue()], 'Parent', handles.axImage, ...
+            'EdgeColor', roiColor, 'Visible', 'off');
     end
 end
 
