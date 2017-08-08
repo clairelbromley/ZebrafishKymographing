@@ -530,6 +530,8 @@ if ischar(new_image_path{1})
 
     end
 
+    waitfor(msgbox('Remember to change the embryo number!', 'modal'));
+    
 end
     
 % Update handles structure
