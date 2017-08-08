@@ -14,7 +14,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     save_images(controls, data);
     
     %% calculate output stats and append to a .csv (for Mac compatibility)
-    
+    calculate_output_stats(data);
     
     
     
