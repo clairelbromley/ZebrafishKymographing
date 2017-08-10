@@ -5,6 +5,21 @@ function data = detect_rhombomeres(controls, data, im)
     z = round((data.top_slice_index -  round(get(controls.hzsl, 'Value'))) * ...
         double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM)));
     t = data.timepoint;
+    
+    if ~isempty(data.edges)
+        zs = [data.edges.z];
+        ts = [data.edges.timepoint];
+        
+        if any(ts == t)
+            if any(zs(ts == t) == z)
+                if (~isempty(data.edges(((ts == t) & (zs == z))).Rh4) && ...
+                        ~isempty(data.edges(((ts == t) & (zs == z))).Rh6))
+                    busy_dlg(busyOutput);
+                    return;
+                end
+            end
+        end
+    end
 
     imf = medfilt2(im, [15 15]); % maximum kernel that would allow GPU operation. Empirically looks OK. 
     thr = 3 * quantile(imf(:), 0.75); % Emprically determined threshold
@@ -24,9 +39,10 @@ function data = detect_rhombomeres(controls, data, im)
     binim2 = imrotate(binim, -rotAngle, 'bilinear', 'crop');
     rotated_rhombomere_lims = [find(sum(binim2, 2), 1, 'first'), ...
         find(sum(binim2, 2), 1, 'last')];
-    if isempty(data.edges)
-        data.edges = [Edges()];
-    end
+%     if isempty(data.edges)
+    data.edges = [data.edges; Edges()];
+%     end
+    
     data.edges(end).tissueRotation = -rotAngle;
     data.edges(end).rhombomereLimits = rotated_rhombomere_lims;
     data.edges(end).z = z;
@@ -41,26 +57,18 @@ function data = detect_rhombomeres(controls, data, im)
     end
     if imStats(2).Centroid(2) > imStats(1).Centroid(2)
         data.current_edge = fliplr(edges{1});
-        setappdata(controls.hfig, 'data', data);
-        on_edge_button_press(controls.hrh4but, [], [], controls)
-        data = getappdata(controls.hfig, 'data');
+        data = add_edge('Rh4', controls, data);
         data.current_edge = fliplr(edges{2});
-        setappdata(controls.hfig, 'data', data);
-        on_edge_button_press(controls.hrh4but, [], [], controls)
-        data = getappdata(controls.hfig, 'data');
+        data = add_edge('Rh6', controls, data);
     else
-        data.current_edge = fliplr(edges{2});
-        setappdata(controls.hfig, 'data', data);
-        on_edge_button_press(controls.hrh4but, [], [], controls)
-        data = getappdata(controls.hfig, 'data');
         data.current_edge = fliplr(edges{1});
-        setappdata(controls.hfig, 'data', data);
-        on_edge_button_press(controls.hrh6but, [], [], controls)
-        data = getappdata(controls.hfig, 'data');
+        data = add_edge('Rh6', controls, data);
+        data.current_edge = fliplr(edges{2});
+        data = add_edge('Rh4', controls, data);
     end
     
     
-%     setappdata(controls.hfig, 'data', data);
+    setappdata(controls.hfig, 'data', data);
     
     busy_dlg(busyOutput);
     

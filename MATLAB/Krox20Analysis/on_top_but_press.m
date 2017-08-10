@@ -31,5 +31,5 @@ function on_top_but_press(hObject, eventdata, handles, controls)
     
 %     data.edges = [data.edges; Edges()];
 
-    setappdata(controls.hfig, 'data', data);
+%     setappdata(controls.hfig, 'data', data);
     
