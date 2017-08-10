@@ -7,7 +7,13 @@ function update_image(controls)
     
     im = bfGetPlane(data.czi_reader, ...
         data.czi_reader.getIndex(current_z_ind - 1, current_c_ind - 1, 0) + 1);
+    if get(controls.hhicontrast, 'Value')
+        clims = [min(im(:)) max(im(:))/10];
+    else
+        clims = [min(im(:)) max(im(:))];
+    end
     imagesc(im, 'Parent', controls.hax);
+    set(controls.hax, 'CLim', clims);
     colormap gray;
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);

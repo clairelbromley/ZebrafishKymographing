@@ -16,5 +16,7 @@ function attach_callbacks(controls)
         {@on_showedges_changed, [], controls});
     set(controls.hnextbut, 'Callback', ...
         {@on_next_button_press, [], controls});
+    set(controls.hhicontrast, 'Callback', ...
+        {@on_high_contrast_changed, [], controls});
     
 end
