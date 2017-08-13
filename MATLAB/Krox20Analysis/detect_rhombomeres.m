@@ -37,6 +37,7 @@ function data = detect_rhombomeres(controls, data, im)
     % define limits of rhombomeres along long axis of tissue
     rotAngle = mean([imStats.Orientation]);
     binim2 = imrotate(binim, -rotAngle, 'bilinear', 'crop');
+    disp(size(binim2));
     rotated_rhombomere_lims = [find(sum(binim2, 2), 1, 'first'), ...
         find(sum(binim2, 2), 1, 'last')];
 %     if isempty(data.edges)
@@ -44,7 +45,7 @@ function data = detect_rhombomeres(controls, data, im)
 %     end
     
     data.edges(end).tissueRotation = -rotAngle;
-    data.edges(end).rhombomereLimits = rotated_rhombomere_lims;
+%     data.edges(end).rhombomereLimits = rotated_rhombomere_lims;
     data.edges(end).z = z;
     data.edges(end).timepoint = t;
     
@@ -60,11 +61,19 @@ function data = detect_rhombomeres(controls, data, im)
         data = add_edge('Rh4', controls, data);
         data.current_edge = fliplr(edges{2});
         data = add_edge('Rh6', controls, data);
+        data.edges(end).rhombomereLimits = [rotated_rhombomere_lims(1), ...
+            rotated_rhombomere_lims(1) + imStats(1).MinorAxisLength, ...
+            rotated_rhombomere_lims(2) - imStats(2).MinorAxisLength, ...
+            rotated_rhombomere_lims(2)];
     else
         data.current_edge = fliplr(edges{1});
         data = add_edge('Rh6', controls, data);
         data.current_edge = fliplr(edges{2});
         data = add_edge('Rh4', controls, data);
+        data.edges(end).rhombomereLimits = [rotated_rhombomere_lims(1), ...
+            rotated_rhombomere_lims(1) + imStats(2).MinorAxisLength, ...
+            rotated_rhombomere_lims(2) - imStats(1).MinorAxisLength, ...
+            rotated_rhombomere_lims(2)];
     end
     
     
