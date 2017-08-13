@@ -25,6 +25,7 @@ classdef Edges
 %         rhombomere_length_median = [];  % median lengths for rhombomeres 4, 5 and 6;
         
         midlineSinuosity = 0;           % sinuosity index of midline
+        midlineDefinition = [];
         basal_basal_distances = [];
         
     end

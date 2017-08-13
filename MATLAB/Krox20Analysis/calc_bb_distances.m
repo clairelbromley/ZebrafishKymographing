@@ -4,7 +4,7 @@ function basal_basal_distances = calc_bb_distances(data, edge)
     rotMatrix = [cos(theta) -sin(theta); sin(theta) cos(theta)];
     c = [double(data.ome_meta.getPixelsSizeY(0).getNumberValue()), ...
         double(data.ome_meta.getPixelsSizeX(0).getNumberValue())]/2;
-    pix_to_micron = double(data.ome_meta.getPixelsPhysicalSizeX(0).value);
+    pix_to_micron = double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
     
     edgLs = {'L', 'M', 'R'};
     rhs = [4, 5, 6];
