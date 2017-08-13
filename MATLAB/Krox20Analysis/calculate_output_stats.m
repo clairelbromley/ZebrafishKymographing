@@ -1,4 +1,4 @@
-function calculate_output_stats(data)
+function edges = calculate_output_stats(data)
 
     % filter edges structure for the correct timepoint
     edges = data.edges([data.edges.timepoint] == data.timepoint);
@@ -28,10 +28,7 @@ function calculate_output_stats(data)
                 (rotated_midline(idx, 2) - rotated_midline(idx - 1, 2))^2 );
         end
         sinuosity_index = manual_length/straight_length;
-            
         
-        
-        
+        edges([edges.z] == z).midlineSinuosity = sinuosity_index;
     end
-
 end

@@ -14,8 +14,9 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     save_images(controls, data);
     
     %% calculate output stats and append to a .csv (for Mac compatibility)
-    calculate_output_stats(data);
-    
+    edges = calculate_output_stats(data);
+    results = [[edges.timepoint]' [edges.z]' [edges.midlineSinuosity]'];
+    dlmwrite([data.out_folder filesep 'results.csv'], results, '-append', 'delimiter', ',');
     
     
     %% update timepoint and display accordingly
@@ -42,7 +43,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         busy_dlg(busyOutput);
         msgbox('Reached the end of the current timecourse!');
         close(controls.hfig);
-        
+    end
     
     
 
