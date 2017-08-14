@@ -1,6 +1,6 @@
 function midline_definition = calc_midline_definition(data, edge)
 
-    midline_thickness_pix = 10;
+    midline_thickness_pix = 20;
 
     % get z index
     z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
@@ -33,31 +33,32 @@ function midline_definition = calc_midline_definition(data, edge)
             
     end
     
-    % NO - calculate midline ratios for all y, then segment up?
-    midline_im = rotim;
-    out = zeros(size(rotim));
+    midline_im = zeros(size(rotim));
+    midline_col = [];
+    denominator_im = zeros(size(rotim));
+    denominator_col = [];
     for yind = min(rotated_e.M(:,2)):max(rotated_e.M(:,2))
-        out(yind, round(rotated_e.M(yind, 1) - midline_thickness_pix/2):round(rotated_e.M(yind, 1) + midline_thickness_pix/2)) = midline_im(yind, round(rotated_e.M(yind, 1) - midline_thickness_pix/2):round(rotated_e.M(yind, 1) + midline_thickness_pix/2));
+        myind = yind - min(rotated_e.M(:,2)) + 1;
+        midline_im(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2)) =...
+            rotim(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2));
+        midline_col = [midline_col; rotim(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2))];
+        denominator_im(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2)) =...
+            rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2));
+        denominator_col = [denominator_col; rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
     end
     
+    midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
+    midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
+    midline_definition.AllRh.median_midline_def = median(midline_definition_array);
+    midline_definition.AllRh.std_midline_def = std(midline_definition_array);
     
     for rh = rhs
-        temp_e.L = rotated_e.L;
-        msk1 = rotated_e.L(:, 2) > edge.rhombomereLimits(rh-min(rhs)+2);
-        msk2 = rotated_e.L(:, 2) < edge.rhombomereLimits(rh-min(rhs)+1);
-        msk = msk1 | msk2;
-        temp_e.L(msk, :) = [];
         
-        temp_e.R = rotated_e.R;
-        temp_e.R(msk, :) = [];
-        
-        temp_e.M = rotated_e.M;
-        temp_e.M(msk, :) = [];
-        
-        midline_im = rotim(edge.rhombomereLimits(rh-min(rhs)+1):edge.rhombomereLimits(rh-min(rhs)+2), :);
-        
-        midline_im(:, (temp_e.M - midline_thickness_pix/2):(temp_e.M + midline_thickness_pix/2)) = 0;
-%         midline_intesity = 
+        temp_m = midline_definition_array((edge.rhombomereLimits(rh-min(rhs)+1) - min(edge.rhombomereLimits) + 1):...
+            (edge.rhombomereLimits(rh-min(rhs)+2) - min(edge.rhombomereLimits) + 1));
+        midline_definition.(['Rh' num2str(rh)]).mean_midline_def = mean(temp_m);
+        midline_definition.(['Rh' num2str(rh)]).median_midline_def = median(temp_m);
+        midline_definition.(['Rh' num2str(rh)]).std_midline_def = std(temp_m);
         
     end
 
