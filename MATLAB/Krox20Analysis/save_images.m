@@ -63,8 +63,15 @@ function save_images(controls, data)
                 data.channel_names{chidx}, data.timepoint)]);
             
             if strcmp(data.channel_names{chidx}, 'Krox20')
-                edgstr = {'Rh4', 'Rh6'};
                 delete(hls);
+                subplot(2,1,1);
+                imagesc(im);
+                colormap gray;
+                set(gca, 'XTick', []);
+                set(gca, 'YTick', []);
+                axis equal tight;
+                edgstr = {'Rh4', 'Rh6'};
+                
                 for edg = edgstr
                     patch(edges.(edg{1})(:,1), ...
                         edges.(edg{1})(:,2), ...
@@ -75,8 +82,35 @@ function save_images(controls, data)
                         'Visible', 'on');
                 end
                 
+                subplot(2,1,2);
+                imagesc(im);
+                colormap gray;
+                set(gca, 'XTick', []);
+                set(gca, 'YTick', []);
+                axis equal tight;
+                
+                for rlidx = 1:length(data.edges((zs == z) & (ts == t)).rhombomereLimits)
+                    rlhtmp = line([-500 x_size+500], ...
+                        [edges.rhombomereLimits(rlidx) edges.rhombomereLimits(rlidx)], ...
+                        'Color', 'g', 'LineStyle', '--', 'LineWidth', 1, 'Visible', 'on');
+                    direction = [0 0 1];
+                    origin = [c(1) c(2) 0];
+                    rotate(rlhtmp, direction, ...
+                        data.edges((zs == z) & (ts == t)).tissueRotation, ...
+                        origin);
+                end
+                
+                 % add scale bar
+                hscl = line([0.95 * size(im, 2) - scale_bar_length_pix, 0.95 * size(im, 2)], ...
+                [0.95 * size(im, 1), 0.95 * size(im, 1)], ...
+                'Color', 'w', ...
+                'LineWidth', 3);
+                
                 print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.png', ...
                     data.channel_names{chidx}, data.timepoint)], '-dpng', '-r300');
+                
+                savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.png', ...
+                    data.channel_names{chidx}, data.timepoint)]);
                 
             end
                 
