@@ -7,7 +7,13 @@ function hdr_string = save_results(data, edges)
     stats_strs = fields(edges(1).basal_basal_distances.(rhs{1}));
     
     for rhidx = 1:length(rhs)
-        results = [results repmat(edges.ap_lengths.(rhs{rhidx}), 3, 1)];
+        tmp_res = [];
+        for eidx = 1:length(edges)
+            tmp_res = [tmp_res; ...
+                edges(eidx).ap_lengths.(rhs{rhidx})];
+        end
+        results = [results tmp_res];
+        hdr_string = [hdr_string ',' rhs{rhidx} ' - AP length']
     end
     
     for rhidx = 1:length(rhs)

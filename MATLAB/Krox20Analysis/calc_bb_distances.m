@@ -14,7 +14,8 @@ function basal_basal_distances = calc_bb_distances(data, edge)
         rotated_e.(edg{1}) = (rotMatrix * (edge.(edg{1}) - cc)')' + cc; 
         x = rotated_e.(edg{1})(:,1);
         y = rotated_e.(edg{1})(:,2);
-        [y, I] = sort(y);
+%         [y, I] = sort(y);
+        [y, I, ~] = unique(y, 'sorted');
         x = x(I);
         x = interp1(y, x, ...
             edge.rhombomereLimits(1):edge.rhombomereLimits(4), 'pchip');

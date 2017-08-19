@@ -12,6 +12,9 @@ function save_images(controls, data)
     % get XY scaling
     pix2micron = double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM));
     scale_bar_length_pix = round(data.scale_bar_length_um / pix2micron);
+    c = [double(data.ome_meta.getPixelsSizeY(0).getNumberValue()), ...
+            double(data.ome_meta.getPixelsSizeX(0).getNumberValue())]/2;
+    x_size = 2 * c(1);
     
     for z_pos = data.z_offsets
         for chidx = 1:length(data.channel_names)
@@ -64,7 +67,7 @@ function save_images(controls, data)
             
             if strcmp(data.channel_names{chidx}, 'Krox20')
                 delete(hls);
-                subplot(2,1,1);
+                subplot(1,2,1);
                 imagesc(im);
                 colormap gray;
                 set(gca, 'XTick', []);
@@ -77,26 +80,26 @@ function save_images(controls, data)
                         edges.(edg{1})(:,2), ...
                         'r', ...
                         'EdgeColor', 'r', ...
-                        'LineWidth', 2, ...
+                        'LineWidth', 1, ...
                         'FaceAlpha', 0.25, ...
                         'Visible', 'on');
                 end
                 
-                subplot(2,1,2);
+                subplot(1,2,2);
                 imagesc(im);
                 colormap gray;
                 set(gca, 'XTick', []);
                 set(gca, 'YTick', []);
                 axis equal tight;
                 
-                for rlidx = 1:length(data.edges((zs == z) & (ts == t)).rhombomereLimits)
+                for rlidx = 1:length(edges.rhombomereLimits)
                     rlhtmp = line([-500 x_size+500], ...
                         [edges.rhombomereLimits(rlidx) edges.rhombomereLimits(rlidx)], ...
                         'Color', 'g', 'LineStyle', '--', 'LineWidth', 1, 'Visible', 'on');
                     direction = [0 0 1];
                     origin = [c(1) c(2) 0];
                     rotate(rlhtmp, direction, ...
-                        data.edges((zs == z) & (ts == t)).tissueRotation, ...
+                        edges.tissueRotation, ...
                         origin);
                 end
                 
@@ -109,7 +112,7 @@ function save_images(controls, data)
                 print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.png', ...
                     data.channel_names{chidx}, data.timepoint)], '-dpng', '-r300');
                 
-                savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.png', ...
+                savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.fig', ...
                     data.channel_names{chidx}, data.timepoint)]);
                 
             end

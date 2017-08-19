@@ -25,7 +25,8 @@ function midline_definition = calc_midline_definition(data, edge)
         rotated_e.(edg{1}) = (rotMatrix * (edge.(edg{1}) - cc)')' + cc; 
         x = rotated_e.(edg{1})(:,1);
         y = rotated_e.(edg{1})(:,2);
-        [y, I] = sort(y);
+%         [y, I] = sort(y);
+        [y, I, ~] = unique(y, 'sorted');
         x = x(I);
         x = interp1(y, x, ...
             edge.rhombomereLimits(1):edge.rhombomereLimits(4), 'pchip');
@@ -54,10 +55,22 @@ function midline_definition = calc_midline_definition(data, edge)
         data.timepoint)]);
     imwrite(denominator_col, [of filesep sprintf('midline definition - background pixels, t = %0.2f.tif', ...
         data.timepoint)]);
-    print(midline_im, [of filesep sprintf('midline definition - midline, t = %0.2f', ...
+    hfig_temp = figure('Visible', 'off');
+    hax_temp = axes;
+    imagesc(midline_im);
+    colormap gray;
+    set(gca, 'XTick', []);
+    set(gca, 'YTick', []);
+    axis equal tight;
+    print(hfig_temp, [of filesep sprintf('midline definition - midline, t = %0.2f', ...
          data.timepoint)], '-dpng', '-r300');
-     print(denominator_im, [of filesep sprintf('midline definition - background, t = %0.2f', ...
+     imagesc(denominator_im);
+    colormap gray;
+    set(gca, 'XTick', []);
+    set(gca, 'YTick', []);
+     print(hfig_temp, [of filesep sprintf('midline definition - background, t = %0.2f', ...
          data.timepoint)], '-dpng', '-r300');
+     close(hfig_temp);
     
     midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
     midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
