@@ -10,7 +10,7 @@ function edges = calculate_output_stats(data)
         
         % midline sinuosity
         sinuosity_index = calc_sinuosity_index(data, edge);
-        edges([edges.z] == z).midlineSinuosity = sinuosity_index;
+        edges([edges.z] == z).midlineIndexOfStraightness = sinuosity_index;
         
         % basal-basal distance and deviation from geometrical midline
         % broken down by rhombomere

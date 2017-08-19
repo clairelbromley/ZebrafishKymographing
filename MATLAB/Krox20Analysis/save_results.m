@@ -1,7 +1,7 @@
 function hdr_string = save_results(data, edges)
 
-    results = [[edges.timepoint]' [edges.z]' [edges.midlineSinuosity]'];
-    hdr_string = 'Timepoint,z,midline sinuoisity index';
+    results = [[edges.timepoint]' [edges.z]' [edges.midlineIndexOfStraightness]'];
+    hdr_string = 'Timepoint,z,midline index of straightness';
     
     rhs = fields(edges(1).basal_basal_distances);
     stats_strs = fields(edges(1).basal_basal_distances.(rhs{1}));

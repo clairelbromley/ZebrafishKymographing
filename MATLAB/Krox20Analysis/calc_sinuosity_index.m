@@ -1,4 +1,6 @@
-function sinuosity_index = calc_sinuosity_index(data, edge)    
+function sinuosity_index = calc_sinuosity_index(data, edge) 
+
+    % use "index of straightness" as defined in Moniar 2010
 
     theta = -deg2rad(edge.tissueRotation);
     rotMatrix = [cos(theta) -sin(theta); sin(theta) cos(theta)];
@@ -19,4 +21,4 @@ function sinuosity_index = calc_sinuosity_index(data, edge)
             (rotated_midline(idx, 2) - rotated_midline(idx - 1, 2))^2 );
     end
     
-    sinuosity_index = manual_length/straight_length;
+    sinuosity_index = manual_length/straight_length - 1;
