@@ -27,6 +27,7 @@ classdef Edges
         midlineSinuosity = 0;           % sinuosity index of midline
         midlineDefinition = [];
         basal_basal_distances = [];
+        ap_lengths = [];
         
     end
     
