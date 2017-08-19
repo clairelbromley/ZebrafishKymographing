@@ -55,6 +55,10 @@ function basal_basal_distances = calc_bb_distances(data, edge)
             median(abs(tmpgm(:,1) - temp_e.M(:,1))) * pix_to_micron;
         basal_basal_distances.(['Rh' num2str(rh)]).stdDeviationFromGeometricalMidline = ...
             std(abs(tmpgm(:,1) - temp_e.M(:,1))) * pix_to_micron;
+        basal_basal_distances.(['Rh' num2str(rh)]).minDeviationFromGeometricalMidline = ...
+            min(abs(tmpgm(:,1) - temp_e.M(:,1))) * pix_to_micron;
+        basal_basal_distances.(['Rh' num2str(rh)]).maxDeviationFromGeometricalMidline = ...
+            max(abs(tmpgm(:,1) - temp_e.M(:,1))) * pix_to_micron;
         
     end
     
@@ -70,5 +74,11 @@ function basal_basal_distances = calc_bb_distances(data, edge)
         median(abs(geometrical_midline(:,1) - rotated_e.M(:,1))) * pix_to_micron;
     basal_basal_distances.AllRh.stdDeviationFromGeometricalMidline = ...
         std(abs(geometrical_midline(:,1) - rotated_e.M(:,1))) * pix_to_micron;
+    basal_basal_distances.AllRh.minDeviationFromGeometricalMidline = ...
+        min(abs(geometrical_midline(:,1) - rotated_e.M(:,1))) * pix_to_micron;
+    basal_basal_distances.AllRh.maxDeviationFromGeometricalMidline = ...
+        max(abs(geometrical_midline(:,1) - rotated_e.M(:,1))) * pix_to_micron;
+
+
 
 end

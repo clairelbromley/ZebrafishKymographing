@@ -51,6 +51,8 @@ function midline_definition = calc_midline_definition(data, edge)
     midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
     midline_definition.AllRh.median_midline_def = median(midline_definition_array);
     midline_definition.AllRh.std_midline_def = std(midline_definition_array);
+    midline_definition.AllRh.min_midline_def = min(midline_definition_array);
+    midline_definition.AllRh.max_midline_def = max(midline_definition_array);
     
     for rh = rhs
         
@@ -59,6 +61,8 @@ function midline_definition = calc_midline_definition(data, edge)
         midline_definition.(['Rh' num2str(rh)]).mean_midline_def = mean(temp_m);
         midline_definition.(['Rh' num2str(rh)]).median_midline_def = median(temp_m);
         midline_definition.(['Rh' num2str(rh)]).std_midline_def = std(temp_m);
+        midline_definition.(['Rh' num2str(rh)]).min_midline_def = min(temp_m);
+        midline_definition.(['Rh' num2str(rh)]).max_midline_def = max(temp_m);
         
     end
 
