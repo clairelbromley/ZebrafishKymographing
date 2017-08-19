@@ -47,6 +47,18 @@ function midline_definition = calc_midline_definition(data, edge)
         denominator_col = [denominator_col; rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
     end
     
+    z_fldr = sprintf('z = %0.2f um', edge.z);
+    of = [data.out_folder filesep z_fldr];
+    mkdir(of);
+    imwrite(midline_col, [of filesep sprintf('midline definition - midline pixels, t = %0.2f.tif', ...
+        data.timepoint)]);
+    imwrite(denominator_col, [of filesep sprintf('midline definition - background pixels, t = %0.2f.tif', ...
+        data.timepoint)]);
+    print(midline_im, [of filesep sprintf('midline definition - midline, t = %0.2f', ...
+         data.timepoint)], '-dpng', '-r300');
+     print(denominator_im, [of filesep sprintf('midline definition - background, t = %0.2f', ...
+         data.timepoint)], '-dpng', '-r300');
+    
     midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
     midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
     midline_definition.AllRh.median_midline_def = median(midline_definition_array);
