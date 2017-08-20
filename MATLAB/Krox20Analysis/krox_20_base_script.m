@@ -32,16 +32,16 @@ function krox_20_base_script()
     dlmwrite([data.out_folder filesep 'results.csv'], []);
     data.in_folder = folder;
     
-    % get files and display first plane of first timepoint
-    files = dir([folder filesep '*.czi']);
-    data.files = files;
+    % get files, order by timestamp and display first plane of first timepoint
+    busyOutput = busy_dlg();
+    [files_out, timestamps] = order_files(folder);
+    data.files = files_out;
+    data.timestamps = timestamps;
     
     data.edges = [];
-    data.filename = files(1).name;
-    data.timepoint = 1; % find proper timestamp from omeMeta
-    data.czi_reader = bfGetReader([folder filesep files(1).name]);
-%     data.current_z_ind = 1;
-%     data.current_c_ind = 1;
+    data.filename = files_out(1).name;
+    data.timepoint = 1; 
+    data.czi_reader = bfGetReader([folder filesep files_out(1).name]);
     data.im = bfGetPlane(data.czi_reader, ...
         data.czi_reader.getIndex(0, 0, 0) + 1);
     data.ome_meta = data.czi_reader.getMetadataStore();
@@ -58,6 +58,8 @@ function krox_20_base_script()
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);
     axis equal tight;
+    
+    busy_dlg(busyOutput);
 
 end
 

@@ -27,7 +27,7 @@ function save_images(controls, data)
 
             % save tiffs, for now without edges
             imwrite(im, [of filesep sprintf('%s, t = %0.2f.tif', ...
-                data.channel_names{chidx}, data.timepoint)]);
+                data.channel_names{chidx}, data.timestamps(data.timepoint))]);
 
             % save png with edges and scale bar
             hfig_temp = figure('Visible', 'off');
@@ -41,7 +41,7 @@ function save_images(controls, data)
             axis equal tight;
 
             print(hfig_temp, [of filesep sprintf('%s, t = %0.2f no edges.png', ...
-                data.channel_names{chidx}, data.timepoint)], '-dpng', '-r300');
+                data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
             
             % loop through and draw edges
             hls = [];
@@ -60,10 +60,10 @@ function save_images(controls, data)
             'Parent', hax_temp);
 
             print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with edges.png', ...
-                data.channel_names{chidx}, data.timepoint)], '-dpng', '-r300');
+                data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
             
             savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f.fig', ...
-                data.channel_names{chidx}, data.timepoint)]);
+                data.channel_names{chidx}, data.timestamps(data.timepoint))]);
             
             if strcmp(data.channel_names{chidx}, 'Krox20')
                 delete(hls);
@@ -110,10 +110,10 @@ function save_images(controls, data)
                 'LineWidth', 3);
                 
                 print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.png', ...
-                    data.channel_names{chidx}, data.timepoint)], '-dpng', '-r300');
+                    data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
                 
                 savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.fig', ...
-                    data.channel_names{chidx}, data.timepoint)]);
+                    data.channel_names{chidx}, data.timestamps(data.timepoint))]);
                 
             end
                 

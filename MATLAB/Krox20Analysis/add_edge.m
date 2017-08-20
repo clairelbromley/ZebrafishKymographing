@@ -42,6 +42,7 @@ function data = add_edge(edg, controls, data)
             else
                 data.edges = [data.edges; Edges()];
                 data.edges(end).timepoint = t;
+                data.edges(end).timestamp = data.timestamps(t);
                 data.edges(end).z = z;
                 data.edges(end).(edg) = data.current_edge;
                 data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
