@@ -33,7 +33,8 @@ function krox_20_base_script()
     data.in_folder = folder;
     
     % get files, order by timestamp and display first plane of first timepoint
-    busyOutput = busy_dlg();
+%     busyOutput = busy_dlg();
+    disp('Loading files...');
     [files_out, timestamps] = order_files(folder);
     data.files = files_out;
     data.timestamps = timestamps;
@@ -59,7 +60,7 @@ function krox_20_base_script()
     set(gca, 'YTick', []);
     axis equal tight;
     
-    busy_dlg(busyOutput);
+%     busy_dlg(busyOutput);
 
 end
 
