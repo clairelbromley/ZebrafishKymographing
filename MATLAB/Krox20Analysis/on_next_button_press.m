@@ -1,6 +1,16 @@
 function on_next_button_press(hObject, eventdata, handles, controls)
 
     data = getappdata(controls.hfig, 'data');
+    
+    if ~all(cell2mat(get(controls.hffchecks, 'Value')))
+        answer = questdlg('Not all edges are found for this timepoint - proceed anyway?', ...
+            'Proceed to next timepoint?', ...
+            'Yes', 'No', 'Yes');
+        if strcmp(answer, 'No')
+            return;
+        end
+    end
+    
     busyOutput = busy_dlg();
     
     %% save .mat file containing all data for recovery, just in case

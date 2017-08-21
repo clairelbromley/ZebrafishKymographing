@@ -91,8 +91,8 @@ function data = add_edge(edg, controls, data)
     
     % check if all edges are saved - if so, allow moving on to the next
     % timepoint
-    if all(cell2mat(get(controls.hffchecks, 'Value')))
-        set(controls.hnextbut, 'Enable', 'on');
-    end
+%     if all(cell2mat(get(controls.hffchecks, 'Value')))
+%         set(controls.hnextbut, 'Enable', 'on');
+%     end
     
 end
