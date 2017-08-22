@@ -25,7 +25,9 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     
     %% calculate output stats and append to a .csv (for Mac compatibility)
     edges = calculate_output_stats(data);
-    hdr_string = save_results(data, edges);
+    if ~isempty(edges)
+        hdr_string = save_results(data, edges);
+    end
 %     ...
 %         [edges.basal_basal_distances.];
 %     dlmwrite([data.out_folder filesep 'results.csv'], results, '-append', 'delimiter', ',');
@@ -38,7 +40,11 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         set(controls.hfig, 'Name', data.files(data.timepoint).name)
 
         %% go to approximate top of tissue based on previous timepoint?
-        set(controls.hzsl, 'Value', (data.top_slice_index));
+        if isempty(data.top_slice_index)
+            set(controls.hzsl, 'Value', 1);
+        else
+            set(controls.hzsl, 'Value', (data.top_slice_index));
+        end
         on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
         update_image(controls);
 
@@ -47,6 +53,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         set(controls.hzradios, 'Enable', 'off')
         edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
         set(edge_buts, 'Enable', 'off');
+        data.top_slice_index = [];
 
         busy_dlg(busyOutput);
         setappdata(controls.hfig, 'data', data);

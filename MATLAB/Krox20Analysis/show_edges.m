@@ -3,13 +3,17 @@ function show_edges(controls, data)
     % get the current z value and check whether it's in the list
     current_z_ind = get(controls.hzsl, 'Value');
     if isfield(data, 'top_slice_index')
-        c = [double(data.ome_meta.getPixelsSizeY(0).getNumberValue()), ...
-            double(data.ome_meta.getPixelsSizeX(0).getNumberValue())]/2;
-        x_size = 2 * c(1);
-        z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
-        slices_relative_to_top = round(data.z_offsets/ z_ind_to_micron_depth);
-        z = round((data.top_slice_index - current_z_ind) * z_ind_to_micron_depth);
-        if ~any(current_z_ind == (data.top_slice_index - slices_relative_to_top))
+        if ~isempty(data.top_slice_index)
+            c = [double(data.ome_meta.getPixelsSizeY(0).getNumberValue()), ...
+                double(data.ome_meta.getPixelsSizeX(0).getNumberValue())]/2;
+            x_size = 2 * c(1);
+            z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
+            slices_relative_to_top = round(data.z_offsets/ z_ind_to_micron_depth);
+            z = round((data.top_slice_index - current_z_ind) * z_ind_to_micron_depth);
+            if ~any(current_z_ind == (data.top_slice_index - slices_relative_to_top))
+                return;
+            end
+        else
             return;
         end
     else
