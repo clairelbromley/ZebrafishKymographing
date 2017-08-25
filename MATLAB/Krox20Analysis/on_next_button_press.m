@@ -37,14 +37,16 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     if (data.timepoint < length(data.files))
         data.timepoint = data.timepoint + 1;
         data.czi_reader = bfGetReader([data.in_folder filesep data.files(data.timepoint).name]);
+        data.ome_meta = data.czi_reader.getMetadataStore();
+        initialise_sliders(controls, data);
         set(controls.hfig, 'Name', data.files(data.timepoint).name)
 
-        %% go to approximate top of tissue based on previous timepoint?
-        if isempty(data.top_slice_index)
-            set(controls.hzsl, 'Value', 1);
-        else
-            set(controls.hzsl, 'Value', (data.top_slice_index));
-        end
+%         %% go to approximate top of tissue based on previous timepoint?
+%         if isempty(data.top_slice_index)
+%             set(controls.hzsl, 'Value', 1);
+%         else
+%             set(controls.hzsl, 'Value', (data.top_slice_index));
+%         end
         on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
         update_image(controls);
 
@@ -67,6 +69,6 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         close(controls.hfig);
     end
     
-    
+    initialise_sliders(controls, data);
 
 end

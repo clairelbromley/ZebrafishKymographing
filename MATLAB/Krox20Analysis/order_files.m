@@ -5,10 +5,12 @@ function [files_out, timestamps] = order_files(folder)
     first_t = [];
     n_T_planes = [];
     ts = [];
+    n_Z_planes = [];
 
     for fidx = 1:length(files)
         czi_reader = bfGetReader([folder filesep files(fidx).name]);
         ome_meta = czi_reader.getMetadataStore();
+        n_Z_planes = [n_Z_planes; double(ome_meta.getPixelsSizeZ(0).getNumberValue())];
         first_t = [first_t; double(ome_meta.getPlaneDeltaT(0, czi_reader.getIndex(0, 0, 0)).value())/60];
         n_T_planes = [n_T_planes; double(ome_meta.getPixelsSizeT(0).getNumberValue())];
         t_temp = zeros(1,50);
@@ -50,5 +52,6 @@ function [files_out, timestamps] = order_files(folder)
     timestamps = timestamps - min(timestamps);
     [timestamps, idx] = sort(timestamps);
     files_out = files(idx);
+    disp(n_Z_planes(idx));
 
 end

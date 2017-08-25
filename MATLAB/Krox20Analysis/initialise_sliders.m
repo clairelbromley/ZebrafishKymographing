@@ -1,4 +1,4 @@
-function initialise_sliders(controls)
+function initialise_sliders(controls, data)
 %% set range for sliders based on contents of metadata
     data = getappdata(controls.hfig, 'data');
 

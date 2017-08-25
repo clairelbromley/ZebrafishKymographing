@@ -52,7 +52,7 @@ function krox_20_base_script()
     controls = setup_ui(data);
     setappdata(controls.hfig, 'data', data);
     
-    initialise_sliders(controls);
+    initialise_sliders(controls, data);
     attach_callbacks(controls)
     imagesc(data.im, 'Parent', controls.hax);
     colormap gray;

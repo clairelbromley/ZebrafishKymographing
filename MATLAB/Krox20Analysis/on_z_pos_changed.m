@@ -3,6 +3,7 @@ function on_z_pos_changed(hObject, eventdata, handles, controls)
     data = getappdata(controls.hfig, 'data');
     
     data.curr_z_plane = round(get(hObject, 'Value'));
+    fprintf('z = %d of %d\r\n', data.curr_z_plane, get(controls.hzsl, 'Max'));
     data.curr_c_plane = round(get(controls.hcsl, 'Value'));
     update_image(controls)
     
