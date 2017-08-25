@@ -23,7 +23,7 @@ function data = add_edge(edg, controls, data)
                         data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                     end
                 else
-                    if isstruct(data.current_edge)
+                    if isa(data.current_edge, 'imfreehand')
                         data.current_edge = data.current_edge.getPosition;
                     end
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
