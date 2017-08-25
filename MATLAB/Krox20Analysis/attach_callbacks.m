@@ -18,5 +18,9 @@ function attach_callbacks(controls)
         {@on_next_button_press, [], controls});
     set(controls.hhicontrast, 'Callback', ...
         {@on_high_contrast_changed, [], controls});
+    set(controls.hrh6but, 'Callback', ...
+        {@on_edge_button_press, [], controls});
+    set(controls.hrh4but, 'Callback', ...
+        {@on_edge_button_press, [], controls});
     
 end
