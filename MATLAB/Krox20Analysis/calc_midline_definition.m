@@ -2,6 +2,22 @@ function midline_definition = calc_midline_definition(data, edge)
 
     edgLs = {'M'};
     rhs = [4, 5, 6];
+    
+    for rh = rhs
+
+        midline_definition.(['Rh' num2str(rh)]).mean_midline_def = 0;
+        midline_definition.(['Rh' num2str(rh)]).median_midline_def = 0;
+        midline_definition.(['Rh' num2str(rh)]).std_midline_def = 0;
+        midline_definition.(['Rh' num2str(rh)]).min_midline_def = 0;
+        midline_definition.(['Rh' num2str(rh)]).max_midline_def = 0;
+
+    end
+
+    midline_definition.AllRh.mean_midline_def = 0;
+    midline_definition.AllRh.median_midline_def = 0;
+    midline_definition.AllRh.std_midline_def = 0;
+    midline_definition.AllRh.min_midline_def = 0;
+    midline_definition.AllRh.max_midline_def = 0;
 
     if ~isempty(edge.M)
         midline_thickness_pix = 20;
@@ -73,43 +89,27 @@ function midline_definition = calc_midline_definition(data, edge)
              data.timepoint)], '-dpng', '-r300');
          close(hfig_temp);
 
-        midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
-        midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
-        midline_definition.AllRh.median_midline_def = median(midline_definition_array);
-        midline_definition.AllRh.std_midline_def = std(midline_definition_array);
-        midline_definition.AllRh.min_midline_def = min(midline_definition_array);
-        midline_definition.AllRh.max_midline_def = max(midline_definition_array);
-
-        for rh = rhs
-
-            temp_m = midline_definition_array((edge.rhombomereLimits(rh-min(rhs)+1) - min(edge.rhombomereLimits) + 1):...
-                (edge.rhombomereLimits(rh-min(rhs)+2) - min(edge.rhombomereLimits) + 1));
-            midline_definition.(['Rh' num2str(rh)]).mean_midline_def = mean(temp_m);
-            midline_definition.(['Rh' num2str(rh)]).median_midline_def = median(temp_m);
-            midline_definition.(['Rh' num2str(rh)]).std_midline_def = std(temp_m);
-            midline_definition.(['Rh' num2str(rh)]).min_midline_def = min(temp_m);
-            midline_definition.(['Rh' num2str(rh)]).max_midline_def = max(temp_m);
-
+        if all(edge.edgeValidity(3, :))
+            midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
+            midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
+            midline_definition.AllRh.median_midline_def = median(midline_definition_array);
+            midline_definition.AllRh.std_midline_def = std(midline_definition_array);
+            midline_definition.AllRh.min_midline_def = min(midline_definition_array);
+            midline_definition.AllRh.max_midline_def = max(midline_definition_array);
         end
 
-    else
-       
         for rh = rhs
-            
-            midline_definition.(['Rh' num2str(rh)]).mean_midline_def = 0;
-            midline_definition.(['Rh' num2str(rh)]).median_midline_def = 0;
-            midline_definition.(['Rh' num2str(rh)]).std_midline_def = 0;
-            midline_definition.(['Rh' num2str(rh)]).min_midline_def = 0;
-            midline_definition.(['Rh' num2str(rh)]).max_midline_def = 0;
+            if edge.edgeValidity(3, rh-min(rhs)+1)
+                temp_m = midline_definition_array((edge.rhombomereLimits(rh-min(rhs)+1) - min(edge.rhombomereLimits) + 1):...
+                    (edge.rhombomereLimits(rh-min(rhs)+2) - min(edge.rhombomereLimits) + 1));
+                midline_definition.(['Rh' num2str(rh)]).mean_midline_def = mean(temp_m);
+                midline_definition.(['Rh' num2str(rh)]).median_midline_def = median(temp_m);
+                midline_definition.(['Rh' num2str(rh)]).std_midline_def = std(temp_m);
+                midline_definition.(['Rh' num2str(rh)]).min_midline_def = min(temp_m);
+                midline_definition.(['Rh' num2str(rh)]).max_midline_def = max(temp_m);
+            end
 
         end
-        
-        midline_definition.AllRh.mean_midline_def = 0;
-        midline_definition.AllRh.median_midline_def = 0;
-        midline_definition.AllRh.std_midline_def = 0;
-        midline_definition.AllRh.min_midline_def = 0;
-        midline_definition.AllRh.max_midline_def = 0;
-        
         
     end
 end

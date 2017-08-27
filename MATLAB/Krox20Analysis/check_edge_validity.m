@@ -5,7 +5,7 @@ function edge_valid = check_edge_validity(data, edge)
     if isempty(edge.rhombomereLimits)
         % for now, allow edges to be drawn if no rhombomeres have been
         % identified. 
-        edge_valid = true;
+        edge_valid = true(1,3);
         return;
     end
     
@@ -18,7 +18,11 @@ function edge_valid = check_edge_validity(data, edge)
     rotated_e = (rotMatrix * (data.current_edge - cc)')' + cc; 
     y = rotated_e(:,2);
     
-    edge_valid = (max(y) > max(edge.rhombomereLimits)) && ...
-        (min(y) < min(edge.rhombomereLimits));
+    edge_valid(1) = ((min(y) <= edge.rhombomereLimits(1)) && ...
+        (max(y) >= edge.rhombomereLimits(2)));
+    edge_valid(2) = ((min(y) <= edge.rhombomereLimits(2)) && ...
+        (max(y) >= edge.rhombomereLimits(3)));
+    edge_valid(3) = ((min(y) <= edge.rhombomereLimits(3)) && ...
+        (max(y) >= edge.rhombomereLimits(4)));
 
 end

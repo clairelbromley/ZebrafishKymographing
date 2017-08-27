@@ -10,7 +10,7 @@ function data = add_edge(edg, controls, data)
     end
     
     % check whether current z plane exists in array of stored edges...
-    edge_valid = true;
+    edg_str = {'L', 'R', 'M'};
     if ~isempty(data.edges)
         ts = [data.edges.timepoint];
         zs = [data.edges.z];
@@ -18,8 +18,9 @@ function data = add_edge(edg, controls, data)
             if any(zs(ts == t) == z)
                 if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
                     data.current_edge = data.current_edge.getPosition;
-                    edge_valid = check_edge_validity(data, data.edges((ts == t) & (zs == z)));
-                    if edge_valid
+                    data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:) = ...
+                        check_edge_validity(data, data.edges((ts == t) & (zs == z)));
+                    if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
                         data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                     end
                 else
@@ -33,7 +34,7 @@ function data = add_edge(edg, controls, data)
                     delete(data.edges(end).(['hl' edg]));
                 end
                 if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
-                    if edge_valid
+                    if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
                         data.edges((ts == t) & (zs == z)).(['hl' edg]) = line(data.current_edge(:,1), ...
                             data.current_edge(:,2), ...
                             'Color', 'r', ...
@@ -93,9 +94,14 @@ function data = add_edge(edg, controls, data)
     
     % update UI
     edg_let = {'L', 'R', 'M', 'Rh4', 'Rh6'};
-    if edge_valid
+    if strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6')
         set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
         'Value', 1);
+    else
+        if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
+            set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
+            'Value', 1);
+        end
     end
     show_edges(controls, data);
     kids = get(controls.hax, 'Children');

@@ -19,6 +19,7 @@ classdef Edges
         
         tissueRotation = 0;                     % angle to rotate image by to bring midline vertical
         rhombomereLimits = [0 0 0 0];           % y positions at extrema of rotated rhombomeres
+        edgeValidity = false(3, 3);             % (i,j) is true if ith edge (L,R,M) spans jth rhombomere
         
         midlineIndexOfStraightness = 0;         % sinuosity index of midline
         midlineDefinition = [];
