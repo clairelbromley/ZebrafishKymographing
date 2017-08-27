@@ -40,6 +40,7 @@ function krox_20_base_script()
     data.timestamps = timestamps;
     
     data.edges = [];
+    data.top_slice_index = [];
     data.filename = files_out(1).name;
     data.timepoint = 1; 
     data.czi_reader = bfGetReader([folder filesep files_out(1).name]);

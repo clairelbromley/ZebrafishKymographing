@@ -36,7 +36,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     %% update timepoint and display accordingly
     if (data.timepoint < length(data.files))
         data.timepoint = data.timepoint + 1;
-        fprintf('New time point %d of %d', data.timepoint, length(data.files));
+        fprintf('New time point %d of %d\n\r', data.timepoint, length(data.files));
         data.czi_reader = bfGetReader([data.in_folder filesep data.files(data.timepoint).name]);
         data.ome_meta = data.czi_reader.getMetadataStore();
         initialise_sliders(controls, data);

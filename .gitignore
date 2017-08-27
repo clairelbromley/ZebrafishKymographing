@@ -2,3 +2,6 @@
 *.ini
 *.log
 MATLAB/Viewer/viewerMain.m.orig
+MATLAB/Krox20Analysis/script_to_work_out_timings.m
+MATLAB/Krox20Analysis/script_to_find_file_indices.m
+MATLAB/Krox20Analysis/script_to_assign_timestamps.m
