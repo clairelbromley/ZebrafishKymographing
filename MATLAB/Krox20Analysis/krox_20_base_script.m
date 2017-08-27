@@ -51,6 +51,7 @@ function krox_20_base_script()
     data.channel_names = channel_names;
     data.scale_bar_length_um = scale_bar_length_um;
     controls = setup_ui(data);
+    data.controls = controls;
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);

@@ -23,7 +23,7 @@ function sinuosity_index = calc_sinuosity_index(data, edge)
 
         sinuosity_index = manual_length/straight_length - 1;
     else
-        sinuosity_index = 0;
+        sinuosity_index = NaN;
     end
     
 end

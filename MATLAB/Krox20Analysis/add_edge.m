@@ -17,7 +17,10 @@ function data = add_edge(edg, controls, data)
         if any(ts == t)
             if any(zs(ts == t) == z)
                 if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
-                    data.current_edge = data.current_edge.getPosition;
+                    if isa(data.current_edge, 'imfreehand')
+                        data.current_edge = data.current_edge.getPosition;
+                    end
+                    data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                     data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:) = ...
                         check_edge_validity(data, data.edges((ts == t) & (zs == z)));
                     if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
@@ -55,6 +58,9 @@ function data = add_edge(edg, controls, data)
                 data.edges(end).timepoint = t;
                 data.edges(end).timestamp = data.timestamps(t);
                 data.edges(end).z = z;
+                if isa(data.current_edge, 'imfreehand')
+                    data.current_edge = data.current_edge.getPosition;
+                end
                 data.edges(end).(edg) = data.current_edge;
                 data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
                     data.current_edge(:,2), ...
@@ -64,7 +70,11 @@ function data = add_edge(edg, controls, data)
         else
             data.edges = [data.edges; Edges()];
             data.edges(end).timepoint = t;
+            data.edges(end).timestamp = data.timestamps(t);
             data.edges(end).z = z;
+            if isa(data.current_edge, 'imfreehand')
+                data.current_edge = data.current_edge.getPosition;
+            end
             data.edges(end).(edg) = data.current_edge;
             data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
                     data.current_edge(:,2), ...
@@ -74,6 +84,7 @@ function data = add_edge(edg, controls, data)
     else
         data.edges = [data.edges; Edges()];
         data.edges(end).timepoint = t;
+        data.edges(end).timestamp = data.timestamps(t);
         data.edges(end).z = z;
         data.edges(end).(edg) = data.current_edge;
         if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )

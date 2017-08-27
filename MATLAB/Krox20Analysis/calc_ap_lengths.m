@@ -10,8 +10,8 @@ function ap_lengths = calc_ap_lengths(data, edge)
                 edge.rhombomereLimits(rh-min(rhs)+1)) * pix_to_micron;
             ap_lengths.AllRh = abs(edge.rhombomereLimits(end) - edge.rhombomereLimits(1)) * pix_to_micron;
         else
-            ap_lengths.(['Rh' num2str(rh)]) = 0;
-            ap_lengths.AllRh = 0;
+            ap_lengths.(['Rh' num2str(rh)]) = NaN;
+            ap_lengths.AllRh = NaN;
         end
     end
     

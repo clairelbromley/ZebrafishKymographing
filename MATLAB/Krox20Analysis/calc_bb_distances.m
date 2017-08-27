@@ -6,30 +6,30 @@ function basal_basal_distances = calc_bb_distances(data, edge)
     %% for sanity's sake, set all outputs to zero intially
     
     for rh = rhs
-        basal_basal_distances.(['Rh' num2str(rh)]).meanDeviationFromGeometricalMidline = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).medianDeviationFromGeometricalMidline = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).stdDeviationFromGeometricalMidline = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).minDeviationFromGeometricalMidline = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).maxDeviationFromGeometricalMidline = 0;
+        basal_basal_distances.(['Rh' num2str(rh)]).meanDeviationFromGeometricalMidline = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).medianDeviationFromGeometricalMidline = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).stdDeviationFromGeometricalMidline = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).minDeviationFromGeometricalMidline = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).maxDeviationFromGeometricalMidline = NaN;
         
-        basal_basal_distances.(['Rh' num2str(rh)]).mean_bb_dist = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).median_bb_dist = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).std_bb_dist = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).min_bb_dist = 0;
-        basal_basal_distances.(['Rh' num2str(rh)]).max_bb_dist = 0;
+        basal_basal_distances.(['Rh' num2str(rh)]).mean_bb_dist = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).median_bb_dist = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).std_bb_dist = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).min_bb_dist = NaN;
+        basal_basal_distances.(['Rh' num2str(rh)]).max_bb_dist = NaN;
     end
     
-    basal_basal_distances.AllRh.mean_bb_dist = 0;
-    basal_basal_distances.AllRh.median_bb_dist = 0;
-    basal_basal_distances.AllRh.std_bb_dist = 0;
-    basal_basal_distances.AllRh.max_bb_dist = 0;
-    basal_basal_distances.AllRh.min_bb_dist = 0;
+    basal_basal_distances.AllRh.mean_bb_dist = NaN;
+    basal_basal_distances.AllRh.median_bb_dist = NaN;
+    basal_basal_distances.AllRh.std_bb_dist = NaN;
+    basal_basal_distances.AllRh.max_bb_dist = NaN;
+    basal_basal_distances.AllRh.min_bb_dist = NaN;
 
-    basal_basal_distances.AllRh.meanDeviationFromGeometricalMidline = 0;
-    basal_basal_distances.AllRh.medianDeviationFromGeometricalMidline = 0;
-    basal_basal_distances.AllRh.stdDeviationFromGeometricalMidline = 0;
-    basal_basal_distances.AllRh.minDeviationFromGeometricalMidline = 0;
-    basal_basal_distances.AllRh.maxDeviationFromGeometricalMidline = 0;
+    basal_basal_distances.AllRh.meanDeviationFromGeometricalMidline = NaN;
+    basal_basal_distances.AllRh.medianDeviationFromGeometricalMidline = NaN;
+    basal_basal_distances.AllRh.stdDeviationFromGeometricalMidline = NaN;
+    basal_basal_distances.AllRh.minDeviationFromGeometricalMidline = NaN;
+    basal_basal_distances.AllRh.maxDeviationFromGeometricalMidline = NaN;
     
     %% fill valid fields with non-zero values
     

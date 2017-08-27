@@ -5,19 +5,19 @@ function midline_definition = calc_midline_definition(data, edge)
     
     for rh = rhs
 
-        midline_definition.(['Rh' num2str(rh)]).mean_midline_def = 0;
-        midline_definition.(['Rh' num2str(rh)]).median_midline_def = 0;
-        midline_definition.(['Rh' num2str(rh)]).std_midline_def = 0;
-        midline_definition.(['Rh' num2str(rh)]).min_midline_def = 0;
-        midline_definition.(['Rh' num2str(rh)]).max_midline_def = 0;
+        midline_definition.(['Rh' num2str(rh)]).mean_midline_def = NaN;
+        midline_definition.(['Rh' num2str(rh)]).median_midline_def = NaN;
+        midline_definition.(['Rh' num2str(rh)]).std_midline_def = NaN;
+        midline_definition.(['Rh' num2str(rh)]).min_midline_def = NaN;
+        midline_definition.(['Rh' num2str(rh)]).max_midline_def = NaN;
 
     end
 
-    midline_definition.AllRh.mean_midline_def = 0;
-    midline_definition.AllRh.median_midline_def = 0;
-    midline_definition.AllRh.std_midline_def = 0;
-    midline_definition.AllRh.min_midline_def = 0;
-    midline_definition.AllRh.max_midline_def = 0;
+    midline_definition.AllRh.mean_midline_def = NaN;
+    midline_definition.AllRh.median_midline_def = NaN;
+    midline_definition.AllRh.std_midline_def = NaN;
+    midline_definition.AllRh.min_midline_def = NaN;
+    midline_definition.AllRh.max_midline_def = NaN;
 
     if ~isempty(edge.M)
         midline_thickness_pix = 20;
