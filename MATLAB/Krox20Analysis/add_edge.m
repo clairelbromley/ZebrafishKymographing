@@ -16,6 +16,7 @@ function data = add_edge(edg, controls, data)
         zs = [data.edges.z];
         if any(ts == t)
             if any(zs(ts == t) == z)
+                 data.edges((ts == t) & (zs == z)).timestamp = data.timestamps(t);
                 if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
                     if isa(data.current_edge, 'imfreehand')
                         data.current_edge = data.current_edge.getPosition;

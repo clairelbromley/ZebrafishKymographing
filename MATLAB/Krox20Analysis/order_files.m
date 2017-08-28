@@ -46,12 +46,13 @@ function [files_out, timestamps] = order_files(folder)
         fs = (ts(:,1) == t);
         times = ts(((ts(:,1) == t ) & (~fls_with_idx)),...
             1:n_T_planes(((ts(:,1) == t ) & (~fls_with_idx))));
-        timestamps((ts(:,1) == t ) & (fls_with_idx)) = times(2:end);
+        timestamps((ts(:,1) == t )) = times(findices(ts(:,1) == t)+1);
     end
 
     timestamps = timestamps - min(timestamps);
     [timestamps, idx] = sort(timestamps);
     files_out = files(idx);
-    disp(n_Z_planes(idx));
+%     disp(n_Z_planes(idx));
+    disp(timestamps);
 
 end
