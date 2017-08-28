@@ -14,7 +14,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     busyOutput = busy_dlg();
     
     %% save .mat file containing all data for recovery, just in case
-    save([data.out_folder filesep 'backup.m'], 'data');
+    save([data.out_folder filesep 'backup.mat'], 'data');
     
     %% save .mat file containing Edges instance for this timepoint
     % implement as a method of the Edges class?

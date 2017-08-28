@@ -59,8 +59,8 @@ function basal_basal_distances = calc_bb_distances(data, edge)
     %         rotated_e.(edg{1})(msk, :) = [];
         end
 
-        geometrical_midline(:,1) = rotated_e.L(:,1);
-        geometrical_midline(:,2) = (rotated_e.R(:,2) - rotated_e.L(:,2)) ./ 2 + rotated_e.L(:,2);
+        geometrical_midline(:,2) = rotated_e.L(:,2);
+        geometrical_midline(:,1) = (rotated_e.R(:,1) + rotated_e.L(:,1)) ./ 2 ;
 
         for rh = rhs
             rh_validity = edge.edgeValidity(:, rh-min(rhs)+1);
