@@ -8,6 +8,7 @@ function krox_20_base_script()
     z_offsets = [35, 40, 45];
     channel_names = {'Ncad', 'Krox20'};
     scale_bar_length_um = 20;
+    midline_definition_method = 'max';  %'none', 'max' or 'mean'
 
     %% Choose base folder
     folder = uigetdir([], ...
@@ -61,6 +62,9 @@ function krox_20_base_script()
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);
     axis equal tight;
+    
+    data.midline_definition_method = midline_definition_method;
+    
     
 %     busy_dlg(busyOutput);
 

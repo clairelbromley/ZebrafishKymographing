@@ -90,7 +90,11 @@ function midline_definition = calc_midline_definition(data, edge)
          close(hfig_temp);
 
         if all(edge.edgeValidity(3, :))
-            midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
+            if strcmp(data.midline_definition_method, 'max')
+                midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
+            else
+                midline_definition_array = double(mean(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
+            end
             midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
             midline_definition.AllRh.median_midline_def = median(midline_definition_array);
             midline_definition.AllRh.std_midline_def = std(midline_definition_array);

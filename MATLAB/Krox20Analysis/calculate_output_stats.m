@@ -27,8 +27,10 @@ function edges = calculate_output_stats(data)
                 % midline definition - defined as relative intensity of a (thick)
                 % line following the midline versus a parallel line drawn midway
                 % between the midline and the basal surface
-                midline_definition = calc_midline_definition(data, edge);
-                edges([edges.z] == z).midlineDefinition = midline_definition;
+                if ~strcmp(data.midline_definition_method, 'none')
+                    midline_definition = calc_midline_definition(data, edge);
+                    edges([edges.z] == z).midlineDefinition = midline_definition;
+                end
 
             end
         end
