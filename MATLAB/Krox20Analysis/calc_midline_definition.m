@@ -93,7 +93,7 @@ function midline_definition = calc_midline_definition(data, edge)
             if strcmp(data.midline_definition_method, 'max')
                 midline_definition_array = double(max(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
             else
-                midline_definition_array = double(mean(midline_col, [], 2)) ./  double(mean(denominator_col, 2));
+                midline_definition_array = double(mean(midline_col, 2)) ./  double(mean(denominator_col, 2));
             end
             midline_definition.AllRh.mean_midline_def = mean(midline_definition_array);
             midline_definition.AllRh.median_midline_def = median(midline_definition_array);
