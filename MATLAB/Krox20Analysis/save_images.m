@@ -137,7 +137,76 @@ function save_images(controls, data)
                         savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with rhombomeres.fig', ...
                             data.channel_names{chidx}, data.timestamps(data.timepoint))]);
 
+                    elseif strcmp(data.channel_names{chidx}, 'Ncad')
+                        delete(hls);
+                        subplot(1,2,1);
+                        imagesc(im);
+                        colormap gray;
+                        set(gca, 'XTick', []);
+                        set(gca, 'YTick', []);
+                        axis equal tight;
+                        % add scale bar
+                        hscl = line([0.95 * size(im, 2) - scale_bar_length_pix, 0.95 * size(im, 2)], ...
+                        [0.95 * size(im, 1), 0.95 * size(im, 1)], ...
+                        'Color', 'w', ...
+                        'LineWidth', 3);
+                        
+                        if (~isempty(edges.L) && ~isempty(edges.R) && any(edges.edgeValidity(:)))
+
+                            theta = -deg2rad(edges.tissueRotation);
+                            rotMatrix = [cos(theta) -sin(theta); sin(theta) cos(theta)];
+                            unrotMatrix = [cos(-theta) -sin(-theta); sin(-theta) cos(-theta)];
+                            c = [double(data.ome_meta.getPixelsSizeY(0).getNumberValue()), ...
+                                double(data.ome_meta.getPixelsSizeX(0).getNumberValue())]/2;
+
+                            edgLs = {'L','R','M'};
+                            for edg = edgLs
+                                cc = repmat(c, size(edges.(edg{1}), 1), 1);
+                                rotated_e.(edg{1}) = (rotMatrix * (edges.(edg{1}) - cc)')' + cc; 
+                                x = rotated_e.(edg{1})(:,1);
+                                y = rotated_e.(edg{1})(:,2);
+                        %         [y, I] = sort(y);
+                                [y, I, ~] = unique(y, 'sorted');
+                                x = x(I);
+                                x = interp1(y, x, ...
+                                    edges.rhombomereLimits(1):edges.rhombomereLimits(4), 'pchip');
+                                rotated_e.(edg{1}) = [x' (edges.rhombomereLimits(1):edges.rhombomereLimits(4))'];
+                                
+                                cc2 = repmat(c, size(rotated_e.(edg{1}), 1), 1);
+                                unrotated_e.(edg{1}) = (unrotMatrix * (rotated_e.(edg{1}) - cc2)')' + cc2; 
+
+                            end
+                            geometrical_midline = [];
+                            geometrical_midline(:,2) = rotated_e.L(:,2);
+                            geometrical_midline(:,1) = (rotated_e.R(:,1) + rotated_e.L(:,1)) ./ 2 ;
+                            geometrical_midline = (unrotMatrix * (geometrical_midline - cc2)')' + cc2; 
+                        
+                        end
+                        
+                        subplot(1,2,2);
+                        h1 = plot(unrotated_e.L(:,1), size(im, 1) - unrotated_e.L(:,2), 'r-');
+                        hold on;
+                        h2 = plot(unrotated_e.R(:,1), size(im, 1) - unrotated_e.R(:,2), 'r-');
+                        h3 = plot(unrotated_e.M(:,1), size(im, 1) - unrotated_e.M(:,2), 'b-');
+                        set(gca, 'FontSize', 6);
+                        h4 = plot(geometrical_midline(:,1), size(im, 1) - geometrical_midline(:,2), 'g-');
+                        legend([h2 h3 h4], {'Basal edges', 'Actual midline', 'Geometrical midline'}, ...
+                            'Location', 'South', 'Orientation', 'horizontal');
+                        set(gca, 'XTick', []);
+                        set(gca, 'YTick', []);
+                        axis equal tight;
+                        xlim([1 size(im, 2)]);
+                        ylim([1 size(im, 1)]);
+
+                        print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with geometrical midline.png', ...
+                            data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
+
+                        savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with geometrical midline.fig', ...
+                            data.channel_names{chidx}, data.timestamps(data.timepoint))]);
+
+                        
                     end
+                    
                 end 
 
                 close(hfig_temp);

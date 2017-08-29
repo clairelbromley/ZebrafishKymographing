@@ -4,6 +4,9 @@ function script_for_fixing_geom_midline(basepath, basefile, outfolder)
     curr_dir = fileparts(mfilename('fullpath'));
     addpath(genpath(fileparts(curr_dir)));
     
+    %% Make output directory
+    mkdir(outfolder);
+    
     %% Loop over all output and recalculate stats (apart from midline definition)
     dirs = dir([basepath filesep '*Ncad Krox Analysis']);    
     

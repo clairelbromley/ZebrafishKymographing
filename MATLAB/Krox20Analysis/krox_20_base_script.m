@@ -53,6 +53,7 @@ function krox_20_base_script()
     data.scale_bar_length_um = scale_bar_length_um;
     controls = setup_ui(data);
     data.controls = controls;
+    data.midline_definition_method = midline_definition_method;
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);
@@ -62,8 +63,6 @@ function krox_20_base_script()
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);
     axis equal tight;
-    
-    data.midline_definition_method = midline_definition_method;
     
     
 %     busy_dlg(busyOutput);
