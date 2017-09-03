@@ -514,7 +514,8 @@ if ischar(new_image_path{1})
             
             handles.isBleach = 0;
             handles.bleachStartKey = 'Experiment|AcquisitionBlock|MultiTrackSetup|TrackSetup|BleachSetup|BleachParameterSet|StartNumber #1';
-            if handles.reader.getGlobalMetadata.containsKey(handles.bleachStartKey)
+            if (handles.reader.getGlobalMetadata.containsKey(handles.bleachStartKey) && ...
+                    (str2num(handles.reader.getGlobalMetadata.get(handles.bleachStartKey)) ~= 1))
                 handles.isBleach = 1;
             end
 

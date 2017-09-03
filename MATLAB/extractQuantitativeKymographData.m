@@ -21,10 +21,14 @@ function results = extractQuantitativeKymographData(kymographs, metadata, userOp
         result.kym_number = kpos
 
         cut_frame = round(uO.timeBeforeCut/md.acqMetadata.cycleTime);
-        x = find(sum(squeeze(kyms(cut_frame:cut_frame+5,:,kpos))',1)==0) + 1;
-        first_frame = max(x) + cut_frame;
-        if isempty(x)
+        if cut_frame == 0
             first_frame = 2;
+        else
+            x = find(sum(squeeze(kyms(cut_frame:cut_frame+5,:,kpos))',1)==0) + 1;
+            first_frame = max(x) + cut_frame;
+            if isempty(x)
+                first_frame = 2;
+            end
         end
         segment_len_frames = round(uO.quantAnalysisTime / md.acqMetadata.cycleTime);
         kym_segment = squeeze(kyms(first_frame-1:first_frame + segment_len_frames - 1,:,kpos))';
