@@ -92,7 +92,7 @@ function save_images(controls, data)
                             end
                         end
                         
-                        xt = double(data.ome_meta.getPixelsSizeY(0).getNumberValue());
+                        xt = size(im, 2);
                         yt = 0;
                         lbl1 = text(xt, yt, 'Rh3 ', ...
                             'Color', 'c', ...
