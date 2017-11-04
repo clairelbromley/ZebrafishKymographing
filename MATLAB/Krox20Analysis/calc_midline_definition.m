@@ -79,15 +79,26 @@ function midline_definition = calc_midline_definition(data, edge)
         set(gca, 'XTick', []);
         set(gca, 'YTick', []);
         axis equal tight;
-        print(hfig_temp, [of filesep sprintf('midline definition - midline, t = %0.2f', ...
-             data.timepoint)], '-dpng', '-r300');
-         imagesc(denominator_im);
+        hcbr = colorbar;
+        hcbrttl = get(hcbr, 'YLabel');
+        set(hcbrttl, 'String', 'Intensity');
+        print(hfig_temp, [of filesep sprintf('midline definition - midline, t = %0.2f.png', ...
+             edge.timestamp)], '-dpng', '-r300');
+        savefig(hfig_temp, [of filesep sprintf('midline definition - midline, t = %0.2f.fig', ...
+             edge.timestamp)]);
+        imagesc(denominator_im);
         colormap gray;
         set(gca, 'XTick', []);
         set(gca, 'YTick', []);
-         print(hfig_temp, [of filesep sprintf('midline definition - background, t = %0.2f', ...
-             data.timepoint)], '-dpng', '-r300');
-         close(hfig_temp);
+        axis equal tight;
+        hcbr = colorbar;
+        hcbrttl = get(hcbr, 'YLabel');
+        set(hcbrttl, 'String', 'Intensity');
+        print(hfig_temp, [of filesep sprintf('midline definition - background, t = %0.2f.png', ...
+            edge.timestamp)], '-dpng', '-r300');
+        savefig(hfig_temp, [of filesep sprintf('midline definition - background, t = %0.2f.fig', ...
+             edge.timestamp)]);
+        close(hfig_temp);
 
         if all(edge.edgeValidity(3, :))
             if strcmp(data.midline_definition_method, 'max')

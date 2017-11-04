@@ -12,8 +12,9 @@ function edges = calculate_output_stats(data)
                 edge = edges([edges.z] == z);
 
                 % midline sinuosity
-                sinuosity_index = calc_sinuosity_index(data, edge);
+                [sinuosity_index, manual_length] = calc_sinuosity_index(data, edge);
                 edges([edges.z] == z).midlineIndexOfStraightness = sinuosity_index;
+                edges([edges.z] == z).midlineLength = manual_length;
 
                 % anterior-posterior lengths of rhombomeres
                 ap_lengths = calc_ap_lengths(data, edge);

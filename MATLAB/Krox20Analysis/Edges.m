@@ -22,6 +22,7 @@ classdef Edges
         edgeValidity = false(3, 3);             % (i,j) is true if ith edge (L,R,M) spans jth rhombomere
         
         midlineIndexOfStraightness = NaN;         % sinuosity index of midline
+        midlineLength = NaN;
         midlineDefinition = [];
         basal_basal_distances = [];
         ap_lengths = [];

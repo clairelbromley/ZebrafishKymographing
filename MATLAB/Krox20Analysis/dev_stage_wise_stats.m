@@ -26,7 +26,7 @@ function [out, sht_names] =  dev_stage_wise_stats(embryos, data, input_headers, 
     sht_names = {};
     out = cell(2, length(unique(embryos)), 5 * 3);
 
-    for stidx = 2:6
+    for stidx = 2:length(input_headers)
         
         sht_names = [sht_names [input_headers{stidx} ' mean']];
         sht_names = [sht_names [input_headers{stidx} ' median']];
@@ -53,7 +53,7 @@ function [out, sht_names] =  dev_stage_wise_stats(embryos, data, input_headers, 
     %% handle export
     
     dstg_lbl = {'' 'early' 'late'};
-    fname = [out_folder filesep sprintf('embryo-wise, dev stage-wise summary stats WITH NS, z = %0.1f.xlsx', z_plane)];
+    fname = [out_folder filesep sprintf('embryo-wise, dev stage-wise summary stats AP length WITH NS, z = %0.1f.xlsx', z_plane)];
         
     for shtidx = 1:length(sht_names)
         disp(sht_names{shtidx})

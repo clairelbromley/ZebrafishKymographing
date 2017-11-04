@@ -94,14 +94,14 @@ function save_images(controls, data)
                         
                         xt = double(data.ome_meta.getPixelsSizeY(0).getNumberValue());
                         yt = 0;
-                        lbl1 = text(xt, yt, 'Rh4 ', ...
+                        lbl1 = text(xt, yt, 'Rh3 ', ...
                             'Color', 'c', ...
                             'FontSize', 10, ...
                             'HorizontalAlignment', 'right', ...
                             'VerticalAlignment', 'top');
                         yt = get(lbl1, 'Extent');
                         yt = yt(2);
-                        lbl2 = text(xt, yt, 'Rh6 ', ...
+                        lbl2 = text(xt, yt, 'Rh5 ', ...
                             'Color', 'm', ...
                             'FontSize', 10, ...
                             'HorizontalAlignment', 'right', ...
@@ -139,7 +139,7 @@ function save_images(controls, data)
 
                     elseif strcmp(data.channel_names{chidx}, 'Ncad')
                         delete(hls);
-                        subplot(1,2,1);
+                        splt_h1 = subplot(1,2,1);
                         imagesc(im);
                         colormap gray;
                         set(gca, 'XTick', []);
@@ -150,6 +150,17 @@ function save_images(controls, data)
                         [0.95 * size(im, 1), 0.95 * size(im, 1)], ...
                         'Color', 'w', ...
                         'LineWidth', 3);
+                    
+                        for rlidx = [1, 4]
+                            rlhtmp = line([-500 x_size+500], ...
+                                [edges.rhombomereLimits(rlidx) edges.rhombomereLimits(rlidx)], ...
+                                'Color', 'g', 'LineStyle', '--', 'LineWidth', 1, 'Visible', 'on');
+                            direction = [0 0 1];
+                            origin = [c(1) c(2) 0];
+                            rotate(rlhtmp, direction, ...
+                                edges.tissueRotation, ...
+                                origin);
+                        end
                         
                         if (~isempty(edges.L) && ~isempty(edges.R) && any(edges.edgeValidity(:)))
 
@@ -180,30 +191,43 @@ function save_images(controls, data)
                             geometrical_midline(:,2) = rotated_e.L(:,2);
                             geometrical_midline(:,1) = (rotated_e.R(:,1) + rotated_e.L(:,1)) ./ 2 ;
                             geometrical_midline = (unrotMatrix * (geometrical_midline - cc2)')' + cc2; 
-                        
+
+                            splt_h2 = subplot(1,2,2);
+                            h1 = plot(unrotated_e.L(:,1), size(im, 1) - unrotated_e.L(:,2), 'r-');
+                            hold on;
+                            h2 = plot(unrotated_e.R(:,1), size(im, 1) - unrotated_e.R(:,2), 'r-');
+                            h3 = plot(unrotated_e.M(:,1), size(im, 1) - unrotated_e.M(:,2), 'b-');
+                            set(gca, 'FontSize', 6);
+                            h4 = plot(geometrical_midline(:,1), size(im, 1) - geometrical_midline(:,2), 'g-');
+                            legend([h2 h3 h4], {'Basal edges', 'L-R interface', 'Geometric midline'}, ...
+                                'Location', 'South', 'Orientation', 'horizontal');
+                            set(gca, 'XTick', []);
+                            set(gca, 'YTick', []);
+                            axis equal tight;
+                            xlim([1 size(im, 2)]);
+                            ylim([1 size(im, 1)]);
+
+                            print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with geometrical midline.png', ...
+                                data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
+
+                            savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with geometrical midline.fig', ...
+                                data.channel_names{chidx}, data.timestamps(data.timepoint))]);
+                            
+%                             hold off;
+                            delete(h4);
+                            straight_midline_x = [unrotated_e.M(1,1); unrotated_e.M(end,1)];
+                            straight_midline_y = [unrotated_e.M(1,2); unrotated_e.M(end,2)];
+                            h4 = plot(straight_midline_x, size(im, 1) - straight_midline_y, 'g-');
+                            legend([h2 h3 h4], {'Basal edges', 'L-R interface', 'Straight line'}, ...
+                                'Location', 'South', 'Orientation', 'horizontal');
+                            
+                            print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with straight line.png', ...
+                                data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
+
+                            savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with straight line.fig', ...
+                                data.channel_names{chidx}, data.timestamps(data.timepoint))]);
+                            
                         end
-                        
-                        subplot(1,2,2);
-                        h1 = plot(unrotated_e.L(:,1), size(im, 1) - unrotated_e.L(:,2), 'r-');
-                        hold on;
-                        h2 = plot(unrotated_e.R(:,1), size(im, 1) - unrotated_e.R(:,2), 'r-');
-                        h3 = plot(unrotated_e.M(:,1), size(im, 1) - unrotated_e.M(:,2), 'b-');
-                        set(gca, 'FontSize', 6);
-                        h4 = plot(geometrical_midline(:,1), size(im, 1) - geometrical_midline(:,2), 'g-');
-                        legend([h2 h3 h4], {'Basal edges', 'Actual midline', 'Geometrical midline'}, ...
-                            'Location', 'South', 'Orientation', 'horizontal');
-                        set(gca, 'XTick', []);
-                        set(gca, 'YTick', []);
-                        axis equal tight;
-                        xlim([1 size(im, 2)]);
-                        ylim([1 size(im, 1)]);
-
-                        print(hfig_temp, [of filesep sprintf('%s, t = %0.2f with geometrical midline.png', ...
-                            data.channel_names{chidx}, data.timestamps(data.timepoint))], '-dpng', '-r300');
-
-                        savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f with geometrical midline.fig', ...
-                            data.channel_names{chidx}, data.timestamps(data.timepoint))]);
-
                         
                     end
                     
