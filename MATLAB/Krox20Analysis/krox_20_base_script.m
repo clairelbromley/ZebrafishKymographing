@@ -6,6 +6,7 @@ function krox_20_base_script()
     
     %% Parameters
     z_offsets = [35, 40, 45];
+    midline_thickness_um = 10; % CHECK ORIGINAL VALUE IN THESIS?
     channel_names = {'Ncad', 'Krox20'};
     scale_bar_length_um = 20;
     midline_definition_method = 'max';  %'none', 'max' or 'mean'
@@ -54,6 +55,7 @@ function krox_20_base_script()
     controls = setup_ui(data);
     data.controls = controls;
     data.midline_definition_method = midline_definition_method;
+    data.midline_thickness_um = midline_thickness_um;
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);

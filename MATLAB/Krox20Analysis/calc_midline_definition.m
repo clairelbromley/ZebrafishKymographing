@@ -20,7 +20,7 @@ function midline_definition = calc_midline_definition(data, edge)
     midline_definition.AllRh.max_midline_def = NaN;
 
     if ~isempty(edge.M)
-        midline_thickness_pix = 20;
+        midline_thickness_pix = double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM)) * data.midline_thickness_um;
 
         % get z index
         z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
