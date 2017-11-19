@@ -56,6 +56,7 @@ function krox_20_base_script()
     data.controls = controls;
     data.midline_definition_method = midline_definition_method;
     data.midline_thickness_um = midline_thickness_um;
+    data.AP_axis_method = 'Rhombomeres';
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);

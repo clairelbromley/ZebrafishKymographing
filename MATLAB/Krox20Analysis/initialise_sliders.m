@@ -22,6 +22,7 @@ function initialise_sliders(controls, data)
         sstep = cPlanes - 1;
     else
         sstep = 1;
+        set(controls.hscl, 'Enabled', 'false');
     end
     set(controls.hcsl, 'SliderStep', [(1/sstep) (1/sstep)]);
 
