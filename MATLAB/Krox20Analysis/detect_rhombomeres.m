@@ -34,15 +34,23 @@ function data = detect_rhombomeres(controls, data, im)
     imStats = [imStats(sidx(1)); imStats(sidx(2))];
     binim((bwl ~= sidx(1)) & (bwl ~= sidx(2))) = 0;
     
+    
+    % If tissue is at an arbitrary angle:
     % define limits of rhombomeres along long axis of tissue. In case of
     % lumen opening when only one half of rhombomere is identified, ensure
     % that only the orientation of the complete rhombomere is considered. 
-    if (imStats(2).Area/imStats(1).Area) < 0.7
-        rotAngle = imStats(1).Orientation;
+    % Otherwise, if tissue is pre-rotated, don't bother:
+    if strcmp(data.AP_axis_method, 'Rhombomeres')
+        if (imStats(2).Area/imStats(1).Area) < 0.7
+            rotAngle = imStats(1).Orientation;
+        else
+            rotAngle = mean([imStats.Orientation]);
+        end
+        binim2 = imrotate(binim, -rotAngle, 'bilinear', 'crop');
     else
-        rotAngle = mean([imStats.Orientation]);
+        rotAngle = 0;
+        binim2 = binim;
     end
-    binim2 = imrotate(binim, -rotAngle, 'bilinear', 'crop');
     rotated_rhombomere_lims = [find(sum(binim2, 2), 1, 'first'), ...
         find(sum(binim2, 2), 1, 'last')];
     cropped_binim = binim2(rotated_rhombomere_lims(1):rotated_rhombomere_lims(2), :);
