@@ -5,7 +5,7 @@ function on_AP_axis_method_selection_changed(hObject, eventdata, handles, contro
 
     AP_axis_methods = {'Rhombomeres', 'RotatedImage'};
     
-    data.AP_axis_method = AP_axis_methods(hAPaxradios == selection_ind);
+    data.AP_axis_method = AP_axis_methods(controls.hAPaxradios == selection_ind);
     
     setappdata(controls.hfig, 'data', data);
 
