@@ -9,27 +9,28 @@ function edges = calculate_output_stats(data)
             % cycle through z positions
             for z = [edges.z]
 
-                edge = edges([edges.z] == z);
+                xedge = edges([edges.z] == z);
 
                 % midline sinuosity
-                [sinuosity_index, manual_length] = calc_sinuosity_index(data, edge);
+                [sinuosity_index, manual_length] = calc_sinuosity_index(data, xedge);
                 edges([edges.z] == z).midlineIndexOfStraightness = sinuosity_index;
                 edges([edges.z] == z).midlineLength = manual_length;
 
                 % anterior-posterior lengths of rhombomeres
-                ap_lengths = calc_ap_lengths(data, edge);
+                ap_lengths = calc_ap_lengths(data, xedge);
                 edges([edges.z] == z).ap_lengths = ap_lengths;
 
                 % basal-basal distance and deviation from geometrical midline
                 % broken down by rhombomere
-                basal_basal_distances = calc_bb_distances(data, edge);
+                basal_basal_distances = calc_bb_distances(data, xedge);
                 edges([edges.z] == z).basal_basal_distances = basal_basal_distances;
 
                 % midline definition - defined as relative intensity of a (thick)
                 % line following the midline versus a parallel line drawn midway
                 % between the midline and the basal surface
                 if ~strcmp(data.midline_definition_method, 'none')
-                    midline_definition = calc_midline_definition(data, edge);
+                    midline_definition = calc_midline_definition(data, xedge);
+                    midline_definition = calc_new_midline_stats(data, xedge, midline_definition);
                     edges([edges.z] == z).midlineDefinition = midline_definition;
                 end
 

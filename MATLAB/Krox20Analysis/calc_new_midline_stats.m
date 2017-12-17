@@ -1,41 +1,37 @@
-function new_midline_def = calc_new_midline_stats(data, xedge, old_analysis_dt_folder)
+function midline_definition = calc_new_midline_stats(data, xedge, midline_definition)
 
-    new_midline_def.AllRh.mean_midline_def = NaN;
-    new_midline_def.AllRh.median_midline_def = NaN;
-    new_midline_def.AllRh.std_midline_def = NaN;
-    new_midline_def.AllRh.min_midline_def = NaN;
-    new_midline_def.AllRh.max_midline_def = NaN;
+    stats = {'mean', 'median', 'std', 'min', 'max'};
+    individual_rhombomeres = {'AllRh'};
 
-    new_midline_def.AllRh.mean_midline_intensity = NaN;
-    new_midline_def.AllRh.median_midline_intensity = NaN;
-    new_midline_def.AllRh.std_midline_intensity = NaN;
-    new_midline_def.AllRh.min_midline_intensity = NaN;
-    new_midline_def.AllRh.max_midline_intensity = NaN;
-    
-    new_midline_def.AllRh.mean_NOTmidline_intensity = NaN;
-    new_midline_def.AllRh.median_NOTmidline_intensity = NaN;
-    new_midline_def.AllRh.std_NOTmidline_intensity = NaN;
-    new_midline_def.AllRh.min_NOTmidline_intensity = NaN;
-    new_midline_def.AllRh.max_NOTmidline_intensity = NaN;
+    midline_definition = generate_stats_struct(midline_definition, ...
+        'midline_intensity', ...
+        stats, ...
+        individual_rhombomeres);
 
-    new_midline_def.AllRh.mean_bg_region_intensity = NaN;
-    new_midline_def.AllRh.median_bg_region_intensity = NaN;
-    new_midline_def.AllRh.std_bg_region_intensity = NaN;
-    new_midline_def.AllRh.min_bg_region_intensity = NaN;
-    new_midline_def.AllRh.max_bg_region_intensity = NaN;
+    midline_definition = generate_stats_struct(midline_definition, ...
+        'NOTmidline_intensity', ...
+        stats, ...
+        individual_rhombomeres);
 
-    new_midline_def.AllRh.sum_total = NaN;
-    new_midline_def.AllRh.sum_midline = NaN;
-    new_midline_def.AllRh.sum_bg_region = NaN;
-    new_midline_def.AllRh.sum_NOT_midline = NaN;
+    midline_definition = generate_stats_struct(midline_definition, ...
+        'bg_region_intensity', ...
+        stats, ...
+        individual_rhombomeres);
+
+    midline_definition.AllRh.sum_total = NaN;
+    midline_definition.AllRh.sum_midline = NaN;
+    midline_definition.AllRh.sum_bg_region = NaN;
+    midline_definition.AllRh.sum_NOT_midline = NaN;
 
     if ~isempty(xedge.M)
-        midline_thickness_pix = 20;
+        midline_thickness_pix = round(data.midline_thickness_um / double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM)));
         
-        % get raw data from old_analysis_out_folder
-        im = imread([old_analysis_dt_folder filesep ... 
-            sprintf('z = %0.2f um', xedge.z) filesep ...
-            sprintf('Ncad, t = %0.2f.tif', xedge.timestamp)]);
+        z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
+        slices_relative_to_top = round(xedge.z ./ z_ind_to_micron_depth);
+        z_index = data.top_slice_index - slices_relative_to_top;
+        c = find(strcmp(data.channel_names, 'Ncad'));
+        im = bfGetPlane(data.czi_reader, ...
+            data.czi_reader.getIndex(z_index - 1, c - 1, 0) + 1);
         
         rotim = imrotate(im, xedge.tissueRotation, 'bilinear', 'crop');
         theta = -deg2rad(xedge.tissueRotation);
@@ -64,12 +60,12 @@ function new_midline_def = calc_new_midline_stats(data, xedge, old_analysis_dt_f
         denominator_col = [];
         for yind = min(rotated_e.M(:,2)):max(rotated_e.M(:,2))
             myind = yind - min(rotated_e.M(:,2)) + 1;
-            midline_im(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2)) =...
-                rotim(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2));
-            midline_col = [midline_col; rotim(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2))];
-            denominator_im(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2)) =...
-                rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2));
-            denominator_col = [denominator_col; rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
+            midline_im(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2)) =...
+                rotim(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2));
+            midline_col = [midline_col; rotim(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2))];
+            denominator_im(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2)) =...
+                rotim(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2));
+            denominator_col = [denominator_col; rotim(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
         end
     
         if strcmp(data.midline_definition_method, 'max')
@@ -78,24 +74,11 @@ function new_midline_def = calc_new_midline_stats(data, xedge, old_analysis_dt_f
             midline_definition_array = double(mean(midline_col, 2)) ./  double(mean(denominator_col, 2));
         end
 
-        new_midline_def.AllRh.mean_midline_def = mean(midline_definition_array);
-        new_midline_def.AllRh.median_midline_def = median(midline_definition_array);
-        new_midline_def.AllRh.std_midline_def = std(midline_definition_array);
-        new_midline_def.AllRh.min_midline_def = min(midline_definition_array);
-        new_midline_def.AllRh.max_midline_def = max(midline_definition_array);
 
         % output raw data; that is, not ratiod
-        new_midline_def.AllRh.mean_midline_intensity = mean(midline_col(:));
-        new_midline_def.AllRh.median_midline_intensity = median(midline_col(:));
-        new_midline_def.AllRh.std_midline_intensity = std(double(midline_col(:)));
-        new_midline_def.AllRh.min_midline_intensity = min(midline_col(:));
-        new_midline_def.AllRh.max_midline_intensity = max(midline_col(:));
+        midline_definition = generate_stats(midline_definition, 'midline_intensity', stats, {'AllRh'}, double(midline_col(:)));
 
-        new_midline_def.AllRh.mean_bg_region_intensity = mean(denominator_col(:));
-        new_midline_def.AllRh.median_bg_region_intensity = median(denominator_col(:));
-        new_midline_def.AllRh.std_bg_region_intensity = std(double(denominator_col(:)));
-        new_midline_def.AllRh.min_bg_region_intensity = min(denominator_col(:));
-        new_midline_def.AllRh.max_bg_region_intensity = max(denominator_col(:));
+        midline_definition = generate_stats(midline_definition, 'bg_region_intensity', stats, {'AllRh'}, double(denominator_col(:)));
 
         % output sums: total between basal edges, midline, and total between
         % basal edges that ISN'T midline. For completeness, also sum region
@@ -104,17 +87,13 @@ function new_midline_def = calc_new_midline_stats(data, xedge, old_analysis_dt_f
         ys = [rotated_e.L(:,2); flipud(rotated_e.R(:, 2))];
         msk = poly2mask(xs, ys, size(im,1), size(im,2));
 
-        new_midline_def.AllRh.sum_total = sum(im(msk));
-        new_midline_def.AllRh.sum_midline = sum(midline_col(:));
-        new_midline_def.AllRh.sum_bg_region = sum(denominator_col(:));
-        new_midline_def.AllRh.sum_NOT_midline = new_midline_def.AllRh.sum_total - ...
-            new_midline_def.AllRh.sum_midline;
-        
-        new_midline_def.AllRh.mean_NOTmidline_intensity = mean(im(msk));
-        new_midline_def.AllRh.median_NOTmidline_intensity = median(im(msk));
-        new_midline_def.AllRh.std_NOTmidline_intensity = std(double(im(msk)));
-        new_midline_def.AllRh.min_NOTmidline_intensity = min(im(msk));
-        new_midline_def.AllRh.max_NOTmidline_intensity = max(im(msk));
+        midline_definition.AllRh.sum_total = sum(im(msk));
+        midline_definition.AllRh.sum_midline = sum(midline_col(:));
+        midline_definition.AllRh.sum_bg_region = sum(denominator_col(:));
+        midline_definition.AllRh.sum_NOT_midline = midline_definition.AllRh.sum_total - ...
+            midline_definition.AllRh.sum_midline;
+                
+        midline_definition = generate_stats(midline_definition, 'NOTmidline_intensity', stats, {'AllRh'}, double(im(msk)));
 
     end
 end        
