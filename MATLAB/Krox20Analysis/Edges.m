@@ -4,6 +4,7 @@ classdef Edges
         z = 0;                                  % z plane in which edges are defined
         timepoint = 1;                          % timepoint for which edges are defined
         timestamp = 0;                          % time relative to start of timecourse in minutes
+        hpf = 0;                                % hours post-fertilisation
         
         L = [];                                 % left edge xy array
         R = [];                                 % right edge xy array

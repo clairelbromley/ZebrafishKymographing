@@ -41,6 +41,17 @@ function krox_20_base_script()
     data.files = files_out;
     data.timestamps = timestamps;
     
+    init_hpf_string = inputdlg('Please input the hpf at the start of imaging:', ...
+        'Starting hpf', ...
+        1, ...
+        {'16'});
+    init_hpf = str2double(init_hpf_string);
+    if isnan(init_hpf)
+        error('krox_20_base_script:InvalidInput', ...
+            'Please make sure that initial hpf value is numeric. Quitting...');
+    end
+    data.hpf = data.timestamps + init_hpf;
+    
     data.edges = [];
     data.top_slice_index = [];
     data.filename = files_out(1).name;

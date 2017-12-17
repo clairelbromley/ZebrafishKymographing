@@ -20,7 +20,7 @@ function midline_definition = calc_midline_definition(data, edge)
     midline_definition.AllRh.max_midline_def = NaN;
 
     if ~isempty(edge.M)
-        midline_thickness_pix = double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM)) * data.midline_thickness_um;
+        midline_thickness_pix = round(data.midline_thickness_um / double(data.ome_meta.getPixelsPhysicalSizeX(0).value(ome.units.UNITS.MICROM)));
 
         % get z index
         z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
@@ -57,12 +57,13 @@ function midline_definition = calc_midline_definition(data, edge)
         denominator_col = [];
         for yind = min(rotated_e.M(:,2)):max(rotated_e.M(:,2))
             myind = yind - min(rotated_e.M(:,2)) + 1;
-            midline_im(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2)) =...
-                rotim(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2));
-            midline_col = [midline_col; rotim(yind, round(rotated_e.M(myind, 1) - midline_thickness_pix/2):round(rotated_e.M(myind, 1) + midline_thickness_pix/2))];
-            denominator_im(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2)) =...
-                rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2));
-            denominator_col = [denominator_col; rotim(yind, round(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):round(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
+            midline_im(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2)) =...
+                rotim(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2));
+            midline_col = [midline_col; rotim(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2))];
+            denominator_im(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2)) =...
+                rotim(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2));
+            denominator_col = [denominator_col; rotim(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
+            
         end
 
         z_fldr = sprintf('z = %0.2f um', edge.z);
