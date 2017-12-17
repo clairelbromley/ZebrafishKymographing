@@ -59,13 +59,20 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         set(edge_buts, 'Enable', 'off');
         data.top_slice_index = [];
 
+        % save header string in case it's not generated again
+        if exist('hdr_string') ~= 0
+            if ~isempty(hdr_string)
+                data.hdr_string = hdr_string;
+            end
+        end
+        
         busy_dlg(busyOutput);
         setappdata(controls.hfig, 'data', data);
         initialise_sliders(controls, data);
     
     else
         fid = fopen([data.out_folder filesep 'results.csv'],'a');
-        fprintf(fid,hdr_string);
+        fprintf(fid,data.hdr_string);
         fclose(fid);
         busy_dlg(busyOutput);
         msgbox('Reached the end of the current timecourse!');
