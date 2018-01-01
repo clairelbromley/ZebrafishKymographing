@@ -1622,7 +1622,7 @@ if strcmp(reply, 'OK')
     busyOutput = busyDlg();
     set(handles.listData, 'Enable', 'off');
 
-    [fname, pname,~]= uigetfile('*.xlsx', 'Choose the xlsx file containing the experiment metadata...', sf);
+    [fname, pname,~]= uigetfile('*.xls', 'Choose the xls file containing the experiment metadata...', sf);
     handles.metadataPath = [pname, fname];
 
     if ischar(handles.metadataPath)
