@@ -38,6 +38,17 @@ function krox_20_base_script()
 %     busyOutput = busy_dlg();
     disp('Loading files...');
     [files_out, timestamps] = order_files(folder);
+    % check for incorrectly imported timestamps, typically seen when CZI
+    % has been processed externally to perform 3d reorientations...
+    if any(timestamps(2:end) == 0)
+        beep;
+        waitfor(msgbox('Time stamps aren''t behaving as expected - is processed data being used?'));
+        raw_folder = uigetdir(folder, 'Please locate unprocessed data...');
+        if (raw_folder == 0)
+            return;
+        end
+        [files_out, timestamps] = order_files(raw_folder);
+    end
     data.files = files_out;
     data.timestamps = timestamps;
     

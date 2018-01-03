@@ -12,6 +12,9 @@ function update_image(controls)
     else
         clims = [min(im(:)) max(im(:))];
     end
+    if (clims(1) == clims(2))
+        clims(2) = clims(1) + 1;
+    end
     imagesc(im, 'Parent', controls.hax);
     set(controls.hax, 'CLim', clims);
     colormap gray;
