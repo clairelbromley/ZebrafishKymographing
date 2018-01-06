@@ -61,7 +61,7 @@ function krox_20_base_script()
         error('krox_20_base_script:InvalidInput', ...
             'Please make sure that initial hpf value is numeric. Quitting...');
     end
-    data.hpf = data.timestamps + init_hpf;
+    data.hpf = data.timestamps/60 + init_hpf;
     
     data.edges = [];
     data.top_slice_index = [];
