@@ -66,35 +66,27 @@ function data = detect_rhombomeres(controls, data, im)
     % figure out which rhombomere falls closest to the top of the image -
     % call this Rh4    
     edges = bwboundaries(binim, 'noholes');
+    e1 = fliplr(edges{1});
+    e2 = fliplr(edges{2});
     % inelegant - improve?
     if isfield(data, 'current_edge')
         data.current_edge = [];
     end
-    if imStats(2).Centroid(2) > imStats(1).Centroid(2)
-        data.current_edge = fliplr(edges{1});
+    if (mean(e1(:,2)) < mean(e2(:,2)))
+        % in this case, mean of y coords linked to the first edge lie
+        % closer to the top of the image, and e1 should therefore be linked
+        % to Rh4
+        data.current_edge = e1;
         data = add_edge('Rh4', controls, data);
-        data.current_edge = fliplr(edges{2});
+        data.current_edge = e2;
         data = add_edge('Rh6', controls, data);
-        data.edges(end).rhombomereLimits = [rotated_rhombomere_lims(1), ...
-            rotated_rhombomere_lims(1) + mid_rhombomere_lims(1), ...
-            rotated_rhombomere_lims(1) + mid_rhombomere_lims(2), ...
-            rotated_rhombomere_lims(2)];
-%             rotated_rhombomere_lims(1) + imStats(1).MinorAxisLength, ...
-%             rotated_rhombomere_lims(2) - imStats(2).MinorAxisLength, ...
     else
-        data.current_edge = fliplr(edges{1});
+        data.current_edge = e1;
         data = add_edge('Rh6', controls, data);
-        data.current_edge = fliplr(edges{2});
+        data.current_edge = e2;
         data = add_edge('Rh4', controls, data);
-        data.edges(end).rhombomereLimits = [rotated_rhombomere_lims(1), ...
-            rotated_rhombomere_lims(1) + mid_rhombomere_lims(1), ...
-            rotated_rhombomere_lims(1) + mid_rhombomere_lims(2), ...
-            rotated_rhombomere_lims(2)];
-%             rotated_rhombomere_lims(1) + imStats(2).MinorAxisLength, ...
-%             rotated_rhombomere_lims(2) - imStats(1).MinorAxisLength, ...
     end
-    
-    
+        
     setappdata(controls.hfig, 'data', data);
     
     busy_dlg(busyOutput);

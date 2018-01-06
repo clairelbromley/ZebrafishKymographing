@@ -3,7 +3,9 @@ function on_c_pos_changed(hObject, eventdata, handles, controls)
     data = getappdata(controls.hfig, 'data');
     
     data.curr_c_plane = round(get(hObject, 'Value'));
+    set(hObject, 'Value', data.curr_c_plane);
     data.curr_z_plane = round(get(controls.hzsl, 'Value'));
+    set(controls.hzsl, 'Value', data.curr_z_plane);
     disp(data.curr_c_plane);
     update_image(controls)
     
