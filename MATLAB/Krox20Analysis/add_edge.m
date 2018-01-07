@@ -1,4 +1,9 @@
-function data = add_edge(edg, controls, data)
+function data = add_edge(edg, controls, data, auto)
+
+    % auto = true when edges have been automatically detected
+    if ~exist('auto','var')
+        auto = false;
+    end	
 
     z = round((data.top_slice_index -  round(get(controls.hzsl, 'Value'))) * ...
         double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM)));
@@ -33,7 +38,9 @@ function data = add_edge(edg, controls, data)
                         data.current_edge = data.current_edge.getPosition;
                     end
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
-%                     data = calculate_rhombomere_extents(data, controls);
+                    if ~auto
+                        data = calculate_rhombomere_extents(data, controls);
+                    end
                 end
                 if isgraphics(data.edges(end).(['hl' edg]))
                     delete(data.edges(end).(['hl' edg]));

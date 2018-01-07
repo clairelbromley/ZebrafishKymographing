@@ -77,15 +77,20 @@ function data = detect_rhombomeres(controls, data, im)
         % closer to the top of the image, and e1 should therefore be linked
         % to Rh4
         data.current_edge = e1;
-        data = add_edge('Rh4', controls, data);
+        data = add_edge('Rh4', controls, data, true);
         data.current_edge = e2;
-        data = add_edge('Rh6', controls, data);
+        data = add_edge('Rh6', controls, data, true);
     else
         data.current_edge = e1;
-        data = add_edge('Rh6', controls, data);
+        data = add_edge('Rh6', controls, data, true);
         data.current_edge = e2;
-        data = add_edge('Rh4', controls, data);
+        data = add_edge('Rh4', controls, data, true);
     end
+    
+    data.edges(end).rhombomereLimits = [rotated_rhombomere_lims(1), ...
+        rotated_rhombomere_lims(1) + mid_rhombomere_lims(1), ...
+        rotated_rhombomere_lims(1) + mid_rhombomere_lims(2), ...
+        rotated_rhombomere_lims(2)];
         
     setappdata(controls.hfig, 'data', data);
     
