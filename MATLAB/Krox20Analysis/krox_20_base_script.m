@@ -48,6 +48,11 @@ function krox_20_base_script()
             return;
         end
         [files_out, timestamps] = order_files(raw_folder);
+        % in this case, default to setting rhombomere limits horizontal
+        % rather than inferring from masks:
+        data.AP_axis_method = 'RotatedImage';
+    else
+        data.AP_axis_method = 'Rhombomeres';
     end
     data.files = files_out;
     data.timestamps = timestamps;
@@ -75,10 +80,19 @@ function krox_20_base_script()
     data.channel_names = channel_names;
     data.scale_bar_length_um = scale_bar_length_um;
     controls = setup_ui(data);
+    
+    % set UI to show default values
+    if strcmp(data.AP_axis_method, 'RotatedImage')
+        set(controls.hAPaxradios(2), 'Value', true);
+    else
+        set(controls.hAPaxradios(1), 'Value', true);
+    end
+        
+    
     data.controls = controls;
     data.midline_definition_method = midline_definition_method;
     data.midline_thickness_um = midline_thickness_um;
-    data.AP_axis_method = 'Rhombomeres';
+    
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);

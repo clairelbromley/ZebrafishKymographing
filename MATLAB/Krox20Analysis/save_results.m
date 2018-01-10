@@ -8,16 +8,24 @@ function hdr_string = save_results(data, edges)
     
     for rhidx = 1:length(rhs)
         tmp_res = [];
+        tmp_hdr_str = '';
         for eidx = 1:length(edges)
             if ~isempty(edges(eidx).ap_lengths)
-                tmp_res = [tmp_res; ...
-                    edges(eidx).ap_lengths.(rhs{rhidx})];
+                tmp_tmp_res = [];
+                thisrh_ststrs = fields(edges(eidx).ap_lengths.(rhs{rhidx}));
+                for ststridx = 1:length(thisrh_ststrs)
+                    tmp_tmp_res = [tmp_tmp_res ...
+                    edges(eidx).ap_lengths.(rhs{rhidx}).(thisrh_ststrs{ststridx})];
+                end
+                tmp_res = [tmp_res; tmp_tmp_res];
             else
-                tmp_res = [tmp_res; NaN];
+                tmp_res = [tmp_res; NaN(tmp_tmp_res)];
             end
         end
         results = [results tmp_res];
-        hdr_string = [hdr_string ',' rhs{rhidx} ' - AP length'];
+        for ststridx = 1:length(thisrh_ststrs)
+            hdr_string = [hdr_string ', AP length ' rhs{rhidx} ' - ' thisrh_ststrs{ststridx}];
+        end
     end
     
     for rhidx = 1:length(rhs)

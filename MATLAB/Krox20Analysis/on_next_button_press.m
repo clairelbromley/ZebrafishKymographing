@@ -58,6 +58,11 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
         set(edge_buts, 'Enable', 'off');
         data.top_slice_index = [];
+        
+        % the user shouldn't be able to change the method of AP length
+        % determination halfway through a timecourse as this will foul up
+        % the output CSV columns:
+        set(controls.hAPaxradios, 'Enable', 'off');
 
         % save header string in case it's not generated again
         if exist('hdr_string') ~= 0
