@@ -70,7 +70,8 @@ function hdr_string = save_results(data, edges)
     % ENSURE THAT CORRECT RHOMBOMERE NUMBERS ARE USED IN THE RESULTS OUTPUT
     % WITHOUT PROPAGATING CHANGE THROUGHOUT REST OF CODE:
     hdr_string = strrep(hdr_string, 'Rh4', 'Rh3');
-    hdr_string = strrep(hdr_string, 'Rh6', 'Rh4');
+    hdr_string = strrep(hdr_string, 'Rh5', 'Rh4');
+    hdr_string = strrep(hdr_string, 'Rh6', 'Rh5');
     hdr_string = [hdr_string '\r\n'];
     dlmwrite([data.out_folder filesep 'results.csv'], results, '-append', 'delimiter', ',');
     
