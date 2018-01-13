@@ -62,7 +62,7 @@ function krox_20_base_script()
         1, ...
         {'16'});
     init_hpf = str2double(init_hpf_string);
-    if isnan(init_hpf)
+    if isnan(init_hpf) || isempty(init_hpf)
         error('krox_20_base_script:InvalidInput', ...
             'Please make sure that initial hpf value is numeric. Quitting...');
     end
