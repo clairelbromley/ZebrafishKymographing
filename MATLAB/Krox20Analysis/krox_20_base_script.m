@@ -40,16 +40,29 @@ function krox_20_base_script()
     [files_out, timestamps] = order_files(folder);
     % check for incorrectly imported timestamps, typically seen when CZI
     % has been processed externally to perform 3d reorientations...
-    if any(timestamps(2:end) == 0)
+    if any(diff(timestamps) == 0)
         beep;
-        waitfor(msgbox('Time stamps aren''t behaving as expected - is processed data being used?'));
-        raw_folder = uigetdir(folder, 'Please locate unprocessed data...');
-        if (raw_folder == 0)
-            return;
+        answer = questdlg('Time stamps aren''t behaving as expected - is processed data being used?', ...
+            'Problem timestamps...', ...
+            'Get times from unprocessed data', ...
+            'Enter times manually', ...
+            'Get times from unprocecssed data');
+        % separate answer cases to allow for switching back to manual...
+        if strcmp(answer, 'Get times from unprocessed data')
+%             waitfor(msgbox('Time stamps aren''t behaving as expected - is processed data being used?'));
+            raw_folder = uigetdir(folder, 'Please locate unprocessed data...');
+            if ~(raw_folder == 0)
+                [files_out, timestamps] = order_files(raw_folder);
+                % in this case, default to setting rhombomere limits horizontal
+                % rather than inferring from masks:
+            else
+                answer = 'Enter times manually';
+            end
         end
-        [files_out, timestamps] = order_files(raw_folder);
-        % in this case, default to setting rhombomere limits horizontal
-        % rather than inferring from masks:
+        if strcmp(answer, 'Enter times manually')
+            [files_out, timestamps] = manual_timestamping(files_out, timestamps);
+            
+        end
         data.AP_axis_method = 'RotatedImage';
     else
         data.AP_axis_method = 'Rhombomeres';
