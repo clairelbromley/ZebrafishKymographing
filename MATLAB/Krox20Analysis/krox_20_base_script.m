@@ -46,7 +46,7 @@ function krox_20_base_script()
             'Problem timestamps...', ...
             'Get times from unprocessed data', ...
             'Enter times manually', ...
-            'Get times from unprocecssed data');
+            'Get times from unprocessed data');
         % separate answer cases to allow for switching back to manual...
         if strcmp(answer, 'Get times from unprocessed data')
 %             waitfor(msgbox('Time stamps aren''t behaving as expected - is processed data being used?'));
@@ -60,15 +60,20 @@ function krox_20_base_script()
             end
         end
         if strcmp(answer, 'Enter times manually')
-            [files_out, timestamps] = manual_timestamping(files_out, timestamps);
-            
+            global man_ts_data; % ugh...
+            controls = setup_ui_manual_timestamping(files_out, timestamps);
+            waitfor(controls.hfig);
+            timestamps = cell2mat(man_ts_data.timestamps);
+            for idx = 1:length(files_out) % more ugh...
+                files_out(idx).name = man_ts_data.files_out{idx};
+            end
         end
         data.AP_axis_method = 'RotatedImage';
     else
         data.AP_axis_method = 'Rhombomeres';
     end
     data.files = files_out;
-    data.timestamps = timestamps;
+    data.timestamps = timestamps - min(timestamps);
     
     init_hpf_string = inputdlg('Please input the hpf at the start of imaging:', ...
         'Starting hpf', ...
