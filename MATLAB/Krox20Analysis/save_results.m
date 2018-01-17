@@ -11,8 +11,8 @@ function hdr_string = save_results(data, edges)
         tmp_hdr_str = '';
         for eidx = 1:length(edges)
             if ~isempty(edges(eidx).ap_lengths)
-                tmp_tmp_res = zeros(1, length(thisrh_ststrs));
                 thisrh_ststrs = fields(edges(eidx).ap_lengths.(rhs{rhidx}));
+                tmp_tmp_res = zeros(1, length(thisrh_ststrs));
                 for ststridx = 1:length(thisrh_ststrs)
                     if isempty(edges(eidx).ap_lengths.(rhs{rhidx}).(thisrh_ststrs{ststridx}))
                     	edges(eidx).ap_lengths.(rhs{rhidx}).(thisrh_ststrs{ststridx}) = NaN;
