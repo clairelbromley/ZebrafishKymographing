@@ -38,6 +38,11 @@ function krox_20_base_script()
 %     busyOutput = busy_dlg();
     disp('Loading files...');
     [files_out, timestamps] = order_files(folder);
+    
+    %% FOR NOW, FORCE MANUAL TIMESTAMPS!
+    timestamps(1) = 0;
+    timestamps(2) = 0;
+    
     % check for incorrectly imported timestamps, typically seen when CZI
     % has been processed externally to perform 3d reorientations...
     if any(diff(timestamps) == 0)
