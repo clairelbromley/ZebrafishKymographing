@@ -46,13 +46,17 @@ function midline_definition = calc_midline_definition(data, edge)
         denominator_col = [];
         for yind = min(rotated_e.M(:,2)):max(rotated_e.M(:,2))
             myind = yind - min(rotated_e.M(:,2)) + 1;
-            midline_im(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2)) =...
-                rotim(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2));
-            midline_col = [midline_col; rotim(yind, floor(rotated_e.M(myind, 1) - midline_thickness_pix/2):floor(rotated_e.M(myind, 1) + midline_thickness_pix/2))];
-            denominator_im(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2)) =...
-                rotim(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2));
-            denominator_col = [denominator_col; rotim(yind, floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2):floor(rotated_e.M(myind, 1) - 9 * midline_thickness_pix/2))];
-            
+            xmin = max([1 floor(rotated_e.M(myind, 1) - midline_thickness_pix/2)]);
+            midline_im(yind, xmin:(xmin + midline_thickness_pix)) =...
+                rotim(yind, xmin:(xmin + midline_thickness_pix));
+            midline_col = [midline_col; rotim(yind, xmin:(xmin + midline_thickness_pix))];
+            xmin = floor(rotated_e.M(myind, 1) - 11 * midline_thickness_pix/2);
+            if xmin < 1
+                xmin = floor(rotated_e.M(myind, 1) + 9 * midline_thickness_pix/2);
+            end
+            denominator_im(yind, xmin:(xmin + midline_thickness_pix)) =...
+                rotim(yind, xmin:(xmin + midline_thickness_pix));
+            denominator_col = [denominator_col; rotim(yind, xmin:(xmin + midline_thickness_pix))];
         end
 
         z_fldr = sprintf('z = %0.2f um', edge.z);
