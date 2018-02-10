@@ -16,6 +16,7 @@ function data = add_edge(edg, controls, data, auto)
     
     % check whether current z plane exists in array of stored edges...
     edg_str = {'L', 'R', 'M'};
+    rhs = {'Rh4', 'Rh6'};
     if ~isempty(data.edges)
         ts = [data.edges.timepoint];
         zs = [data.edges.z];
@@ -23,7 +24,7 @@ function data = add_edge(edg, controls, data, auto)
             if any(zs(ts == t) == z)
                  data.edges((ts == t) & (zs == z)).timestamp = data.timestamps(t);
                  data.edges((ts == t) & (zs == z)).hpf = data.hpf(t);
-                if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
+                if ~any(strcmp(edg, rhs))
                     if isa(data.current_edge, 'imfreehand')
                         data.current_edge = data.current_edge.getPosition;
                     end
@@ -37,6 +38,9 @@ function data = add_edge(edg, controls, data, auto)
                     if isa(data.current_edge, 'imfreehand')
                         data.current_edge = data.current_edge.getPosition;
                     end
+                    % check for whether rhombomeres have been drawn
+                    % overlapping! 
+                    % catch_overlapping_rhs(data, edg, rhs);
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                     if ~auto
                         data = calculate_rhombomere_extents(data, controls);
@@ -45,7 +49,7 @@ function data = add_edge(edg, controls, data, auto)
                 if isgraphics(data.edges(end).(['hl' edg]))
                     delete(data.edges(end).(['hl' edg]));
                 end
-                if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
+                if ~any(strcmp(edg, rhs))
                     if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
                         data.edges((ts == t) & (zs == z)).(['hl' edg]) = line(data.current_edge(:,1), ...
                             data.current_edge(:,2), ...
