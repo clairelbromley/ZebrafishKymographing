@@ -7,7 +7,7 @@ function on_c_pos_changed(hObject, eventdata, handles, controls)
     data.curr_z_plane = round(get(controls.hzsl, 'Value'));
     set(controls.hzsl, 'Value', data.curr_z_plane);
     disp(data.curr_c_plane);
-    update_image(controls)
+    update_image(controls);
     
     % enable edge selection only if a relevant frame is imaged
     edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
@@ -21,6 +21,8 @@ function on_c_pos_changed(hObject, eventdata, handles, controls)
                 if strcmp(data.channel_names{data.curr_c_plane}, 'Krox20')
                     set(rh_buts, 'Enable', 'on');
                     set(edge_buts, 'Enable', 'off');
+                    set(controls.hhicontrast, 'Value', 1);
+                    update_image(controls);
                 else
                     set(edge_buts, 'Enable', 'on');
                     set(rh_buts, 'Enable', 'off');

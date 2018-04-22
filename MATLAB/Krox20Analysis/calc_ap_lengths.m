@@ -13,7 +13,6 @@ function ap_lengths = calc_ap_lengths(data, xedge)
                 ap_lengths.AllRh.ap_lengths_max = abs(xedge.rhombomereLimits(end) - xedge.rhombomereLimits(1)) * pix_to_micron;
             end
         else
-            disp('nonsense');
             % first, generate a binary mask of rhombomeres
             rh4msk = poly2mask(xedge.Rh4(:,1), xedge.Rh4(:,2), ...
                 double(data.ome_meta.getPixelsSizeY(0).getValue()), ...
@@ -29,6 +28,10 @@ function ap_lengths = calc_ap_lengths(data, xedge)
                 find(max(rh6msk, [], 1), 1, 'first') find(max(rh6msk, [], 1), 1, 'last')];
             w = min(diff(rh_mat, [], 2));
             tmp = rh_mat(diff(rh_mat, [], 2) == w, :);
+            if (size(tmp, 1) > 1)
+                % catch for case when widths of rh4 and rh6 are the same
+                tmp = tmp(1,:);
+            end
             rnge = [round(tmp(1) + w/4) round(tmp(2) - w/4)];
 
             % then calculate the AP lengths in um across this range
