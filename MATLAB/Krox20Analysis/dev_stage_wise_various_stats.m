@@ -29,7 +29,18 @@ fldr = uigetdir('C:\Users\Doug\Google Drive\2018-05-09 Exp92 CSVs', ...
 out_folder = uigetdir('C:\Users\Doug\Google Drive\2018-05-09 Exp92 CSVs', ...
                 'Choose folder in which to dump output...');
             
-data = import_devwise_data(fldr);
+% data = import_devwise_data(fldr);
+
+% z levels/time points that haven't got lines drawn will sometimes have
+% non-NaN values for AP length because of automatic Rhombomere detection -
+% this will (most likely) be nonsense. Therefore, we should filter here to
+% remove any data that has any NaNs at all. Since data is in a structure,
+% this is slightly non-trivial...
+nanfilt = zeros(length(data.z), length(input_stats));
+for idx = 1:length(input_stats)
+    nanfilt(:,idx) = isnan(data.(input_stats{idx}));
+end
+nanfilt = logical(sum(nanfilt, 2));
 
 embryos = cell(1,length(data.Embryo));
 for idx = 1:length(data.Embryo)
@@ -40,7 +51,8 @@ for z_plane = z_planes
     
     for stat_idx = 1:length(input_stats)
         
-        dev_stage_wise_stats(embryos, data, input_headers, z_plane, out_folder)
+        input_header = input_stats{stat_idx};
+        dev_stage_wise_stats(embryos, data, input_header, z_plane, out_folder, nanfilt)
         
     end
     
