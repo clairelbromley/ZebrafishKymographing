@@ -4,9 +4,7 @@ function [out, sht_names] =  dev_stage_wise_stats(embryos, data, input_headers, 
 
     early = [14.5 16];
     late = [17 19.5];
-    if strcmp(input_headers{1}, 'Embryo number')
-        input_headers = input_headers(2:end);
-    end
+
     unq_embryos = unique(embryos);
 
     hpf = data(:,1);
