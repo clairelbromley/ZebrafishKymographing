@@ -17,7 +17,15 @@ function output_struct = generate_stats(output_struct, input_var_name, stat_type
             else
                 rhlbl = ['Rh' num2str(rhombomeres{rhidx})];
             end
-            output_struct.(rhlbl).([input_var_name '_' stat_type{stidx}]) = feval(stat_type{stidx}, indata);
+            
+            statstr = stat_type{stidx};
+            if length(statstr) > 3
+                if strcmp(statstr(1:3), 'nan')
+                    statstr = statstr(4:end);
+                end
+            end
+            
+            output_struct.(rhlbl).([input_var_name '_' statstr]) = feval(stat_type{stidx}, indata(~isinf(indata)));
             
         end
         

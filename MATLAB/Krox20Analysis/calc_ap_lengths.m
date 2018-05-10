@@ -52,7 +52,7 @@ function ap_lengths = calc_ap_lengths(data, xedge)
             end
                 
             % and generate stats
-            stats = {'mean', 'median', 'std', 'min', 'max'};
+            stats = {'nanmean', 'nanmedian', 'nanstd', 'nanmin', 'nanmax'};
             individual_rhombomeres = {4, 5, 6, 'AllRh'};
             ap_lengths = generate_stats_struct(ap_lengths, ...
                             'ap_lengths', ...

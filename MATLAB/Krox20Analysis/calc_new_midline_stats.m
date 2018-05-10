@@ -1,6 +1,6 @@
 function midline_definition = calc_new_midline_stats(data, xedge, midline_definition)
 
-    stats = {'mean', 'median', 'std', 'min', 'max'};
+    stats = {'nanmean', 'nanmedian', 'nanstd', 'nanmin', 'nanmax'};
     individual_rhombomeres = {'AllRh'};
 
     midline_definition = generate_stats_struct(midline_definition, ...

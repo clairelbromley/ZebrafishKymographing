@@ -2,7 +2,7 @@ function midline_definition = calc_midline_definition(data, edge)
 
     edgLs = {'M'};
     rhs = [4, 5, 6];
-    stats = {'mean', 'median', 'std', 'min', 'max'};
+    stats = {'nanmean', 'nanmedian', 'nanstd', 'nanmin', 'nanmax'};
     
     midline_definition = generate_stats_struct([], 'midline_def', ...
         stats, ...
