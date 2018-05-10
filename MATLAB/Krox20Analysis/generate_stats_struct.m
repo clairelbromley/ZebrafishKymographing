@@ -18,7 +18,14 @@ function output_struct = generate_stats_struct(output_struct, input_var_name, st
                 rhlbl = ['Rh' num2str(rhombomeres{rhidx})];
             end
             
-            output_struct.(rhlbl).([input_var_name '_' stat_type{stidx}]) = NaN;
+            statstr = stat_type{stidx};
+            if length(statstr) > 3
+                if strcmp(statstr(1:3), 'nan')
+                    statstr = statstr(4:end);
+                end
+            end
+            
+            output_struct.(rhlbl).([input_var_name '_' statstr]) = NaN;
             
         end
         
