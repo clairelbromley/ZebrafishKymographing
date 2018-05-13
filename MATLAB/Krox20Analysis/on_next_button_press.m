@@ -64,6 +64,9 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         % the output CSV columns:
         set(controls.hAPaxradios, 'Enable', 'off');
 
+        % and similarly for Rhombomere extent method:
+        set(controls.hRDefRadios, 'Enable', 'off');
+        
         % save header string in case it's not generated again
         if exist('hdr_string') ~= 0
             if ~isempty(hdr_string)

@@ -15,14 +15,20 @@ function initialise_sliders(controls, data)
     end
     set(controls.hzsl, 'SliderStep', [(1/sstep) (1/sstep)]);
     
+    if isfield(data, 'rh_definition_method')
+        if strcmp(data.rh_definition_method, 'MorphologicalMarkers')
+            cPlanes = cPlanes+1;
+        end
+    end
     set(controls.hcsl, 'Max', cPlanes);
     set(controls.hcsl, 'Min', 1);
     set(controls.hcsl, 'Value', 1);
     if cPlanes > 1
         sstep = cPlanes - 1;
+        set(controls.hcsl, 'Enable', 'on');
     else
         sstep = 1;
-        set(controls.hcsl, 'Enabled', 'false');
+        set(controls.hcsl, 'Enable', 'off');
     end
     set(controls.hcsl, 'SliderStep', [(1/sstep) (1/sstep)]);
 

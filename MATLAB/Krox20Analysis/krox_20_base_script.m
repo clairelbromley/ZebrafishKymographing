@@ -77,6 +77,7 @@ function krox_20_base_script()
     else
         data.AP_axis_method = 'Rhombomeres';
     end
+    
     data.files = files_out;
     data.timestamps = timestamps - min(timestamps);
     
@@ -110,7 +111,6 @@ function krox_20_base_script()
     else
         set(controls.hAPaxradios(1), 'Value', true);
     end
-        
     
     data.controls = controls;
     data.midline_definition_method = midline_definition_method;
@@ -119,7 +119,23 @@ function krox_20_base_script()
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);
-    attach_callbacks(controls)
+    
+    % check that data supports rhombomere-linked options
+    cPlanes = double(data.ome_meta.getPixelsSizeC(0).getValue());
+    if cPlanes < 2
+       set(controls.hRDefRadios(1), 'Value', true);
+       data.rh_definition_method = 'MorphologicalMarkers';
+       set(controls.hRDefRadios(2), 'Enable', 'off');
+       evd.NewValue = controls.hRDefRadios(1);
+    else
+        set(controls.hRDefRadios(2), 'Value', true);
+        evd.NewValue = controls.hRDefRadios(2);
+    end
+    on_rhombomere_definition_method_selection_changed('dum', evd, 'dum', controls);
+    data.curr_c_plane = 1;
+    data.curr_z_plane = 1;
+    
+    attach_callbacks(controls);
     imagesc(data.im, 'Parent', controls.hax);
     colormap gray;
     set(gca, 'XTick', []);

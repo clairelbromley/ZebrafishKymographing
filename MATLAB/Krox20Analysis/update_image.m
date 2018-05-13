@@ -3,7 +3,7 @@ function update_image(controls)
     data = getappdata(controls.hfig, 'data');
     
     current_z_ind = round(get(controls.hzsl, 'Value'));
-    current_c_ind = round(get(controls.hcsl, 'Value'));
+    current_c_ind = data.curr_c_plane;
     
     im = bfGetPlane(data.czi_reader, ...
         data.czi_reader.getIndex(current_z_ind - 1, current_c_ind - 1, 0) + 1);
@@ -20,7 +20,12 @@ function update_image(controls)
     colormap gray;
     set(gca, 'XTick', []);
     set(gca, 'YTick', []);
-    axis equal tight;
+    
+    if ~is_zoomed(controls.hax)
+        axis equal tight;
+    else
+        axis normal tight; 
+    end
     
     % add image click callback to all axis children:
     kids = get(controls.hax, 'Children');

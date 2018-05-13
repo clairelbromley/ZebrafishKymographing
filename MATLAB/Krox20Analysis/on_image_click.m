@@ -6,10 +6,15 @@ function on_image_click(hObject, eventdata, handles, controls)
     delete(kids(strcmp(get(kids, 'Type'), 'hggroup')))
 
     closed = strcmp(data.channel_names{data.curr_c_plane}, 'Krox20');
+    use_line = (strcmp(data.rh_definition_method, 'MorphologicalMarkers') && ...
+                (get(controls.hcsl, 'Value') > 1) && (data.curr_c_plane == 1));
     try
-        data.current_edge = imfreehand(controls.hax, 'Closed', closed);
+        if use_line
+            data.current_edge = imline(controls.hax);
+        else
+            data.current_edge = imfreehand(controls.hax, 'Closed', closed);
+        end
     end
-%     data.current_edge = M1.getPosition;
 
     setappdata(controls.hfig, 'data', data);
     
