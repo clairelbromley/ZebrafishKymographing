@@ -1,4 +1,4 @@
-function krox_20_base_script()
+function controls = krox_20_base_script()
 
     %% Function to process krox20 data for tissue morphology
     curr_dir = fileparts(mfilename('fullpath'));
@@ -116,6 +116,9 @@ function krox_20_base_script()
     data.midline_definition_method = midline_definition_method;
     data.midline_thickness_um = midline_thickness_um;
     
+    data.curr_c_plane = 1;
+    data.curr_z_plane = 1;
+    
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);
@@ -132,8 +135,6 @@ function krox_20_base_script()
         evd.NewValue = controls.hRDefRadios(2);
     end
     on_rhombomere_definition_method_selection_changed('dum', evd, 'dum', controls);
-    data.curr_c_plane = 1;
-    data.curr_z_plane = 1;
     
     attach_callbacks(controls);
     imagesc(data.im, 'Parent', controls.hax);

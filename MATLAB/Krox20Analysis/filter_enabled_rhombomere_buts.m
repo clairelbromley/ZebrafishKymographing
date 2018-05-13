@@ -20,10 +20,10 @@ function filter_enabled_rhombomere_buts(data, controls)
         zs = [data.edges.z];
         if any(ts == t)
             if any(zs(ts == t) == z)
-                 if ~isempty(data.edges((ts == t) & (zs == z)).rh4Top)
+                 if ~isempty(data.edges((ts == t) & (zs == z)).Rh4Top)
                      set(controls.hrh4botbut, 'Enable', 'on');
                  end
-                 if ~isempty(data.edges((ts == t) & (zs == z)).rh6Top)
+                 if ~isempty(data.edges((ts == t) & (zs == z)).Rh6Top)
                      set(controls.hrh6botbut, 'Enable', 'on');
                  end
             end

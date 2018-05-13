@@ -28,10 +28,10 @@ classdef Edges
         basal_basal_distances = [];
         ap_lengths = [];
         
-        rh4Top = [];                            % xy array defining the top edge of rhombomere 4
-        rh4Bot = [];                            % xy array defining the bottom edge of rhombomere 4
-        rh6Top = [];                            % xy array defining the top edge of rhombomere 6
-        rh6Bot = [];                            % xy array defining the bottom edge of rhombomere 6
+        Rh4Top = [];                            % xy array defining the top edge of rhombomere 4
+        Rh4Bot = [];                            % xy array defining the bottom edge of rhombomere 4
+        Rh6Top = [];                            % xy array defining the top edge of rhombomere 6
+        Rh6Bot = [];                            % xy array defining the bottom edge of rhombomere 6
         
     end
     

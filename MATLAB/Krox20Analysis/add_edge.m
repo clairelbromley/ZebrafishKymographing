@@ -14,6 +14,14 @@ function data = add_edge(edg, controls, data, auto)
         vis = 'on';
     end
     
+    if isa(data.current_edge, 'imfreehand')
+        data.current_edge = data.current_edge.getPosition;
+    end
+    
+    if isa(data.current_edge, 'imline')
+        data.current_edge = data.current_edge.getPosition;
+    end
+    
     % check whether current z plane exists in array of stored edges...
     edg_str = {'L', 'R', 'M'};
     rhs = {'Rh4', 'Rh6'};
@@ -24,20 +32,14 @@ function data = add_edge(edg, controls, data, auto)
             if any(zs(ts == t) == z)
                  data.edges((ts == t) & (zs == z)).timestamp = data.timestamps(t);
                  data.edges((ts == t) & (zs == z)).hpf = data.hpf(t);
-                if ~any(strcmp(edg, rhs))
-                    if isa(data.current_edge, 'imfreehand')
-                        data.current_edge = data.current_edge.getPosition;
-                    end
+                if any(strcmp(edg, edg_str))
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                     data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:) = ...
                         check_edge_validity(data, data.edges((ts == t) & (zs == z)));
                     if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
                         data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                     end
-                else
-                    if isa(data.current_edge, 'imfreehand')
-                        data.current_edge = data.current_edge.getPosition;
-                    end
+                elseif any(strcmp(edg, rhs))
                     % check for whether rhombomeres have been drawn
                     % overlapping! 
                     % catch_overlapping_rhs(data, edg, rhs);
@@ -45,18 +47,22 @@ function data = add_edge(edg, controls, data, auto)
                     if ~auto
                         data = calculate_rhombomere_extents(data, controls);
                     end
+                else
+                    data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
                 end
-                if isgraphics(data.edges(end).(['hl' edg]))
-                    delete(data.edges(end).(['hl' edg]));
+                if any(strcmp(edg, [edg_str rhs]))
+                    if isgraphics(data.edges(end).(['hl' edg]))
+                        delete(data.edges(end).(['hl' edg]));
+                    end
                 end
-                if ~any(strcmp(edg, rhs))
+                if any(strcmp(edg, edg_str))
                     if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
                         data.edges((ts == t) & (zs == z)).(['hl' edg]) = line(data.current_edge(:,1), ...
                             data.current_edge(:,2), ...
                             'Color', 'r', ...
                             'Visible', vis);
                     end
-                else
+                elseif any(strcmp(edg, rhs))
                     data.edges((ts == t) & (zs == z)).(['hl' edg]) = patch(data.current_edge(:,1), ...
                         data.current_edge(:,2), ...
                         'r', ...
@@ -72,14 +78,13 @@ function data = add_edge(edg, controls, data, auto)
                 data.edges(end).timestamp = data.timestamps(t);
                 data.edges(end).hpf = data.hpf(t);
                 data.edges(end).z = z;
-                if isa(data.current_edge, 'imfreehand')
-                    data.current_edge = data.current_edge.getPosition;
-                end
                 data.edges(end).(edg) = data.current_edge;
-                data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
-                    data.current_edge(:,2), ...
-                    'Color', 'r', ...
-                    'Visible', vis);
+                if any(strcmp(edg, [edg_str rhs]))
+                    data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
+                        data.current_edge(:,2), ...
+                        'Color', 'r', ...
+                        'Visible', vis);
+                end
             end
         else
             data.edges = [data.edges; Edges()];
@@ -87,14 +92,13 @@ function data = add_edge(edg, controls, data, auto)
             data.edges(end).timestamp = data.timestamps(t);
             data.edges(end).hpf = data.hpf(t);
             data.edges(end).z = z;
-            if isa(data.current_edge, 'imfreehand')
-                data.current_edge = data.current_edge.getPosition;
-            end
             data.edges(end).(edg) = data.current_edge;
-            data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
-                    data.current_edge(:,2), ...
-                    'Color', 'r', ...
-                    'Visible', vis);
+            if any(strcmp(edg, [edg_str rhs]))
+                data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
+                        data.current_edge(:,2), ...
+                        'Color', 'r', ...
+                        'Visible', vis);
+            end
         end
     else
         data.edges = [data.edges; Edges()];
@@ -103,12 +107,12 @@ function data = add_edge(edg, controls, data, auto)
         data.edges(end).hpf = data.hpf(t);
         data.edges(end).z = z;
         data.edges(end).(edg) = data.current_edge;
-        if ~( strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6') )
+        if any(strcmp(edg, edg_str))
             data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
                         data.current_edge(:,2), ...
                         'Color', 'r', ...
                         'Visible', vis);
-        else
+        elseif any(strcmp(edg, rhs))
             data.edges(end).(['hl' edg]) = patch(data.current_edge(:,1), ...
                         data.current_edge(:,2), ...
                         'r', ...
@@ -124,7 +128,7 @@ function data = add_edge(edg, controls, data, auto)
     if strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6')
         set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
         'Value', 1);
-    else
+    elseif any(strcmp(edg, edg_str))
         if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
             set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
             'Value', 1);
