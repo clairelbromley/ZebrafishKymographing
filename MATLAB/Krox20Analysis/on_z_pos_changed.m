@@ -10,6 +10,10 @@ function on_z_pos_changed(hObject, eventdata, handles, controls)
     % enable edge selection only if a relevant frame is imaged
     edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
     rh_buts = [controls.hrh4but, controls.hrh6but];
+    rhl_buts = [controls.hrh4topbut, ...
+                controls.hrh4botbut, ...
+                controls.hrh6topbut, ...
+                controls.hrh6botbut];
     if isfield(data, 'top_slice_index')
         if ~isempty(data.top_slice_index)
             z_ind_to_micron_depth = double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM));
@@ -25,19 +29,25 @@ function on_z_pos_changed(hObject, eventdata, handles, controls)
                 if strcmp(data.channel_names{data.curr_c_plane}, 'Krox20')
                     set(rh_buts, 'Enable', 'on');
                     set(edge_buts, 'Enable', 'off');
+                elseif ((data.curr_c_plane == 1) && ...
+                        (data.curr_c_plane ~= get(controls.hcsl, 'Value')) && ...
+                        strcmp(data.rh_definition_method, 'MorphologicalMarkers'))
+                    set(rh_buts, 'Enable', 'off');
+                    set(edge_buts, 'Enable', 'off');
+                    filter_enabled_rhombomere_buts(data, controls);
                 else
                     set(edge_buts, 'Enable', 'on');
                     set(rh_buts, 'Enable', 'off');
                 end
             else
-                set([edge_buts rh_buts], 'Enable', 'off');
+                set([edge_buts rh_buts rhl_buts], 'Enable', 'off');
             end
         else
-            set([edge_buts rh_buts], 'Enable', 'off');
+            set([edge_buts rh_buts rhl_buts], 'Enable', 'off');
         end
         
     else
-        set([edge_buts rh_buts], 'Enable', 'off');
+        set([edge_buts rh_buts rhl_buts], 'Enable', 'off');
     end
     
     setappdata(controls.hfig, 'data', data);
