@@ -23,8 +23,13 @@ function save_images(controls, data)
                 of = [data.out_folder filesep z_fldr];
                 mkdir(of);
 
+                if strcmp(data.channel_names{chidx}, 'MorphologicalMarkerChannel')
+                    chidx_temp = 1;
+                else
+                    chidx_temp = chidx;
+                end
                 im = bfGetPlane(data.czi_reader, ...
-                    data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, chidx - 1, 0) + 1);
+                    data.czi_reader.getIndex((z_planes(data.z_offsets == z_pos)) - 1, chidx_temp - 1, 0) + 1);
 
                 % save tiffs, for now without edges
                 imwrite(im, [of filesep sprintf('%s, t = %0.2f.tif', ...
@@ -69,7 +74,8 @@ function save_images(controls, data)
                     savefig(hfig_temp, [of filesep sprintf('%s, t = %0.2f.fig', ...
                         data.channel_names{chidx}, data.timestamps(data.timepoint))]);
 
-                    if strcmp(data.channel_names{chidx}, 'Krox20')
+                    if (strcmp(data.channel_names{chidx}, 'Krox20') ||...
+                        (strcmp(data.channel_names{chidx}, 'MorphologicalMarkerChannel')))
                         delete(hls);
                         subplot(1,2,1);
                         imagesc(im);

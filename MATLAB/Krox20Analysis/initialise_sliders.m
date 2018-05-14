@@ -18,6 +18,9 @@ function initialise_sliders(controls, data)
     if isfield(data, 'rh_definition_method')
         if strcmp(data.rh_definition_method, 'MorphologicalMarkers')
             cPlanes = cPlanes+1;
+            if ~any(strcmp(data.channel_names, 'MorphologicalMarkerChannel'))
+                data.channel_names = [data.channel_names 'MorphologicalMarkerChannel'];
+            end
         end
     end
     set(controls.hcsl, 'Max', cPlanes);

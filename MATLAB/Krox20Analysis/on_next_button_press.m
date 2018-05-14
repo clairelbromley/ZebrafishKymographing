@@ -74,6 +74,18 @@ function on_next_button_press(hObject, eventdata, handles, controls)
             end
         end
         
+        % check if edges have been loaded from previous data and handle UI
+        % accordingly
+        if any([data.edges.timepoint] == data.timepoint)
+            idx = find(([data.edges.timepoint] == data.timepoint),1, 'first');
+            data.top_slice_index = data.edges(idx).top_slice_index;
+            set(controls.hzradios(1), 'Value', 1);
+            eventdata.NewValue = controls.hzradios(1);
+            on_z_slice_selection_changed(hObject, eventdata, [], controls);
+            set(controls.hzradios, 'Enable', 'on');
+            update_edges_display_checkboxes(data, controls);
+        end
+        
         busy_dlg(busyOutput);
         setappdata(controls.hfig, 'data', data);
         initialise_sliders(controls, data);

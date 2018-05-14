@@ -148,7 +148,7 @@ function controls = setup_ui(data)
     controls.hffchecks = [];
     radio_height = 0.8 / length(data.z_offsets);
     chk_height = radio_height/3;
-    edge_string = {'L', 'R', 'M', 'Rh4', 'Rh6'};
+    edge_string = {'L', 'R', 'M', 'Rh3', 'Rh5'};
     
     %% radio buttons for choosing z plane and checkboxes to show which 
     %  edges have already been found
@@ -209,5 +209,11 @@ function controls = setup_ui(data)
                 strcmp(tg, 'Exploration.Pan') | ...
                 strcmp(tg, 'Exploration.DataCursor'));
     delete(htbbs(deltgind));
+    controls.importedges = uipushtool(hkids(strcmp(tgs, 'FigureToolBar')),...
+        'TooltipString','Import previously drawn edges...', ...
+        'Separator', 'on');
+    icon = load(fullfile(matlabroot, ...
+        'toolbox','matlab','icons','opendoc.mat'));
+    set(controls.importedges, 'CData', icon.cdata);
         
 end

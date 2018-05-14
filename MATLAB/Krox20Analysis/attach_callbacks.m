@@ -36,5 +36,7 @@ function attach_callbacks(controls)
     set(zh, 'ActionPostCallback', @post_zoom_callback)
     set(controls.hRDefradiogroup, 'SelectionChangeFcn', ...
         {@on_rhombomere_definition_method_selection_changed, [], controls});
+    set(controls.importedges, 'ClickedCallback', ...
+        {@on_load_edge_click, [], controls});
     
 end

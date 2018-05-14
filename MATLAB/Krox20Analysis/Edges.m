@@ -5,6 +5,7 @@ classdef Edges
         timepoint = 1;                          % timepoint for which edges are defined
         timestamp = 0;                          % time relative to start of timecourse in minutes
         hpf = 0;                                % hours post-fertilisation
+        top_slice_index = 1;                    % index of top slice in z stack corresponding to the edge
         
         L = [];                                 % left edge xy array
         R = [];                                 % right edge xy array

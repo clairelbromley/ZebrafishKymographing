@@ -34,6 +34,7 @@ function data = add_edge(edg, controls, data, auto)
                  data.edges((ts == t) & (zs == z)).hpf = data.hpf(t);
                 if any(strcmp(edg, edg_str))
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
+                    data.edges((ts == t) & (zs == z)).top_slice_index = data.top_slice_index;
                     data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:) = ...
                         check_edge_validity(data, data.edges((ts == t) & (zs == z)));
                     if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
@@ -44,11 +45,13 @@ function data = add_edge(edg, controls, data, auto)
                     % overlapping! 
                     % catch_overlapping_rhs(data, edg, rhs);
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
+                    data.edges((ts == t) & (zs == z)).top_slice_index = data.top_slice_index;
                     if ~auto
                         data = calculate_rhombomere_extents(data, controls);
                     end
                 else
                     data.edges((ts == t) & (zs == z)).(edg) = data.current_edge;
+                    data.edges((ts == t) & (zs == z)).top_slice_index = data.top_slice_index;
                 end
                 if any(strcmp(edg, [edg_str rhs]))
                     if isgraphics(data.edges(end).(['hl' edg]))
@@ -93,6 +96,7 @@ function data = add_edge(edg, controls, data, auto)
             data.edges(end).hpf = data.hpf(t);
             data.edges(end).z = z;
             data.edges(end).(edg) = data.current_edge;
+            data.edges(end).top_slice_index = data.top_slice_index;
             if any(strcmp(edg, [edg_str rhs]))
                 data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
                         data.current_edge(:,2), ...
@@ -107,6 +111,7 @@ function data = add_edge(edg, controls, data, auto)
         data.edges(end).hpf = data.hpf(t);
         data.edges(end).z = z;
         data.edges(end).(edg) = data.current_edge;
+        data.edges(end).top_slice_index = data.top_slice_index;
         if any(strcmp(edg, edg_str))
             data.edges(end).(['hl' edg]) = line(data.current_edge(:,1), ...
                         data.current_edge(:,2), ...

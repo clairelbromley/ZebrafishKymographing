@@ -45,7 +45,8 @@ function show_edges(controls, data)
                                         data.edges((zs == z) & (ts == t)).(edg{1})(:,2), ...
                                         'Color', 'r', 'Visible', 'on');
                                 else
-                                    if strcmp(data.channel_names(get(controls.hcsl, 'Value')), 'Krox20')
+                                    if (strcmp(data.channel_names(get(controls.hcsl, 'Value')), 'Krox20') || ...
+                                            (strcmp(data.channel_names(get(controls.hcsl, 'Value')), 'MorphologicalMarkerChannel')))
                                         if strcmp(edg, 'Rh4')
                                             clr = 'c';
                                         else

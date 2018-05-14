@@ -101,7 +101,12 @@ function controls = krox_20_base_script()
         data.czi_reader.getIndex(0, 0, 0) + 1);
     data.ome_meta = data.czi_reader.getMetadataStore();
     data.z_offsets = z_offsets;
-    data.channel_names = channel_names;
+    if (double(data.ome_meta.getPixelsSizeC(0).getValue()) > 2)
+        for xchidx = 3:double(data.ome_meta.getPixelsSizeC(0).getValue())
+            channel_names = [channel_names sprintf('Channel %d', xchidx)];
+        end
+    end
+    data.channel_names = channel_names(1:double(data.ome_meta.getPixelsSizeC(0).getValue()));
     data.scale_bar_length_um = scale_bar_length_um;
     controls = setup_ui(data);
     
@@ -118,7 +123,7 @@ function controls = krox_20_base_script()
     
     data.curr_c_plane = 1;
     data.curr_z_plane = 1;
-    
+        
     setappdata(controls.hfig, 'data', data);
     
     initialise_sliders(controls, data);
