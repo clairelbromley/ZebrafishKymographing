@@ -128,7 +128,8 @@ function data = add_edge(edg, controls, data, auto)
         end
     end
     
-    
+    % redraw rhombomeres if necessary
+    data = check_and_redraw_rhombomeres(data, controls);
     
     % update UI
     update_edges_display_checkboxes(data, controls);

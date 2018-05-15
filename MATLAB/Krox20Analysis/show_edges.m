@@ -84,7 +84,8 @@ function show_edges(controls, data)
                         end
                     end
                     
-                    if ~strcmp(data.channel_names(get(controls.hcsl, 'Value')), 'Krox20')
+                    if ~(strcmp(data.channel_names(get(controls.hcsl, 'Value')), 'Krox20') || ...
+                           strcmp(data.channel_names(get(controls.hcsl, 'Value')), 'MorphologicalMarkerChannel'))
                         rlh = [];
                         for rlidx = 1:length(data.edges((zs == z) & (ts == t)).rhombomereLimits)
                              rlhtmp = line([-500 x_size+500], ...
