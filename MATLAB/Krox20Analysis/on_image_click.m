@@ -10,7 +10,11 @@ function on_image_click(hObject, eventdata, handles, controls)
                 (get(controls.hcsl, 'Value') > 1) && (data.curr_c_plane == 1));
     try
         if use_line
-            fcn = @(pos) force_line_horizontal(pos);
+            if strcmp(char(data.AP_axis_method), 'RotatedImage')
+                fcn = @(pos) force_line_horizontal(pos);
+            else
+               fcn = @(pos) pos; 
+            end
             data.current_edge = imline(controls.hax, 'PositionConstraintFcn', fcn);
         else
             data.current_edge = imfreehand(controls.hax, 'Closed', closed);
