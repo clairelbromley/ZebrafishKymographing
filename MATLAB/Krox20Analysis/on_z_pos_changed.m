@@ -34,7 +34,7 @@ function on_z_pos_changed(hObject, eventdata, handles, controls)
                         strcmp(data.rh_definition_method, 'MorphologicalMarkers'))
                     set(rh_buts, 'Enable', 'off');
                     set(edge_buts, 'Enable', 'off');
-                    filter_enabled_rhombomere_buts(data, controls);
+                    set(rhl_buts, 'Enable', 'on');
                 else
                     set(edge_buts, 'Enable', 'on');
                     set(rh_buts, 'Enable', 'off');

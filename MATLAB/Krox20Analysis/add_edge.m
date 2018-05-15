@@ -128,17 +128,11 @@ function data = add_edge(edg, controls, data, auto)
         end
     end
     
+    
+    
     % update UI
-    edg_let = {'L', 'R', 'M', 'Rh4', 'Rh6'};
-    if strcmp(edg, 'Rh4') || strcmp(edg, 'Rh6')
-        set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
-        'Value', 1);
-    elseif any(strcmp(edg, edg_str))
-        if any(data.edges((ts == t) & (zs == z)).edgeValidity(strcmp(edg_str, edg),:))
-            set(controls.hffchecks((data.z_offsets == z), (strcmp(edg_let, edg))), ...
-            'Value', 1);
-        end
-    end
+    update_edges_display_checkboxes(data, controls);
+        
     show_edges(controls, data);
     kids = get(controls.hax, 'Children');
     delete(kids(strcmp(get(kids, 'Type'), 'hggroup')));
