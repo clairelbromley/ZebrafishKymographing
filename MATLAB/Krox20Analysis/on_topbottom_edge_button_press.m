@@ -5,12 +5,13 @@ function on_topbottom_edge_button_press(hObject, eventdata, handles, controls)
     edg = get(hObject, 'Tag');
     
     tbstr = {'Top', 'Bot'};
+    rhs = [4, 6];
        
     data = add_edge(edg, controls, data);
     rhombomere_no = sscanf(edg, 'Rh%d');
     C = strsplit(edg, num2str(rhombomere_no));
     tb = C{2};  
-    complimentary_edg = ['Rh' num2str(rhombomere_no) tbstr{~strcmp(tbstr, tb)}];
+    complimentary_edg = ['Rh' num2str(rhs(~(rhombomere_no == rhs))) tbstr{~strcmp(tbstr, tb)}];
     
     z = round((data.top_slice_index -  round(get(controls.hzsl, 'Value'))) * ...
         double(data.ome_meta.getPixelsPhysicalSizeZ(0).value(ome.units.UNITS.MICROM)));

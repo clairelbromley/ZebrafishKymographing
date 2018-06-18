@@ -13,15 +13,13 @@ function on_c_pos_changed(hObject, eventdata, handles, controls)
 %     set(hObject, 'Value', data.curr_c_plane);
     data.curr_z_plane = round(get(controls.hzsl, 'Value'));
     set(controls.hzsl, 'Value', data.curr_z_plane);
-    disp(data.curr_c_plane);
+%     disp(data.curr_c_plane);
     update_image(controls);
     
     % enable edge selection only if a relevant frame is imaged
     edge_buts = [controls.hmidlbut, controls.hledgebut, controls.hredgebut];
     rh_buts = [controls.hrh4but, controls.hrh6but];
     rhl_buts = [controls.hrh4topbut, ...
-                controls.hrh4botbut, ...
-                controls.hrh6topbut, ...
                 controls.hrh6botbut];
     if isfield(data, 'top_slice_index')
         if ~isempty(data.top_slice_index)
