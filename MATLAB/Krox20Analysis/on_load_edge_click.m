@@ -9,7 +9,7 @@ function on_load_edge_click(hObject, eventdata, handles, controls)
 
         [fname, pname, ~] = uigetfile('*.mat', ...
             'Please select backup *.mat file containing edges...', ...
-            '*.mat');
+            [data.in_folder filesep '*.mat']);
         
         if ~(fname == 0)
 
