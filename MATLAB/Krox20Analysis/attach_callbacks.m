@@ -39,4 +39,6 @@ function attach_callbacks(controls)
     set(controls.importedges, 'ClickedCallback', ...
         {@on_load_edge_click, [], controls});
     
+    set(controls.hfig, 'WindowKeyPressFcn', {@hotkey_event_handler, [], controls});
+    
 end
