@@ -50,6 +50,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
 %             set(controls.hzsl, 'Value', (data.top_slice_index));
 %         end
         on_z_pos_changed(controls.hzsl, eventdata, handles, controls);
+        set(controls.hshowchk, 'Value', 0);
         update_image(controls);
 
         %% reset checkboxes and disable controls 
