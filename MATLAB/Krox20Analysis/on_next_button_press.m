@@ -69,7 +69,7 @@ function on_next_button_press(hObject, eventdata, handles, controls)
         set(controls.hRDefRadios, 'Enable', 'off');
         
         % save header string in case it's not generated again
-        if exist('hdr_string') ~= 0
+        if exist('hdr_string', 'var') ~= 0
             if ~isempty(hdr_string)
                 data.hdr_string = hdr_string;
             end
@@ -93,6 +93,11 @@ function on_next_button_press(hObject, eventdata, handles, controls)
     
     else
         fid = fopen([data.out_folder filesep 'results.csv'],'a');
+        if exist('hdr_string', 'var') ~= 0
+            if ~isempty(hdr_string)
+                data.hdr_string = hdr_string;
+            end
+        end
         fprintf(fid,data.hdr_string);
         fclose(fid);
         busy_dlg(busyOutput);
